@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datos para Contrato · LIV</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF;
+  --surface: #F7F6FD;
+  --accent: #4B3E98;
+  --accent-hover: #3A2F7A;
+  --accent-yellow: #FEC238;
+  --accent-orange: #F47432;
+  --accent-blue: #9FC2E6;
+  --text: #1A1530;
+  --text-muted: #6B6490;
+  --border: #DDD9F5;
+  --success: #2E9D57;
+  --danger: #C0392B;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── HEADER ── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--accent);
+  box-shadow: 0 2px 16px rgba(75,62,152,0.18);
+}
+.header-inner {
+  max-width: 760px; margin: 0 auto;
+  padding: 0 28px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.logo-wrap {
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-wrap img { width: 36px; height: 36px; object-fit: contain; }
+.logo-brand {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: #fff; letter-spacing: 0.5px; line-height: 1.2;
+}
+.logo-sub { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.65); }
+
+.progress-block { flex: 1; max-width: 280px; }
+.progress-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 7px;
+}
+.progress-step-label {
+  font-size: 12px; font-weight: 700; color: #fff;
+  letter-spacing: 0.3px; font-family: 'Outfit', sans-serif;
+}
+.progress-pct { font-size: 12px; color: rgba(255,255,255,0.7); }
+.progress-track {
+  height: 4px; background: rgba(255,255,255,0.25); border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: #fff; border-radius: 2px;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── LAYOUT ── */
+.container { max-width: 760px; margin: 0 auto; padding: 36px 28px 80px; }
+
+/* ── INTRO ── */
+.intro {
+  background: var(--surface); border-radius: 12px;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  padding: 24px 28px; margin-bottom: 32px;
+}
+.intro-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent);
+  font-family: 'Outfit', sans-serif; margin-bottom: 6px;
+}
+.intro-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.3px; margin-bottom: 8px;
+}
+.intro-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+/* ── STEPS ── */
+.step { display: none; animation: fadeUp .28s ease; }
+.step.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SECTION CARD ── */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.step-badge {
+  display: inline-flex; align-items: center;
+  background: var(--accent); color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 4px 10px;
+  border-radius: 20px; margin-bottom: 10px;
+}
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.3px; margin-bottom: 20px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+
+/* ── FIELDS ── */
+.fgroup { margin-bottom: 18px; }
+.frow-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.frow-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+@media(max-width:560px) { .frow-2, .frow-3 { grid-template-columns: 1fr; } }
+
+.flabel {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: 7px; display: flex; align-items: center; gap: 4px;
+}
+.frequired { color: var(--accent-orange); font-size: 14px; line-height: 1; }
+.fhint { font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.5; }
+.ferror { font-size: 11px; color: var(--danger); margin-top: 5px; display: none; font-weight: 500; }
+.ferror.show { display: block; }
+
+input[type=text], input[type=email], input[type=tel],
+input[type=number], input[type=date], textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .18s, box-shadow .18s;
+  appearance: none; -webkit-appearance: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(75,62,152,0.10);
+}
+input::placeholder, textarea::placeholder { color: #c4c0d8; font-size: 13px; }
+input.error, textarea.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+}
+input.valid { border-color: var(--success); }
+input[type=number] {
+  font-size: 16px; font-weight: 600; text-align: center; padding: 8px 6px;
+}
+input[type=date]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; }
+textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
+
+/* ── NIVELES ── */
+.nivel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.nivel-card { position: relative; }
+.nivel-card input[type=checkbox] { position: absolute; opacity: 0; width: 0; height: 0; }
+.nivel-card label {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: 10px;
+  cursor: pointer; transition: all .18s; user-select: none;
+}
+.nivel-card label:hover { border-color: var(--accent); background: rgba(75,62,152,0.03); }
+.nivel-card input:checked + label {
+  border-color: var(--accent); background: rgba(75,62,152,0.06);
+  box-shadow: 0 0 0 2px rgba(75,62,152,0.15);
+}
+.nivel-check {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 1.5px solid var(--border); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s; background: var(--bg);
+}
+.nivel-card input:checked + label .nivel-check { background: var(--accent); border-color: var(--accent); }
+.nivel-check::after {
+  content: ''; width: 5px; height: 9px;
+  border: 2px solid white; border-top: none; border-left: none;
+  transform: rotate(45deg) translateY(-1px); display: none;
+}
+.nivel-card input:checked + label .nivel-check::after { display: block; }
+.nivel-text { font-size: 14px; font-weight: 600; color: var(--text); }
+.nivel-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+/* ── GRADE GRID ── */
+.grade-section { margin-bottom: 20px; }
+.grade-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.grade-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  font-family: 'Outfit', sans-serif;
+}
+.grade-badge.pre { background: rgba(254,194,56,0.18); color: #9a6e00; border: 1px solid rgba(254,194,56,0.4); }
+.grade-badge.pri { background: rgba(75,62,152,0.10); color: var(--accent); border: 1px solid rgba(75,62,152,0.2); }
+.grade-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+@media(max-width:480px) { .grade-grid { grid-template-columns: 1fr 1fr; } }
+.grade-cell {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 8px; text-align: center; transition: border-color .18s;
+}
+.grade-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(75,62,152,0.08); }
+.grade-cell-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 6px; font-family: 'Outfit', sans-serif;
+}
+.grade-cell input { border: none; background: transparent; padding: 2px 0; width: 100%; box-shadow: none !important; }
+.grade-cell input:focus { box-shadow: none !important; }
+.docentes-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.subtotal-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(75,62,152,0.06); border: 1px solid rgba(75,62,152,0.15);
+  border-radius: 8px; padding: 10px 16px; margin-top: 10px;
+}
+.subtotal-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--accent); font-family: 'Outfit', sans-serif;
+}
+.subtotal-val { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); }
+.total-card {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--accent); border-radius: 10px;
+  padding: 14px 20px; margin-top: 16px;
+  border-top: 3px solid var(--accent-yellow);
+}
+.total-card-label {
+  font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.75);
+}
+.total-card-val { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: #fff; }
+.total-card-sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+/* ── NAV ── */
+.nav-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 28px; padding-top: 20px;
+  border-top: 1px solid var(--border); gap: 12px; flex-wrap: wrap;
+}
+.steps-dots { display: flex; gap: 6px; align-items: center; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all .3s; }
+.dot.done { background: rgba(75,62,152,0.35); }
+.dot.active { width: 22px; border-radius: 4px; background: var(--accent); }
+.btn-back {
+  background: transparent; border: 1.5px solid var(--border); color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all .18s;
+}
+.btn-back:hover { border-color: var(--accent); color: var(--accent); background: rgba(75,62,152,0.04); }
+.btn-next, .btn-submit {
+  background: var(--accent); border: none; color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+  padding: 11px 26px; border-radius: 8px; cursor: pointer;
+  transition: background .18s; display: flex; align-items: center; gap: 8px;
+}
+.btn-next:hover, .btn-submit:hover { background: var(--accent-hover); }
+.btn-submit { min-width: 200px; justify-content: center; }
+.btn-submit.loading { opacity: 0.7; cursor: not-allowed; }
+.spinner {
+  width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin .7s linear infinite; display: none;
+}
+.btn-submit.loading .spinner { display: block; }
+.btn-submit.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── EMAIL NOTICE ── */
+.email-notice {
+  background: rgba(159,194,230,0.15); border: 1px solid rgba(159,194,230,0.4);
+  border-left: 3px solid var(--accent-blue); border-radius: 0 8px 8px 0;
+  padding: 12px 16px; margin-bottom: 20px;
+  font-size: 13px; color: var(--text-muted); line-height: 1.55;
+}
+.email-notice strong { color: var(--text); }
+
+/* ── SUCCESS ── */
+.success { display: none; text-align: center; padding: 60px 20px; }
+.success.show { display: block; animation: fadeUp .4s ease; }
+.success-check {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: rgba(46,157,87,0.1); border: 2px solid rgba(46,157,87,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px; font-size: 30px; color: var(--success);
+}
+.success-title {
+  font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 700;
+  color: var(--text); margin-bottom: 10px;
+}
+.success-sub { font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 400px; margin: 0 auto 28px; }
+.success-card {
+  max-width: 420px; margin: 0 auto; background: var(--surface);
+  border: 1px solid var(--border); border-top: 3px solid var(--accent-yellow);
+  border-radius: 10px; padding: 18px 22px; text-align: left;
+}
+.success-card-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.success-card-row:last-child { border-bottom: none; }
+.success-card-label { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.success-card-val { font-weight: 600; color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <img src="images/Logo_V_Corta_Blanco.png" alt="LIV">
+      <div class="logo-brand">
+        LIV Latam
+        <div class="logo-sub">Datos para Contrato</div>
+      </div>
+    </div>
+    <div class="progress-block">
+      <div class="progress-meta">
+        <span class="progress-step-label" id="stepLabel">Paso 1 de 4</span>
+        <span class="progress-pct" id="stepName">Datos fiscales</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:25%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- INTRO -->
+  <div class="intro" id="formIntro">
+    <div class="intro-tag">Laboratorio Inteligencia de Vida</div>
+    <div class="intro-title">Información para elaboración de contrato</div>
+    <div class="intro-desc">Este formulario recopila los datos necesarios para la elaboración del Contrato LIV. La información será utilizada exclusivamente con fines administrativos y contractuales.</div>
+  </div>
+
+  <!-- STEP 1: DATOS FISCALES -->
+  <div class="step active" id="step1">
+    <div class="section-card">
+      <div class="step-badge">01 / 04</div>
+      <div class="section-title">Datos fiscales</div>
+
+      <div class="fgroup">
+        <div class="flabel">Razón social completa <span class="frequired">*</span></div>
+        <input type="text" id="razon" placeholder="Nombre legal completo de la institución" autocomplete="organization">
+        <div class="ferror" id="err_razon">Este campo es obligatorio</div>
+      </div>
+
+      <div class="frow-2">
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">Nombre comercial <span class="frequired">*</span></div>
+          <input type="text" id="nombre" placeholder="Nombre con el que opera">
+          <div class="ferror" id="err_nombre">Este campo es obligatorio</div>
+        </div>
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">RFC <span class="frequired">*</span></div>
+          <input type="text" id="rfc" placeholder="Ej: TSA1302051Q4" maxlength="20"
+                 style="letter-spacing:1px;text-transform:uppercase;font-weight:600">
+          <div class="ferror" id="err_rfc">Mínimo 6 caracteres y debe contener al menos un número</div>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <div class="flabel">Domicilio fiscal completo <span class="frequired">*</span></div>
+        <textarea id="domicilio" rows="3" placeholder="Calle, número, colonia, municipio, estado, CP"></textarea>
+        <div class="ferror" id="err_domicilio">Este campo es obligatorio</div>
+      </div>
+
+      <div class="fgroup" style="margin-bottom:0">
+        <div class="flabel">Régimen fiscal y uso de CFDI <span class="frequired">*</span></div>
+        <input type="text" id="regimen" placeholder="Ej: Régimen General de Ley Personas Morales / Gastos en General">
+        <div class="fhint">Incluye régimen fiscal y uso de CFDI si aplica</div>
+        <div class="ferror" id="err_regimen">Este campo es obligatorio</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <div style="width:80px"></div>
+      <div class="steps-dots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <button class="btn-next" onclick="goNext(1)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: REPRESENTANTE LEGAL -->
+  <div class="step" id="step2">
+    <div class="section-card">
+      <div class="step-badge">02 / 04</div>
+      <div class="section-title">Representante legal</div>
+
+      <div class="frow-2">
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">Nombre completo <span class="frequired">*</span></div>
+          <input type="text" id="rep_nombre" placeholder="Nombre y apellidos" autocomplete="name">
+          <div class="ferror" id="err_rep_nombre">Este campo es obligatorio</div>
+        </div>
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">Cargo <span class="frequired">*</span></div>
+          <input type="text" id="rep_cargo" placeholder="Ej: Director General">
+          <div class="ferror" id="err_rep_cargo">Este campo es obligatorio</div>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <div class="flabel">INE del representante legal <span class="frequired">*</span></div>
+        <input type="text" id="ine" placeholder="Clave de elector o folio" style="letter-spacing:0.8px">
+        <div class="ferror" id="err_ine">Mínimo 6 caracteres y debe contener al menos un número</div>
+      </div>
+
+      <div class="frow-2">
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">Correo electrónico <span class="frequired">*</span></div>
+          <input type="email" id="rep_email" placeholder="correo@institución.edu.mx" autocomplete="email">
+          <div class="ferror" id="err_rep_email">Correo electrónico inválido</div>
+        </div>
+        <div class="fgroup" style="margin-bottom:0">
+          <div class="flabel">Teléfono de contacto <span class="frequired">*</span></div>
+          <input type="tel" id="rep_tel" placeholder="55 1234 5678">
+          <div class="fhint">Incluye lada local</div>
+          <div class="ferror" id="err_rep_tel">Ingresa un teléfono válido (mín. 8 dígitos)</div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack(2)">← Anterior</button>
+      <div class="steps-dots">
+        <div class="dot done"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <button class="btn-next" onclick="goNext(2)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: ALUMNOS -->
+  <div class="step" id="step3">
+    <div class="section-card">
+      <div class="step-badge">03 / 04</div>
+      <div class="section-title">Niveles y distribución de alumnos</div>
+
+      <div class="fgroup">
+        <div class="flabel">Niveles educativos <span class="frequired">*</span></div>
+        <div class="nivel-grid">
+          <div class="nivel-card">
+            <input type="checkbox" id="nivel_pre" value="Preescolar" onchange="toggleNivel()">
+            <label for="nivel_pre">
+              <span class="nivel-check"></span>
+              <div><div class="nivel-text">Preescolar</div><div class="nivel-sub">3, 4 y 5 años</div></div>
+            </label>
+          </div>
+          <div class="nivel-card">
+            <input type="checkbox" id="nivel_pri" value="Primaria" onchange="toggleNivel()">
+            <label for="nivel_pri">
+              <span class="nivel-check"></span>
+              <div><div class="nivel-text">Primaria</div><div class="nivel-sub">1° a 6° grado</div></div>
+            </label>
+          </div>
+        </div>
+        <div class="ferror" id="err_niveles">Selecciona al menos un nivel educativo</div>
+      </div>
+
+      <!-- PREESCOLAR -->
+      <div class="grade-section" id="sec_pre" style="display:none">
+        <div class="grade-header"><span class="grade-badge pre">Preescolar</span></div>
+        <div class="grade-grid">
+          <div class="grade-cell"><div class="grade-cell-label">3 años</div><input type="number" id="pre3" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">4 años</div><input type="number" id="pre4" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">5 años</div><input type="number" id="pre5" value="0" min="0" max="999" oninput="calcSubs()"></div>
+        </div>
+        <div class="docentes-row">
+          <div class="grade-cell"><div class="grade-cell-label">Docentes</div><input type="number" id="doc_pre" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="subtotal-bar" style="margin-top:0">
+            <span class="subtotal-label">Subtotal preescolar</span>
+            <span class="subtotal-val" id="sub_pre">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIMARIA -->
+      <div class="grade-section" id="sec_pri" style="display:none">
+        <div class="grade-header"><span class="grade-badge pri">Primaria</span></div>
+        <div class="grade-grid">
+          <div class="grade-cell"><div class="grade-cell-label">1° grado</div><input type="number" id="pri1" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">2° grado</div><input type="number" id="pri2" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">3° grado</div><input type="number" id="pri3" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">4° grado</div><input type="number" id="pri4" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">5° grado</div><input type="number" id="pri5" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="grade-cell"><div class="grade-cell-label">6° grado</div><input type="number" id="pri6" value="0" min="0" max="999" oninput="calcSubs()"></div>
+        </div>
+        <div class="docentes-row">
+          <div class="grade-cell"><div class="grade-cell-label">Docentes</div><input type="number" id="doc_pri" value="0" min="0" max="999" oninput="calcSubs()"></div>
+          <div class="subtotal-bar" style="margin-top:0">
+            <span class="subtotal-label">Subtotal primaria</span>
+            <span class="subtotal-val" id="sub_pri">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="total-card" id="totalCard" style="display:none">
+        <div>
+          <div class="total-card-label">Total de alumnos</div>
+          <div class="total-card-sub" id="totalDocSub">— docentes registrados</div>
+        </div>
+        <div class="total-card-val" id="totalAlumnos">0</div>
+      </div>
+      <div class="ferror" id="err_alumnos">Ingresa al menos 1 alumno para continuar</div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack(3)">← Anterior</button>
+      <div class="steps-dots">
+        <div class="dot done"></div><div class="dot done"></div><div class="dot active"></div><div class="dot"></div>
+      </div>
+      <button class="btn-next" onclick="goNext(3)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: ENTREGA -->
+  <div class="step" id="step4">
+    <div class="section-card">
+      <div class="step-badge">04 / 04</div>
+      <div class="section-title">Entrega y fecha de inicio</div>
+
+      <div class="fgroup">
+        <div class="flabel">Fecha estimada de inicio de clases <span class="frequired">*</span></div>
+        <div class="frow-3" style="margin-bottom:0">
+          <div>
+            <div class="flabel" style="font-size:10px">Día</div>
+            <input type="number" id="fecha_day" placeholder="DD" min="1" max="31" style="text-align:center">
+          </div>
+          <div>
+            <div class="flabel" style="font-size:10px">Mes</div>
+            <input type="number" id="fecha_month" placeholder="MM" min="1" max="12" style="text-align:center">
+          </div>
+          <div>
+            <div class="flabel" style="font-size:10px">Año</div>
+            <input type="number" id="fecha_year" placeholder="AAAA" min="2026" max="2027" style="text-align:center">
+          </div>
+        </div>
+        <div class="fhint">Ciclo escolar 2026</div>
+        <div class="ferror" id="err_fecha">Ingresa una fecha válida (día, mes y año)</div>
+      </div>
+
+      <div class="fgroup">
+        <div class="flabel">Dirección para entrega de materiales <span class="frequired">*</span></div>
+        <textarea id="entrega" rows="3" placeholder="Calle, número, colonia, municipio, estado, CP&#10;(puede diferir del domicilio fiscal)"></textarea>
+        <div class="fhint">Si coincide con el domicilio fiscal, repite la dirección</div>
+        <div class="ferror" id="err_entrega">Este campo es obligatorio</div>
+      </div>
+
+      <div class="fgroup" style="margin-bottom:0">
+        <div class="flabel">Datos de contacto del responsable académico u operativo <span class="frequired">*</span></div>
+        <input type="text" id="responsable2" placeholder="nombre, correo y/o teléfono del responsable operativo del programa">
+        <div class="fhint">Nombre, correo electrónico y/o teléfono de contacto</div>
+        <div class="ferror" id="err_responsable2">Este campo es obligatorio</div>
+      </div>
+    </div>
+
+    <div class="email-notice">
+      El correo <strong id="emailDisplay">—</strong> quedará registrado con esta respuesta.
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goBack(4)">← Anterior</button>
+      <div class="steps-dots">
+        <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot active"></div>
+      </div>
+      <button class="btn-submit" id="btnSubmit" onclick="submitForm()">
+        <span class="btn-text">Enviar información →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="successScreen">
+    <div class="success-check">✓</div>
+    <div class="success-title">¡Información enviada!</div>
+    <div class="success-sub">Recibimos tus datos correctamente. El equipo LIV procesará el contrato y se pondrá en contacto contigo en los próximos días hábiles.</div>
+    <div class="success-card">
+      <div class="success-card-row"><span class="success-card-label">Institución</span><span class="success-card-val" id="s_nombre">—</span></div>
+      <div class="success-card-row"><span class="success-card-label">RFC</span><span class="success-card-val" id="s_rfc">—</span></div>
+      <div class="success-card-row"><span class="success-card-label">Total de alumnos</span><span class="success-card-val" id="s_total">—</span></div>
+      <div class="success-card-row"><span class="success-card-label">Inicio de clases</span><span class="success-card-val" id="s_fecha">—</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx21bxtPYGKhnaXoG_GZXzmedBvhQG59jjAiQyMnXteiFGwquThTPFdZZvQE_bhYMg/exec';
+
+const g = id => document.getElementById(id);
+const val = id => g(id) ? g(id).value.trim() : '';
+
+const STEP_NAMES = ['','Datos fiscales','Representante legal','Niveles y alumnos','Entrega y fecha'];
+let currentStep = 1;
+const TOTAL = 4;
+
+function updateProgress() {
+  const pct = (currentStep / TOTAL) * 100;
+  g('progressFill').style.width = pct + '%';
+  g('stepLabel').textContent = 'Paso ' + currentStep + ' de ' + TOTAL;
+  g('stepName').textContent = STEP_NAMES[currentStep] || '';
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  g('step' + n).classList.add('active');
+  g('formIntro').style.display = n === 1 ? '' : 'none';
+  currentStep = n;
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showErr(id, show, msg) {
+  const el = g('err_' + id);
+  if (el) { el.classList.toggle('show', show); if (msg) el.textContent = msg; }
+  const inp = g(id);
+  if (inp) inp.classList.toggle('error', show);
+}
+
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+
+// RFC e INE: mínimo 6 chars, deve conter pelo menos 1 número
+function validCode(v) {
+  const s = v.trim();
+  return s.length >= 6 && /[0-9]/.test(s);
+}
+
+function validateStep(n) {
+  let ok = true;
+
+  if (n === 1) {
+    ['razon','nombre','domicilio','regimen'].forEach(id => {
+      const bad = !val(id); showErr(id, bad); if (bad) ok = false;
+    });
+    const rfcBad = !validCode(val('rfc'));
+    showErr('rfc', rfcBad, 'Mínimo 6 caracteres y debe contener al menos un número');
+    if (rfcBad) ok = false;
+  }
+
+  if (n === 2) {
+    ['rep_nombre','rep_cargo'].forEach(id => {
+      const bad = !val(id); showErr(id, bad); if (bad) ok = false;
+    });
+    const ineBad = !validCode(val('ine'));
+    showErr('ine', ineBad, 'Mínimo 6 caracteres y debe contener al menos un número');
+    if (ineBad) ok = false;
+    const emailBad = !validEmail(val('rep_email'));
+    showErr('rep_email', emailBad, 'Correo electrónico inválido');
+    if (emailBad) ok = false;
+    const telBad = val('rep_tel').replace(/\D/g,'').length < 8;
+    showErr('rep_tel', telBad, 'Ingresa un teléfono válido (mín. 8 dígitos)');
+    if (telBad) ok = false;
+  }
+
+  if (n === 3) {
+    const hasPre = g('nivel_pre').checked, hasPri = g('nivel_pri').checked;
+    if (!hasPre && !hasPri) { g('err_niveles').classList.add('show'); ok = false; }
+    else g('err_niveles').classList.remove('show');
+    const tot = parseInt(g('totalAlumnos').textContent) || 0;
+    if ((hasPre || hasPri) && tot === 0) { g('err_alumnos').classList.add('show'); ok = false; }
+    else g('err_alumnos').classList.remove('show');
+  }
+
+  if (n === 4) {
+    const day   = parseInt(val('fecha_day'))   || 0;
+    const month = parseInt(val('fecha_month')) || 0;
+    const year  = parseInt(val('fecha_year'))  || 0;
+    const fechaBad = !day || !month || !year || day > 31 || month > 12 || year < 2026;
+    showErr('fecha', fechaBad, 'Ingresa una fecha válida (día, mes y año)');
+    if (fechaBad) ok = false;
+    const entBad = !val('entrega');        showErr('entrega', entBad); if (entBad) ok = false;
+    const resBad = !val('responsable2');   showErr('responsable2', resBad); if (resBad) ok = false;
+  }
+
+  return ok;
+}
+
+function goNext(from) {
+  if (!validateStep(from)) return;
+  showStep(from + 1);
+  if (from === 2) g('emailDisplay').textContent = val('rep_email');
+}
+function goBack(from) { if (from > 1) showStep(from - 1); }
+
+function toggleNivel() {
+  const hasPre = g('nivel_pre').checked, hasPri = g('nivel_pri').checked;
+  g('sec_pre').style.display = hasPre ? '' : 'none';
+  g('sec_pri').style.display = hasPri ? '' : 'none';
+  g('totalCard').style.display = (hasPre || hasPri) ? '' : 'none';
+  g('err_niveles').classList.remove('show');
+  calcSubs();
+}
+
+function calcSubs() {
+  const hasPre = g('nivel_pre').checked, hasPri = g('nivel_pri').checked;
+  const n = id => parseInt(g(id).value) || 0;
+  const pre = hasPre ? n('pre3')+n('pre4')+n('pre5') : 0;
+  const pri = hasPri ? n('pri1')+n('pri2')+n('pri3')+n('pri4')+n('pri5')+n('pri6') : 0;
+  const docPre = hasPre ? n('doc_pre') : 0;
+  const docPri = hasPri ? n('doc_pri') : 0;
+  if (hasPre) g('sub_pre').textContent = pre;
+  if (hasPri) g('sub_pri').textContent = pri;
+  g('totalAlumnos').textContent = pre + pri;
+  g('totalDocSub').textContent = (docPre + docPri) + ' docentes registrados';
+}
+
+// RFC auto uppercase
+g('rfc').addEventListener('input', function(){
+  this.value = this.value.toUpperCase();
+});
+
+async function submitForm() {
+  if (!validateStep(4)) return;
+  const btn = g('btnSubmit');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  const hasPre = g('nivel_pre').checked;
+  const hasPri = g('nivel_pri').checked;
+  const niveles = [hasPre ? 'Preescolar' : '', hasPri ? 'Primaria' : ''].filter(Boolean).join(', ');
+
+  const day   = val('fecha_day').padStart(2,'0');
+  const month = val('fecha_month').padStart(2,'0');
+  const year  = val('fecha_year');
+  const fecha = `${day}/${month}/${year}`;
+
+  const payload = {
+    razon:       val('razon'),
+    nombre:      val('nombre'),
+    rfc:         val('rfc').toUpperCase(),
+    domicilio:   val('domicilio'),
+    regimen:     val('regimen'),
+    rep_nombre:  val('rep_nombre'),
+    rep_cargo:   val('rep_cargo'),
+    ine:         val('ine'),
+    rep_email:   val('rep_email'),
+    rep_tel:     val('rep_tel'),
+    responsable: val('responsable2'),
+    niveles:     niveles,
+    pre3:        hasPre ? g('pre3').value : '0',
+    pre4:        hasPre ? g('pre4').value : '0',
+    pre5:        hasPre ? g('pre5').value : '0',
+    doc_pre:     hasPre ? g('doc_pre').value : '0',
+    pri1:        hasPri ? g('pri1').value : '0',
+    pri2:        hasPri ? g('pri2').value : '0',
+    pri3:        hasPri ? g('pri3').value : '0',
+    pri4:        hasPri ? g('pri4').value : '0',
+    pri5:        hasPri ? g('pri5').value : '0',
+    pri6:        hasPri ? g('pri6').value : '0',
+    doc_pri:     hasPri ? g('doc_pri').value : '0',
+    fecha:       fecha,
+    entrega:     val('entrega'),
+  };
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { /* no-cors expected */ }
+
+  // ── SUCESSO ──
+  document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+  g('formIntro').style.display = 'none';
+  g('progressFill').style.width = '100%';
+  g('stepLabel').textContent = 'Completado';
+  g('stepName').textContent = '¡Datos enviados!';
+  g('s_nombre').textContent = val('nombre');
+  g('s_rfc').textContent    = val('rfc').toUpperCase();
+  g('s_total').textContent  = g('totalAlumnos').textContent + ' alumnos';
+  g('s_fecha').textContent  = fecha;
+  g('successScreen').classList.add('show');
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+updateProgress();
+</script>
+</body>
+</html>
