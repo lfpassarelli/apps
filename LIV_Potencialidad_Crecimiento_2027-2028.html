@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Potencialidad de Crecimiento — LIV LatAm 2027–2028</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F7F6FD;
+    --surface-2: #EEEAF9;
+    --accent: #4B3E98;
+    --accent-hover: #3A2F7A;
+    --accent-yellow: #FEC238;
+    --accent-orange: #F47432;
+    --accent-blue: #9FC2E6;
+    --text: #1A1530;
+    --text-muted: #6B6490;
+    --border: #DDD9F5;
+    --success: #2E9D57;
+    --danger: #C0392B;
+    --chart-1: #4B3E98;
+    --chart-2: #FEC238;
+    --chart-3: #F47432;
+    --chart-4: #9FC2E6;
+    --chart-5: #2E9D57;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    background: var(--accent);
+    padding: 10px 64px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: rgba(254,194,56,0.12);
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    right: 80px; bottom: -80px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(244,116,50,0.10);
+  }
+  .cover-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent-yellow);
+    margin-bottom: 16px;
+  }
+  .cover h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+    max-width: 680px;
+    margin-bottom: 8px;
+  }
+  .cover-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.72);
+    max-width: 560px;
+    margin-bottom: 20px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+  }
+  .cover-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cover-meta-item span:first-child {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+  .cover-meta-item span:last-child {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+  .accent-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--accent-orange) 100%);
+  }
+
+  /* ── BODY ── */
+  .body-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 48px 64px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent-yellow);
+    background: var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+  .section-title-block h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+  .section-title-block p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  section { margin-bottom: 56px; }
+
+  /* ── EXEC SUMMARY ── */
+  .exec-summary {
+    background: var(--surface);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 24px 28px;
+    margin-bottom: 40px;
+  }
+  .exec-summary h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .exec-summary ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .exec-summary ul li {
+    font-size: 13.5px;
+    color: var(--text);
+    padding-left: 20px;
+    position: relative;
+  }
+  .exec-summary ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent-orange);
+    font-weight: 700;
+  }
+  .exec-summary ul li strong {
+    color: var(--accent);
+  }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 20px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.c1::before { background: var(--accent); }
+  .kpi-card.c2::before { background: var(--accent-yellow); }
+  .kpi-card.c3::before { background: var(--accent-orange); }
+  .kpi-card.c4::before { background: var(--accent-blue); }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-value.yellow { color: var(--accent-yellow); }
+  .kpi-value.orange { color: var(--accent-orange); }
+  .kpi-value.blue { color: #3A7EC0; }
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .kpi-sub strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ── TABLES ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: var(--accent);
+  }
+  thead th {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody tr:nth-child(odd) { background: var(--bg); }
+  tbody tr:nth-child(even) { background: var(--surface); }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody td {
+    padding: 10px 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rev { color: var(--success); font-weight: 600; }
+  tfoot tr { background: var(--surface-2); }
+  tfoot td {
+    padding: 11px 14px;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    border-top: 2px solid var(--border);
+    color: var(--accent);
+  }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-family: 'Outfit', sans-serif;
+  }
+  .badge-GG { background: #EDE9FD; color: #4B3E98; }
+  .badge-G  { background: #E8F5ED; color: #2E7D4F; }
+  .badge-M  { background: #FFF7E6; color: #B07B00; }
+  .badge-P  { background: #F5F5F5; color: #666; }
+  .badge-XP { background: #FFE9E9; color: #C0392B; }
+  .badge-ganado   { background: #E8F5ED; color: #2E7D4F; }
+  .badge-afirmar  { background: #FFF3E0; color: #E65100; }
+  .badge-propuesta { background: #EDE9FD; color: #4B3E98; }
+
+  /* ── CHARTS ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .chart-card h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .chart-card p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .chart-container { position: relative; height: 220px; }
+
+  /* ── NOTE BOX ── */
+  .note-box {
+    background: #FFF8E6;
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: #7A5C00;
+    margin-top: 16px;
+  }
+  .note-box strong { color: #5A4200; }
+
+  /* ── CAMADA PROPUESTAS NOTE ── */
+  .propuestas-note {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .propuestas-note .icon {
+    font-size: 16px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ── FOOTER ── */
+  .report-footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .report-footer span {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .footer-logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* ── MINI STATS ROW ── */
+  .mini-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .mini-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mini-stat-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .mini-stat-lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .kpi-card, .chart-card, .table-wrap { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+    <img src="https://lfpassarelli.github.io/formulario-dados/images/Logo_V_Corta_Blanco.png" alt="LIV" style="height:80px;width:auto;display:block;flex-shrink:0;">
+    <div class="cover-label" style="margin-bottom:0; font-size:18px;">LATAM - Análisis Estratégico</div>
+  </div>
+  <h1>Potencialidad de Crecimiento<br>Campaña 2027–2028</h1>
+  <p class="cover-sub">Mapa de oportunidades de expansión en la base de clientes conquistados y cartera activa.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span>Campaña</span>
+      <span>2027 – 2028</span>
+    </div>
+    <div class="cover-meta-item">
+      <span>Ticket de referencia</span>
+      <span>US$ 45 / alumno</span>
+    </div>
+    <div class="cover-meta-item">
+      <span>Base de análisis</span>
+      <span>Ganados + A firmar + Embudo Activo</span>
+    </div>
+    <div class="cover-meta-item">
+      <span>Fecha de análisis</span>
+      <span>Mayo 2026</span>
+    </div>
+  </div>
+</div>
+<div class="accent-bar"></div>
+
+<div class="body-wrap">
+
+  <!-- EXECUTIVE SUMMARY -->
+  <div class="exec-summary">
+    <h3>Resumen Ejecutivo</h3>
+    <ul>
+      <li>La campaña 2026–2027 cubre únicamente Preescolar y Primaria. La expansión a <strong>Secundaria y Preparatoria</strong> en 2027–2028 representa la mayor oportunidad de crecimiento orgánico de la compañía.</li>
+      <li><strong>27 de 36 escuelas</strong> Ganadas/A Firmar ya tienen alumnos en Secundaria o Prepa — upsell natural con relación comercial establecida.</li>
+      <li>El funil restante de la campaña actual (activo + perdidos recuperables) suma <strong>44,315 alumnos</strong> y <strong>US$ 1,994,175</strong> en oportunidades de Preescolar/Primaria que, si se convierten, se suman también al pipeline de upsell 2027–2028.</li>
+      <li>La expansión vía grupos y congregaciones abre acceso a <strong>194 colegios adicionales</strong> con un potencial estimado de <strong>US$ 1,746,000</strong> en Sec/Prepa.</li>
+      <li>El potencial total identificado asciende a <strong>US$ 4,770,900</strong> en las cuatro capas de análisis.</li>
+    </ul>
+  </div>
+
+  <!-- KPI GLOBAL -->
+  <div class="kpi-grid">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Capa 1 — Upsell Directo</div>
+      <div class="kpi-value">9,961</div>
+      <div class="kpi-sub">alumnos (Sec/Prepa + 1ª Camp.) · <strong class="rev">US$ 448,245</strong></div>
+    </div>
+    <div class="kpi-card c2">
+    <div class="kpi-label">Capa 2 — Expansión de Grupos</div>
+    <div class="kpi-value yellow">194</div>
+    <div class="kpi-sub">colegios accesibles · <strong>~38,800 alumnos est.</strong></div>
+    <div class="kpi-sub"><strong class="rev">US$ 1,746,000 est.</strong></div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Capa 3 — Propuestas Activas</div>
+      <div class="kpi-value orange">12,944</div>
+      <div class="kpi-sub">alumnos est. (Nr ×1,25) · <strong class="rev">US$ 582,480</strong></div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Capa 4 — Funil Restante</div>
+      <div class="kpi-value blue">44,315</div>
+      <div class="kpi-sub">alumnos en juego · <strong class="rev">US$ 1,994,175</strong></div>
+    </div>
+  </div>
+
+  <!-- TOTAL HIGHLIGHT -->
+  <div style="background: var(--accent); border-radius: 10px; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 48px;">
+    <div>
+      <div style="font-family:'Outfit',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-bottom:4px;">Potencial Total Identificado (4 Capas)</div>
+      <div style="font-family:'Outfit',sans-serif; font-size:38px; font-weight:800; color:#FEC238; line-height:1;">~106,020 alumnos</div>
+      <div style="font-family:'Outfit',sans-serif; font-size:18px; font-weight:600; color:rgba(255,255,255,0.75); margin-top:4px;">US$ 4,770,900</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:6px;">Desglose por capa</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.85); line-height:1.9;">
+        Upsell directo: <strong style="color:#FEC238">9,961 alumnos</strong> · US$ 448,245<br>
+        Grupos: <strong style="color:#FEC238">~38,800 alumnos est.</strong> · US$ 1,746,000<br>
+        Propuestas: <strong style="color:#FEC238">~12,944 alumnos est.</strong> · US$ 582,480<br>
+        Funil restante: <strong style="color:#FEC238">44,315 alumnos</strong> · US$ 1,994,175
+      </div>
+    </div>
+</div>
+
+  <!-- ====================================================== -->
+  <!-- CAPA 1 -->
+  <!-- ====================================================== -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">CAPA 1</div>
+      <div class="section-title-block">
+        <h2>Upsell Directo — Sec. &amp; Prepa. en Clientes Ganados</h2>
+        <p>Escuelas Ganadas y A Firmar que ya tienen alumnos en Secundaria o Preparatoria. Relación comercial establecida — máxima probabilidad de conversión en 2027–2028.</p>
+      </div>
+    </div>
+
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val">27</div><div class="mini-stat-lbl">Escuelas con Sec/Prepa</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">8,477</div><div class="mini-stat-lbl">Alumnos Sec+Prepa</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">1,484</div><div class="mini-stat-lbl">Alumnos restantes 1ª Camp.</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">US$ 448,245</div><div class="mini-stat-lbl">Potencial Facturación Total</div></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+  <h4>Alumnos Sec + Prepa por escuela (Top 6)</h4>
+  <p>Volumen disponible para upsell campaña 2027–2028</p>
+  <div style="overflow-y:auto; height:220px;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left; padding:4px 8px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color: rgba(255,255,255,0.85); font-weight:600;">Escuela</th>
+          <th style="text-align:right; padding:4px 8px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color: rgba(255,255,255,0.85); font-weight:600;">Alumnos</th>
+          <th style="text-align:right; padding:4px 8px; font-size:10px; letter-spacing:1px; text-transform:uppercase; color: rgba(255,255,255,0.85); font-weight:600;">US$</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:5px 8px; color:var(--text);">Bilingüe Salvador Novo</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">2,000</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$90,000</td></tr>
+        <tr style="border-bottom:1px solid var(--border); background:var(--surface);"><td style="padding:5px 8px; color:var(--text);">Wexford Querétaro</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">1,023</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$46,035</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:5px 8px; color:var(--text);">Fray Luis de León</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">675</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$30,375</td></tr>
+        <tr style="border-bottom:1px solid var(--border); background:var(--surface);"><td style="padding:5px 8px; color:var(--text);">Colegios IECS-IEDIS</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">650</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$29,250</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:5px 8px; color:var(--text);">Anglo Español Durango</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">558</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$25,110</td></tr>
+        <tr style="border-bottom:1px solid var(--border); background:var(--surface);"><td style="padding:5px 8px; color:var(--text);">IPEFH</td><td style="padding:5px 8px; text-align:right; font-weight:600; color:var(--accent);">530</td><td style="padding:5px 8px; text-align:right; color:var(--success); font-weight:600;">$23,850</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+      <div class="chart-card">
+        <h4>Distribución por Categorización Final</h4>
+        <p>Alumnos Sec+Prepa agrupados por tamaño de escuela</p>
+        <div class="chart-container">
+          <canvas id="chartC1Cat"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Escuela</th>
+            <th>Estado</th>
+            <th>Cat.</th>
+            <th class="num">Alumnos Sec+Prepa</th>
+            <th class="num">Potencial US$</th>
+            <th>Responsable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Colegio Bilingüe Salvador Novo</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">2,000</td><td class="num rev">$90,000</td><td>Nicolás Navarro</td></tr>
+          <tr><td>2</td><td>Colegio Wexford Querétaro</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">1,023</td><td class="num rev">$46,035</td><td>Nicolás Navarro</td></tr>
+          <tr><td>3</td><td>Colegio Fray Luis de León</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">675</td><td class="num rev">$30,375</td><td>Diego Guash</td></tr>
+          <tr><td>4</td><td>Colegios IECS-IEDIS</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">650</td><td class="num rev">$29,250</td><td>Nicolás Navarro</td></tr>
+          <tr><td>5</td><td>Colegio Anglo Español de Durango</td><td><span class="badge badge-afirmar">A Firmar</span></td><td><span class="badge badge-G">G</span></td><td class="num">558</td><td class="num rev">$25,110</td><td>Nicolás Navarro</td></tr>
+          <tr><td>6</td><td>IPEFH</td><td><span class="badge badge-afirmar">A Firmar</span></td><td><span class="badge badge-G">G</span></td><td class="num">530</td><td class="num rev">$23,850</td><td>Diego Guash</td></tr>
+          <tr><td>7</td><td>Innova Schools México</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">458</td><td class="num rev">$20,610</td><td>Nicolás Navarro</td></tr>
+          <tr><td>8</td><td>Lúminos</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">308</td><td class="num rev">$13,860</td><td>Lucas Doberti</td></tr>
+          <tr><td>9</td><td>Colegio Teresiano Enrique de Ossó</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">265</td><td class="num rev">$11,925</td><td>Nicolás Navarro</td></tr>
+          <tr><td>10</td><td>Manuela Cataño</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">250</td><td class="num rev">$11,250</td><td>Nicolás Navarro</td></tr>
+          <tr><td>11</td><td>Colegio Hellen Keller Cuernavaca</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-M">M</span></td><td class="num">200</td><td class="num rev">$9,000</td><td>Nicolás Navarro</td></tr>
+          <tr><td>12</td><td>Instituto JFR J. Francisco Rodríguez</td><td><span class="badge badge-afirmar">A Firmar</span></td><td><span class="badge badge-G">G</span></td><td class="num">176</td><td class="num rev">$7,920</td><td>Diego Guash</td></tr>
+          <tr><td>13</td><td>Colegio Alfonso García Robles</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">175</td><td class="num rev">$7,875</td><td>Nicolás Navarro</td></tr>
+          <tr><td>14</td><td>Greenvalley School</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">174</td><td class="num rev">$7,830</td><td>Nicolás Navarro</td></tr>
+          <tr><td>15</td><td>Escuela IPANTI</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-M">M</span></td><td class="num">165</td><td class="num rev">$7,425</td><td>Lucas Doberti</td></tr>
+          <tr><td>16</td><td>Instituto Alexander Graham Bell</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-M">M</span></td><td class="num">160</td><td class="num rev">$7,200</td><td>Nicolás Navarro</td></tr>
+          <tr><td>17</td><td>Colegio Cumbres Zamora</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">113</td><td class="num rev">$5,085</td><td>Nicolás Navarro</td></tr>
+          <tr><td>18</td><td>Magallanes Preschool</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-M">M</span></td><td class="num">113</td><td class="num rev">$5,085</td><td>Nicolás Navarro</td></tr>
+          <tr><td>19</td><td>Colegio Washington</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td class="num">108</td><td class="num rev">$4,860</td><td>Diego Guash</td></tr>
+          <tr><td>20</td><td>Colegio Reina Elizabeth Querétaro</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-M">M</span></td><td class="num">65</td><td class="num rev">$2,925</td><td>Diego Guash</td></tr>
+          <tr><td>21</td><td>Centro Escolar México</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">64</td><td class="num rev">$2,880</td><td>Nicolás Navarro</td></tr>
+          <tr><td>22</td><td>Colegio Unión de México</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-P">P</span></td><td class="num">54</td><td class="num rev">$2,430</td><td>Nicolás Navarro</td></tr>
+          <tr><td>23</td><td>Colegio Monte Rosa</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td class="num">50</td><td class="num rev">$2,250</td><td>Diego Guash</td></tr>
+          <tr><td>24</td><td>Colegio Martin Luther King</td><td><span class="badge badge-afirmar">A Firmar</span></td><td><span class="badge badge-P">P</span></td><td class="num">45</td><td class="num rev">$2,025</td><td>Abril Godoy</td></tr>
+          <tr><td>25</td><td>Colegio Lil Big</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-P">P</span></td><td class="num">42</td><td class="num rev">$1,890</td><td>Lucas Doberti</td></tr>
+          <tr><td>26</td><td>Colegio Rafael Paz</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-P">P</span></td><td class="num">38</td><td class="num rev">$1,710</td><td>Nicolás Navarro</td></tr>
+          <tr><td>27</td><td>Colegio Juana De Asbaje Huitzilzingo</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-XP">XP</span></td><td class="num">18</td><td class="num rev">$810</td><td>Nicolás Navarro</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4">Subtotal Sec+Prepa</td><td class="num">8,477</td><td class="num rev">US$ 381,465</td><td></td></tr>
+          <tr><td colspan="4">Alumnos restantes 1ª Camp. (IECS-IEDIS + C. Escolar México)</td><td class="num">1,484</td><td class="num rev">US$ 66,780</td><td></td></tr>
+          <tr><td colspan="4">TOTAL CAPA 1</td><td class="num">9,961</td><td class="num rev">US$ 448,245</td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- CAPA 2 -->
+  <!-- ====================================================== -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">CAPA 2</div>
+      <div class="section-title-block">
+        <h2>Expansión de Grupos y Congregaciones</h2>
+        <p>Escuelas que pertenecen a redes educativas. Un cliente activo es la puerta de entrada a toda la congregación. Potencial estimado basado en 200 alumnos Sec+Prepa por colegio de red.</p>
+      </div>
+    </div>
+
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val">10</div><div class="mini-stat-lbl">Puertas de entrada</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">194</div><div class="mini-stat-lbl">Colegios accesibles</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">~38,800</div><div class="mini-stat-lbl">Alumnos est. Sec+Prepa</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">US$ 1,746,000</div><div class="mini-stat-lbl">Potencial Estimado</div></div>
+    </div>
+
+    <div class="note-box">
+      <strong>Nota metodológica:</strong> El potencial de grupos se estima con 200 alumnos de Sec+Prepa por colegio de la red (proxy conservador). Las escuelas ya contempladas en otras capas no se duplican. Las escuelas Ganadas que pertenecen a grupos (Teresianos, Manuela Cataño) representan una ventaja de acceso inmediato para la campaña de expansión.
+    </div>
+
+    <div style="margin-top: 24px;" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Puerta de Entrada</th>
+            <th>Etapa</th>
+            <th>Cat.</th>
+            <th>Grupo / Congregación</th>
+            <th class="num">Colegios en Red</th>
+            <th class="num">Alumnos Sec + Prepa Est.</th>
+            <th class="num">Potencial US$</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Maristas México Central</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Congregación Marista (60+ escuelas)</td><td class="num">60</td><td class="num">12,000</td><td class="num rev">$540,000</td></tr>
+          <tr><td>COLEGIO MÉXICO TOLUCA</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Congregación Marista (60+ escuelas)</td><td class="num">60</td><td class="num">12,000</td><td class="num rev">$540,000</td></tr>
+          <tr><td>Colegio Othón</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Josefinos (8) + Josefinas (22)</td><td class="num">22</td><td class="num">4,400</td><td class="num rev">$198,000</td></tr>
+          <tr><td>Colegio Teresiano Enrique de Ossó</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-GG">GG</span></td><td>15 colegios Teresianos en México</td><td class="num">15</td><td class="num">3,000</td><td class="num rev">$135,000</td></tr>
+          <tr><td>Tiny Planet EDOMEX</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-G">G</span></td><td>Grupo Graven (11 instituciones)</td><td class="num">11</td><td class="num">2,200</td><td class="num rev">$99,000</td></tr>
+          <tr><td>Colegio San Ángel de Puebla</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-G">G</span></td><td>Consorcio Educativo de Oriente (7)</td><td class="num">7</td><td class="num">1,400</td><td class="num rev">$63,000</td></tr>
+          <tr><td>Instituto Thomas Jefferson Santa Monica</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Grupo ISP — 5 colegios ITJ + TAE</td><td class="num">5</td><td class="num">1,000</td><td class="num rev">$45,000</td></tr>
+          <tr><td>Instituto Thomas Jefferson Valle Real</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Grupo ISP — 5 colegios ITJ + TAE</td><td class="num">5</td><td class="num">1,000</td><td class="num rev">$45,000</td></tr>
+          <tr><td>Instituto Thomas Jefferson Zona Esmeralda</td><td><span class="badge badge-propuesta">Propuesta</span></td><td><span class="badge badge-GG">GG</span></td><td>Grupo ISP — 5 colegios ITJ + TAE</td><td class="num">5</td><td class="num">1,000</td><td class="num rev">$45,000</td></tr>
+          <tr><td>Manuela Cataño</td><td><span class="badge badge-ganado">Ganado</span></td><td><span class="badge badge-G">G</span></td><td>Congregación 4 colegios (1,300 alumnos)</td><td class="num">4</td><td class="num">800</td><td class="num rev">$36,000</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4">TOTAL CAPA 2 (estimado)</td><td class="num">194</td><td class="num">~38,800</td><td class="num rev">US$ 1,746,000</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="note-box" style="margin-top:12px;">
+      <strong>Innova Schools México (Ganado, GG):</strong> 10,000 alumnos en Colombia y México mencionados en CRM, sin número de colegios explícito. Potencial de expansión a escala nacional/regional no cuantificado en esta capa — requiere prospección dedicada.
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- CAPA 3 -->
+  <!-- ====================================================== -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">CAPA 3</div>
+      <div class="section-title-block">
+        <h2>Propuestas Activas — Upsell Potencial 2027–2028</h2>
+        <p>Escuelas aún en negociación en esta campaña. Si se convierten en Ganadas, se suman automáticamente al pipeline de upsell de Sec/Prepa. Análisis separado para no mezclar con resultados ya conquistados.</p>
+      </div>
+    </div>
+
+    <div class="propuestas-note">
+      <span class="icon">ℹ️</span>
+      <span>Esta capa es <strong>condicional</strong>: el potencial aquí listado solo se materializa si las escuelas cierran en la campaña 2026–2027. Los números no están incluidos en el total ejecutivo de Capas 1–4 para evitar doble conteo con el funil activo (Capa 4).</span>
+    </div>
+
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val">21</div><div class="mini-stat-lbl">Propuestas activas</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">10,355</div><div class="mini-stat-lbl">Alumnos base (Nr CRM)</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">12,944</div><div class="mini-stat-lbl">Alumnos est. +25% Sec/Prepa</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">US$ 582,480</div><div class="mini-stat-lbl">Potencial si convierten</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Escuela</th>
+            <th>Cat.</th>
+            <th class="num">Alumnos Sec+Prepa</th>
+            <th class="num">Potencial US$</th>
+            <th>Responsable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Colegio Leonard Eulerd</td><td><span class="badge badge-G">G</span></td><td class="num">600</td><td class="num rev">$27,000</td><td>Nicolás Navarro</td></tr>
+          <tr><td>2</td><td>Instituto Thomas Jefferson Zona Esmeralda</td><td><span class="badge badge-GG">GG</span></td><td class="num">500</td><td class="num rev">$22,500</td><td>Nicolás Navarro</td></tr>
+          <tr><td>3</td><td>Instituto Thomas Jefferson Santa Monica</td><td><span class="badge badge-GG">GG</span></td><td class="num">500</td><td class="num rev">$22,500</td><td>Nicolás Navarro</td></tr>
+          <tr><td>4</td><td>Colegio Othón</td><td><span class="badge badge-GG">GG</span></td><td class="num">396</td><td class="num rev">$17,820</td><td>Diego Guash</td></tr>
+          <tr><td>5</td><td>Colegio Helen Keller de Edomex</td><td><span class="badge badge-G">G</span></td><td class="num">370</td><td class="num rev">$16,650</td><td>Nicolás Navarro</td></tr>
+          <tr><td>6</td><td>Green Oaks School</td><td><span class="badge badge-G">G</span></td><td class="num">330</td><td class="num rev">$14,850</td><td>Nicolás Navarro</td></tr>
+          <tr><td>7</td><td>COLEGIO MÉXICO TOLUCA</td><td><span class="badge badge-GG">GG</span></td><td class="num">304</td><td class="num rev">$13,680</td><td>Diego Guash</td></tr>
+          <tr><td>8</td><td>Instituto Thomas Jefferson Valle Real</td><td><span class="badge badge-GG">GG</span></td><td class="num">300</td><td class="num rev">$13,500</td><td>Nicolás Navarro</td></tr>
+          <tr><td>9</td><td>Centros Educativos Cualli</td><td><span class="badge badge-G">G</span></td><td class="num">290</td><td class="num rev">$13,050</td><td>Nicolás Navarro</td></tr>
+          <tr><td>10</td><td>Colegio Vasconcelos</td><td><span class="badge badge-G">G</span></td><td class="num">220</td><td class="num rev">$9,900</td><td>Abril Godoy</td></tr>
+          <tr><td>11</td><td>Colegio Inglés Playa del Carmen</td><td><span class="badge badge-G">G</span></td><td class="num">200</td><td class="num rev">$9,000</td><td>Diego Guash</td></tr>
+          <tr><td>12</td><td>Euro Liceo</td><td><span class="badge badge-G">G</span></td><td class="num">200</td><td class="num rev">$9,000</td><td>Diego Guash</td></tr>
+          <tr><td>13</td><td>Maristas México Central</td><td><span class="badge badge-GG">GG</span></td><td class="num">184</td><td class="num rev">$8,280</td><td>Diego Guash</td></tr>
+          <tr><td>14</td><td>Colegio San Ángel de Puebla</td><td><span class="badge badge-G">G</span></td><td class="num">126</td><td class="num rev">$5,670</td><td>Lucas Doberti</td></tr>
+          <tr><td>15</td><td>Instituto Anahuacalli</td><td><span class="badge badge-G">G</span></td><td class="num">120</td><td class="num rev">$5,400</td><td>Nicolás Navarro</td></tr>
+          <tr><td>16</td><td>Liceo Británico de México</td><td><span class="badge badge-P">P</span></td><td class="num">76</td><td class="num rev">$3,420</td><td>Nicolás Navarro</td></tr>
+          <tr><td>17</td><td>Comunidad Educativa IDEO</td><td><span class="badge badge-P">P</span></td><td class="num">39</td><td class="num rev">$1,755</td><td>Nicolás Navarro</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3">TOTAL CAPA 3 (condicional)</td><td class="num">12,944</td><td class="num rev">US$ 582,480</td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- CAPA 4 -->
+  <!-- ====================================================== -->
+  <section>
+    <div class="section-header">
+      <div class="section-number">CAPA 4</div>
+      <div class="section-title-block">
+        <h2>Funil Restante — Campaña 2026–2027</h2>
+        <p>Oportunidades activas en el funil (Contacto → Profundización Pedagógica) y oportunidades perdidas por motivos recuperables. Todas son candidatas a la campaña actual y, si se convierten, al upsell 2027–2028.</p>
+      </div>
+    </div>
+
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val">63</div><div class="mini-stat-lbl">Oportunidades activas</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">17,447</div><div class="mini-stat-lbl">Alumnos funil activo</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">81</div><div class="mini-stat-lbl">Perdidas recuperables</div></div>
+      <div class="mini-stat"><div class="mini-stat-val">26,868</div><div class="mini-stat-lbl">Alumnos perdidas rec.</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">US$ 1,994,175</div><div class="mini-stat-lbl">Potencial total C4</div></div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h4>Funil Activo — Por Etapa</h4>
+        <p>Oportunidades y alumnos en cada etapa del funil comercial</p>
+        <div class="chart-container">
+          <canvas id="chartFunil"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h4>Perdidas Recuperables — Por Motivo</h4>
+        <p>Volumen de alumnos por motivo de pérdida reabordable</p>
+        <div class="chart-container">
+          <canvas id="chartMotivos"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Funil Activo table -->
+    <h3 style="font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; color:var(--accent); margin-bottom:12px; margin-top:8px;">4A — Funil Activo (Contacto → Profundización Pedagógica)</h3>
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Etapa</th>
+            <th class="num">Oportunidades</th>
+            <th class="num">Alumnos</th>
+            <th class="num">Potencial US$</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Contacto</td><td class="num">27</td><td class="num">7,380</td><td class="num rev">$332,100</td></tr>
+          <tr><td>Diagnóstico</td><td class="num">15</td><td class="num">2,680</td><td class="num rev">$120,600</td></tr>
+          <tr><td>Proyecto Comercial</td><td class="num">9</td><td class="num">3,272</td><td class="num rev">$147,240</td></tr>
+          <tr><td>Profundización Pedagógica</td><td class="num">12</td><td class="num">4,115</td><td class="num rev">$185,175</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>TOTAL FUNIL ACTIVO</td><td class="num">63</td><td class="num">17,447</td><td class="num rev">US$ 785,115</td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Perdidas recuperables table -->
+    <h3 style="font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; color:var(--accent); margin-bottom:12px;">4B — Perdidas con Motivo Recuperable</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Motivo de Pérdida</th>
+            <th class="num">Oportunidades</th>
+            <th class="num">Alumnos</th>
+            <th class="num">Potencial US$</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Timing</td><td class="num">26</td><td class="num">12,450</td><td class="num rev">$560,250</td></tr>
+          <tr><td>Sin acceso a Decision Maker</td><td class="num">19</td><td class="num">3,972</td><td class="num rev">$178,740</td></tr>
+          <tr><td>Precio</td><td class="num">11</td><td class="num">1,850</td><td class="num rev">$83,250</td></tr>
+          <tr><td>Competencia</td><td class="num">7</td><td class="num">3,513</td><td class="num rev">$158,085</td></tr>
+          <tr><td>Programa autoral</td><td class="num">7</td><td class="num">1,860</td><td class="num rev">$83,700</td></tr>
+          <tr><td>Contrato vigente</td><td class="num">6</td><td class="num">1,723</td><td class="num rev">$77,535</td></tr>
+          <tr><td>No quieren ser Early Adopter</td><td class="num">4</td><td class="num">1,280</td><td class="num rev">$57,600</td></tr>
+          <tr><td>Sin espacio curricular</td><td class="num">1</td><td class="num">220</td><td class="num rev">$9,900</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>TOTAL PERDIDAS RECUPERABLES</td><td class="num">81</td><td class="num">26,868</td><td class="num rev">US$ 1,209,060</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="note-box" style="margin-top:12px;">
+      <strong>Nota sobre Timing:</strong> 26 oportunidades perdidas por timing representan el mayor bloque recuperable (12,450 alumnos · US$ 560,250). Son candidatos prioritarios para reactivación al inicio de la campaña 2027–2028, ya que el motivo de pérdida es temporal, no estructural.
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="report-footer">
+    <span>Documento interno · Confidencial · LIV LatAm</span>
+    <span class="footer-logo">LIV LatAm</span>
+    <span>Campaña 2027–2028 · Mayo 2026</span>
+  </div>
+
+</div><!-- /body-wrap -->
+
+<script>
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#6B6490';
+
+
+// ── Chart C1 by Category
+const catLabels = ['GG','G','M','P','XP'];
+const catData   = [5487, 2090, 703, 179, 18]; // sum by cat
+const catColors = ['#4B3E98','#2E9D57','#FEC238','#9FC2E6','#F47432'];
+new Chart(document.getElementById('chartC1Cat'), {
+  type: 'doughnut',
+  data: {
+    labels: catLabels,
+    datasets: [{
+      data: catData,
+      backgroundColor: catColors,
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { font: { size: 12 }, padding: 12, usePointStyle: true }
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString()} alumnos`
+        }
+      }
+    }
+  }
+});
+
+// ── Chart Funil
+const funilLabels = ['Contacto','Diagnóstico','Proyecto Comercial','Profundización Ped.'];
+const funilOps    = [27, 15, 9, 12];
+const funilAlumnos= [7380, 2680, 3272, 4115];
+new Chart(document.getElementById('chartFunil'), {
+  type: 'bar',
+  data: {
+    labels: funilLabels,
+    datasets: [
+      {
+        label: 'Oportunidades',
+        data: funilOps,
+        backgroundColor: '#4B3E98',
+        borderRadius: 4,
+        yAxisID: 'y1'
+      },
+      {
+        label: 'Alumnos',
+        data: funilAlumnos,
+        backgroundColor: '#FEC238',
+        borderRadius: 4,
+        yAxisID: 'y2'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y1: { position: 'left',  grid: { color: '#DDD9F5' }, ticks: { font: { size: 11 } }, title: { display: true, text: 'Oportunidades', font: { size: 10 } } },
+      y2: { position: 'right', grid: { display: false }, ticks: { font: { size: 11 } }, title: { display: true, text: 'Alumnos', font: { size: 10 } } }
+    }
+  }
+});
+
+// ── Chart Motivos
+const motivoLabels = ['Timing','Sin acceso DM','Precio','Competencia','Prog. autoral','Contrato vigente','Early Adopter','Sin esp. curr.'];
+const motivoData   = [12450, 3972, 1850, 3513, 1860, 1723, 1280, 220];
+const motivoColors = ['#4B3E98','#F47432','#FEC238','#9FC2E6','#2E9D57','#A078D0','#E8704A','#B0CCEE'];
+new Chart(document.getElementById('chartMotivos'), {
+  type: 'bar',
+  data: {
+    labels: motivoLabels,
+    datasets: [{
+      label: 'Alumnos',
+      data: motivoData,
+      backgroundColor: motivoColors,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#DDD9F5' }, ticks: { font: { size: 11 } } },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>
