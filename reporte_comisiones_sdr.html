@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Comisiones — SDRs</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f7f6f3; --bg3: #f0efe9;
+    --text: #1a1a18; --text2: #6b6b67;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.06);
+    --green-bg: #eaf3de; --green-txt: #3b6d11;
+    --amber-bg: #faeeda; --amber-txt: #854f0b;
+    --blue-bg: #e6f1fb; --blue-txt: #185fa5;
+    --purple-bg: #f0eafb; --purple-txt: #6b3fa0;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+  .app { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 3px; }
+  .subtitle { font-size: 13px; color: var(--text2); margin-bottom: 2rem; }
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.75rem; }
+  .tab { font-size: 13px; padding: 8px 18px; cursor: pointer; border: none; background: transparent; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); font-weight: 600; border-bottom-color: var(--text); }
+  .panel { display: none; } .panel.active { display: block; }
+  .card { background: var(--bg2); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
+  .card-h { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+  .card-hr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .card-hr .card-h { margin-bottom: 0; }
+  .rfields { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+  .fg { display: flex; flex-direction: column; gap: 4px; }
+  .fg label { font-size: 12px; color: var(--text2); }
+  .fg input, .fg select { font-size: 14px; padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
+  .fg input:focus, .fg select:focus { border-color: var(--text); }
+  .uzone { border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center; cursor: pointer; transition: background .15s; margin-bottom: .75rem; }
+  .uzone:hover { background: var(--bg3); }
+  .uzone p { font-size: 13px; color: var(--text2); margin-bottom: 3px; }
+  .uzone small { font-size: 12px; color: var(--text2); opacity: .6; }
+  .uzone.loaded { border-style: solid; border-color: var(--border); }
+  .uzone.loaded p { color: var(--text); font-weight: 600; }
+  .colrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: .75rem; align-items: flex-end; }
+  .colrow .fg select { width: 178px; font-size: 13px; padding: 6px 8px; }
+  .colrow .fg label { font-size: 11px; }
+  .fase-map-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: .75rem; }
+  .fase-map-table th { font-size: 11px; color: var(--text2); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border2); }
+  .fase-map-table td { padding: 6px 8px; border-bottom: 1px solid var(--border2); }
+  .fase-map-table tr:last-child td { border-bottom: none; }
+  .fase-map-table select { font-size: 13px; padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; }
+  .spill { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--green-bg); color: var(--green-txt); }
+  .otag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--bg3); color: var(--text2); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  .bg { background: var(--green-bg); color: var(--green-txt); }
+  .ba { background: var(--amber-bg); color: var(--amber-txt); }
+  .bb { background: var(--blue-bg); color: var(--blue-txt); }
+  .bp { background: var(--purple-bg); color: var(--purple-txt); }
+  .sgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .mcard { background: var(--bg2); border-radius: var(--radius-sm); padding: .9rem 1rem; }
+  .mcard .ml { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .mcard .mv { font-size: 20px; font-weight: 600; }
+  .mcard .ms { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .twrap { border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { font-size: 11px; font-weight: 600; color: var(--text2); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border2); background: var(--bg2); white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border2); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 9px 12px; white-space: nowrap; }
+  tfoot td { padding: 9px 12px; font-weight: 600; background: var(--bg2); white-space: nowrap; }
+  .fw { font-weight: 600; }
+  .sect-divider { height: 1px; background: var(--border2); margin: 1.25rem 0; }
+  .sect-label { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .75rem; }
+  .rcard { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .rhdr { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border2); }
+  .rhdr h3 { font-size: 18px; font-weight: 600; margin-bottom: 3px; }
+  .rhdr .rd { font-size: 12px; color: var(--text2); }
+  .rsec { margin-bottom: 1rem; }
+  .rsec h4 { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .rrow { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--border2); font-size: 13px; gap: 12px; }
+  .rrow:last-child { border-bottom: none; }
+  .rrow .rn { flex: 1; }
+  .rrow .rsub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .rrow span:last-child { font-weight: 600; white-space: nowrap; }
+  .rsubt { border-top: 1px solid var(--border2); padding-top: 1rem; margin-top: .5rem; margin-bottom: 1rem; }
+  .rsubt .rrow { color: var(--text2); }
+  .rtot { background: var(--bg2); border-radius: var(--radius-sm); padding: 1rem 1.1rem; display: flex; justify-content: space-between; align-items: center; }
+  .rtot .rl { font-size: 14px; font-weight: 600; }
+  .rtot .rv { font-size: 24px; font-weight: 700; }
+  .sdrs { display: flex; gap: 10px; align-items: center; margin-bottom: 1.25rem; }
+  .sdrs label { font-size: 13px; color: var(--text2); }
+  .sdrs select { font-size: 14px; padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
+  .btn { font-size: 13px; padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text); font-family: inherit; }
+  .btn:hover { background: var(--bg2); }
+  .btnp { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btnp:hover { opacity: .85; }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem; }
+  .hint { font-size: 12px; color: var(--text2); padding: .5rem .75rem; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); margin-bottom: .75rem; }
+  .empty { text-align: center; padding: 3rem 0; color: var(--text2); }
+  .empty p:first-child { font-size: 15px; margin-bottom: 6px; color: var(--text); }
+  @media print {
+    .tabs, .acts, .sdrs, .no-print { display: none !important; }
+    .panel { display: block !important; }
+    #tab-config, #tab-reporte { display: none !important; }
+    .rcard { border: none; padding: 0; }
+    body { padding: 0; }
+    .app { max-width: 100%; padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Reporte de comisiones — SDRs</h1>
+  <p class="subtitle">Planilla 1: oportunidades · Planilla 2: negocios ganados · Planilla 3: eventos (todas opcionales entre sí)</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('config')">Configuración</button>
+    <button class="tab" onclick="sw('reporte')">Reporte general</button>
+    <button class="tab" onclick="sw('individual')">Reporte individual</button>
+  </div>
+
+  <!-- CONFIGURACIÓN -->
+  <div id="tab-config" class="panel active">
+    <div class="rfields" style="margin-bottom:1.25rem;">
+      <div class="fg"><label>Mes de referencia</label><input type="month" id="mes" /></div>
+      <div class="fg"><label>Moneda</label>
+        <select id="moneda">
+          <option value="R$" selected>R$ (BRL)</option>
+          <option value="$">$ (USD)</option>
+          <option value="€">€ (EUR)</option>
+          <option value="MXN$">MXN$</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Comisiones pipeline -->
+    <div class="card">
+      <div class="card-h">Comisiones — Pipeline de ventas</div>
+      <div class="rfields">
+        <div class="fg"><label>Por oportunidad abierta</label><input type="number" id="vop" value="30" min="0" style="width:140px;" /></div>
+        <div class="fg"><label>Ganado — hasta <span id="lc1">150</span> alumnos</label><input type="number" id="vate" value="125" min="0" style="width:140px;" /></div>
+        <div class="fg"><label>Ganado — más de <span id="lc2">150</span> alumnos</label><input type="number" id="vacima" value="250" min="0" style="width:140px;" /></div>
+        <div class="fg"><label>Corte de alumnos</label><input type="number" id="corte" value="150" min="1" style="width:100px;" oninput="updCorte()" /></div>
+      </div>
+    </div>
+
+    <!-- Comisiones eventos -->
+    <div class="card">
+      <div class="card-h">Comisiones — Eventos</div>
+      <div class="rfields">
+        <div class="fg"><label>Por cliente "Registrado"</label><input type="number" id="vregistrado" value="10" min="0" style="width:140px;" /></div>
+        <div class="fg"><label>Por cliente "Confirmado"</label><input type="number" id="vconfirmado" value="5" min="0" style="width:140px;" /></div>
+        <div class="fg"><label>Por cliente que compareció</label><input type="number" id="vcomparecio" value="20" min="0" style="width:140px;" /></div>
+      </div>
+    </div>
+
+    <!-- Planilla 1 -->
+    <div class="card">
+      <div class="card-hr">
+        <div class="card-h">Planilla 1 — Oportunidades abiertas</div>
+        <span class="otag">opcional</span>
+        <span class="spill" id="pill-op" style="display:none;"></span>
+      </div>
+      <div class="hint">Todas las filas reciben comisión por oportunidad abierta.</div>
+      <div class="uzone" id="zop" onclick="document.getElementById('fiop').click()">
+        <p>Clic para seleccionar o arrastrar</p><small>.xlsx · .xls · .csv</small>
+      </div>
+      <input type="file" id="fiop" accept=".xlsx,.xls,.csv" style="display:none;" />
+      <div id="mapop" style="display:none;">
+        <div class="colrow" id="colsop"></div>
+        <button class="btn btnp" onclick="procOp()">Confirmar e importar →</button>
+      </div>
+    </div>
+
+    <!-- Planilla 2 -->
+    <div class="card">
+      <div class="card-hr">
+        <div class="card-h">Planilla 2 — Negocios ganados</div>
+        <span class="otag">opcional</span>
+        <span class="spill" id="pill-gan" style="display:none;"></span>
+      </div>
+      <div class="hint">Todas las filas son negocios ganados. La comisión se calcula por el nº de alumnos.</div>
+      <div class="uzone" id="zgan" onclick="document.getElementById('figan').click()">
+        <p>Clic para seleccionar o arrastrar</p><small>.xlsx · .xls · .csv</small>
+      </div>
+      <input type="file" id="figan" accept=".xlsx,.xls,.csv" style="display:none;" />
+      <div id="mapgan" style="display:none;">
+        <div class="colrow" id="colsgan"></div>
+        <button class="btn btnp" onclick="procGan()">Confirmar e importar →</button>
+      </div>
+    </div>
+
+    <!-- Planilla 3 -->
+    <div class="card">
+      <div class="card-hr">
+        <div class="card-h">Planilla 3 — Eventos</div>
+        <span class="otag">opcional</span>
+        <span class="spill" id="pill-evt" style="display:none;"></span>
+      </div>
+      <div class="hint">Solo se consideran filas donde el campo <strong>SDR</strong> esté completado. Asigna cada etapa detectada a su tipo de comisión.</div>
+      <div class="uzone" id="zevt" onclick="document.getElementById('fievt').click()">
+        <p>Clic para seleccionar o arrastrar</p><small>.xlsx · .xls · .csv</small>
+      </div>
+      <input type="file" id="fievt" accept=".xlsx,.xls,.csv" style="display:none;" />
+      <div id="mapevt" style="display:none;">
+        <div class="colrow" id="colsevt"></div>
+        <p style="font-size:13px;font-weight:600;margin-bottom:8px;">Clasificación de etapas detectadas:</p>
+        <table class="fase-map-table">
+          <thead><tr><th>Etapa en la planilla</th><th>Tipo de comisión</th><th>Valor por cliente</th><th>Registros</th></tr></thead>
+          <tbody id="fase-tbody"></tbody>
+        </table>
+        <button class="btn btnp" onclick="procEvt()">Confirmar e importar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTE GENERAL -->
+  <div id="tab-reporte" class="panel">
+    <div class="empty" id="erel">
+      <p>Ningún dato importado aún.</p>
+      <p style="font-size:13px;">Ve a Configuración e importa al menos una planilla.</p>
+    </div>
+    <div id="brel" style="display:none;">
+      <div class="sgrid" id="summary"></div>
+
+      <div class="sect-label">Pipeline de ventas</div>
+      <div class="twrap">
+        <table>
+          <thead><tr>
+            <th>SDR</th><th>Oport.</th><th>Com. oport.</th>
+            <th>Gan. ≤<span class="cl">150</span></th><th>Gan. ><span class="cl">150</span></th>
+            <th>Com. ganados</th><th>Subtotal pipeline</th>
+          </tr></thead>
+          <tbody id="tbrel"></tbody>
+          <tfoot><tr>
+            <td>Total</td>
+            <td id="ftop">—</td><td id="ftcop">—</td>
+            <td id="ftate">—</td><td id="ftacima">—</td>
+            <td id="ftcgan">—</td><td id="ftpipe">—</td>
+          </tr></tfoot>
+        </table>
+      </div>
+
+      <div class="sect-label" id="evt-sect-label" style="display:none;">Eventos</div>
+      <div class="twrap" id="evt-twrap" style="display:none;">
+        <table>
+          <thead><tr>
+            <th>SDR</th>
+            <th>Registrados</th><th>Com. reg.</th>
+            <th>Confirmados</th><th>Com. conf.</th>
+            <th>Comparecieron</th><th>Com. comp.</th>
+            <th>Subtotal eventos</th>
+          </tr></thead>
+          <tbody id="tbevt"></tbody>
+          <tfoot><tr>
+            <td>Total</td>
+            <td id="ftreg">—</td><td id="ftcreg">—</td>
+            <td id="ftconf">—</td><td id="ftcconf">—</td>
+            <td id="ftcomp">—</td><td id="ftccomp">—</td>
+            <td id="ftcevt">—</td>
+          </tr></tfoot>
+        </table>
+      </div>
+
+      <details id="detgan" style="display:none;margin-top:.5rem;">
+        <summary style="font-size:13px;cursor:pointer;color:var(--text2);margin-bottom:.75rem;" class="no-print">Ver detalle de negocios ganados</summary>
+        <div id="dealsdet"></div>
+      </details>
+
+      <div class="acts no-print">
+        <button class="btn btnp" onclick="expCSV()">Exportar CSV</button>
+        <button class="btn" onclick="resetar()">Limpiar datos del mes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTE INDIVIDUAL -->
+  <div id="tab-individual" class="panel">
+    <div class="empty" id="eind"><p>Ningún dato importado aún.</p></div>
+    <div id="bind" style="display:none;">
+      <div class="sdrs no-print">
+        <label>SDR:</label>
+        <select id="sdrs" onchange="rendInd()"></select>
+      </div>
+      <div class="hint no-print" style="background:#fffbe6;border-color:#ffe58f;">
+        Para guardar como PDF: <strong>Ctrl+P</strong> (o Cmd+P en Mac) → "Guardar como PDF"
+      </div>
+      <div id="rptind"></div>
+      <div class="acts no-print">
+        <button class="btn btnp" onclick="window.print()">Imprimir / Guardar PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = {
+  op:{}, gan:{}, evt:{},
+  rawOp:{data:[],cols:[]}, rawGan:{data:[],cols:[]}, rawEvt:{data:[],cols:[]}
+};
+const now = new Date();
+document.getElementById('mes').value = now.toISOString().slice(0,7);
+
+const g = id => document.getElementById(id);
+const mon = () => g('moneda').value;
+const vop = () => parseFloat(g('vop').value)||0;
+const vate = () => parseFloat(g('vate').value)||0;
+const vacima = () => parseFloat(g('vacima').value)||0;
+const corte = () => parseFloat(g('corte').value)||150;
+const vreg = () => parseFloat(g('vregistrado').value)||0;
+const vconf = () => parseFloat(g('vconfirmado').value)||0;
+const vcomp = () => parseFloat(g('vcomparecio').value)||0;
+const fmt = n => mon()+' '+Math.round(n).toLocaleString('pt-BR');
+
+function getMes(){
+  const v=g('mes').value; if(!v) return '';
+  const [y,m]=v.split('-');
+  return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][parseInt(m)-1]+' '+y;
+}
+const allSdrs = () => [...new Set([...Object.keys(S.op),...Object.keys(S.gan),...Object.keys(S.evt)])].sort();
+const hasData = () => allSdrs().length > 0;
+
+function calc(n){
+  const ops=S.op[n]||[], gans=S.gan[n]||[], evts=S.evt[n]||[], c=corte();
+  const ate=gans.filter(d=>d.alumnos<=c), acima=gans.filter(d=>d.alumnos>c);
+  const regs=evts.filter(d=>d.tipo==='registrado');
+  const confs=evts.filter(d=>d.tipo==='confirmado');
+  const comps=evts.filter(d=>d.tipo==='comparecio');
+  const co=ops.length*vop(), ca=ate.length*vate(), cac=acima.length*vacima();
+  const creg=regs.reduce((a,d)=>a+(d.val||vreg()),0);
+  const cconf=confs.reduce((a,d)=>a+(d.val||vconf()),0);
+  const ccomp=comps.reduce((a,d)=>a+(d.val||vcomp()),0);
+  const totalPipe=co+ca+cac, totalEvt=creg+cconf+ccomp;
+  return {ops,gans,ate,acima,evts,regs,confs,comps,co,ca,cac,creg,cconf,ccomp,totalPipe,totalEvt,total:totalPipe+totalEvt};
+}
+
+function updCorte(){
+  const c=corte();
+  document.querySelectorAll('.cl').forEach(el=>el.textContent=c);
+  g('lc1').textContent=c; g('lc2').textContent=c;
+  if(hasData()){ rendRel(); rendInd(); }
+}
+
+function sw(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  ['config','reporte','individual'].forEach((n,i)=>{
+    if(n===t){ document.querySelectorAll('.tab')[i].classList.add('active'); g('tab-'+n).classList.add('active'); }
+  });
+  if(t==='reporte') rendRel();
+  if(t==='individual'){ bldSel(); rendInd(); }
+}
+
+function setupZone(zId,fId,rk,mId,cId,faseCallback){
+  const z=g(zId);
+  z.addEventListener('dragover',e=>{e.preventDefault();z.style.background='var(--bg3)';});
+  z.addEventListener('dragleave',()=>z.style.background='');
+  z.addEventListener('drop',e=>{e.preventDefault();z.style.background='';const f=e.dataTransfer.files[0];if(f)load(f,rk,zId,mId,cId,faseCallback);});
+  g(fId).addEventListener('change',e=>{if(e.target.files[0])load(e.target.files[0],rk,zId,mId,cId,faseCallback);});
+}
+
+function load(file,rk,zId,mId,cId,faseCallback){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const wb=XLSX.read(ev.target.result,{type:'binary',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(data.length<2){ alert('Planilla sin datos.'); return; }
+    S[rk].cols=data[0].map((c,i)=>({label:String(c||'Col '+(i+1)),idx:i}));
+    S[rk].data=data.slice(1).filter(r=>r.some(c=>c!==''&&c!==null&&c!==undefined));
+    const z=g(zId); z.classList.add('loaded');
+    z.innerHTML=`<p>${file.name}</p><small>${S[rk].data.length} registros detectados</small>`;
+    bldCols(rk,cId,faseCallback);
+    g(mId).style.display='block';
+  };
+  r.readAsBinaryString(file);
+}
+
+function bldCols(rk,cId,faseCallback){
+  const kws={
+    sdr:['sdr','vendedor','responsable'],
+    emp:['empresa','nombre','school','colegio','name','oportunidad','cliente'],
+    alu:['alumn','alumno','student','num','nr'],
+    fase:['fase','etapa','status','estado','stage','etapa']
+  };
+  let fields = [
+    {id:`${rk}-sdr`,label:'Columna: SDR',key:'sdr'},
+    {id:`${rk}-emp`,label:'Columna: Empresa / Cliente',key:'emp'},
+    {id:`${rk}-alu`,label:'Columna: Nº alumnos',key:'alu'}
+  ];
+  if(faseCallback){
+    fields = [
+      {id:`${rk}-sdr`,label:'Columna: SDR',key:'sdr'},
+      {id:`${rk}-emp`,label:'Columna: Empresa / Cliente',key:'emp'},
+      {id:`${rk}-fase`,label:'Columna: Etapa',key:'fase'}
+    ];
+  }
+  const ct=g(cId); ct.innerHTML='';
+  fields.forEach(f=>{
+    let o='<option value="">— ignorar —</option>';
+    S[rk].cols.forEach(c=>{ o+=`<option value="${c.idx}">${c.label}</option>`; });
+    const d=document.createElement('div'); d.className='fg';
+    d.innerHTML=`<label>${f.label}</label><select id="${f.id}" style="width:178px;font-size:13px;padding:6px 8px;" ${faseCallback&&f.key==='fase'?`onchange="${faseCallback}()"`:''}>${o}</select>`;
+    ct.appendChild(d);
+    S[rk].cols.forEach(c=>{
+      if(kws[f.key]&&kws[f.key].some(k=>c.label.toLowerCase().includes(k))){
+        const el=g(f.id); if(el&&el.value==='') el.value=c.idx;
+      }
+    });
+  });
+  if(faseCallback) window[faseCallback]();
+}
+
+function defaultValForTipo(tipo){
+  if(tipo==='registrado') return vreg();
+  if(tipo==='confirmado') return vconf();
+  if(tipo==='comparecio') return vcomp();
+  return 0;
+}
+
+function buildFaseTable(){
+  const iFase=g('rawEvt-fase').value;
+  if(iFase===''){g('fase-tbody').innerHTML='<tr><td colspan="4" style="color:var(--text2);padding:8px;">Selecciona la columna de etapa arriba.</td></tr>';return;}
+  const counts={};
+  S.rawEvt.data.forEach(r=>{
+    const f=String(r[iFase]||'').trim(); if(f) counts[f]=(counts[f]||0)+1;
+  });
+  const tbody=g('fase-tbody'); tbody.innerHTML='';
+  Object.entries(counts).forEach(([fase,cnt])=>{
+    const fl=fase.toLowerCase();
+    let tipo='ignorar';
+    if(fl.includes('registr')) tipo='registrado';
+    else if(fl.includes('confirm')) tipo='confirmado';
+    else if(fl.includes('comparec')||fl.includes('asist')||fl.includes('present')||fl.includes('asistio')||fl.includes('asistió')) tipo='comparecio';
+    const bc=tipo==='registrado'?'bb':tipo==='confirmado'?'ba':tipo==='comparecio'?'bg':'';
+    const defVal=defaultValForTipo(tipo);
+    const faseKey=encodeURIComponent(fase);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><span class="badge ${bc}" id="badge-${faseKey}">${fase}</span></td>
+      <td>
+        <select id="tipo-fase-${faseKey}" onchange="onTipoChange('${faseKey}')"
+          style="font-size:13px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;">
+          <option value="registrado" ${tipo==='registrado'?'selected':''}>Registrado</option>
+          <option value="confirmado" ${tipo==='confirmado'?'selected':''}>Confirmado</option>
+          <option value="comparecio" ${tipo==='comparecio'?'selected':''}>Compareció</option>
+          <option value="ignorar" ${tipo==='ignorar'?'selected':''}>Ignorar</option>
+        </select>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:13px;color:var(--text2);">${mon()}</span>
+          <input type="number" id="val-fase-${faseKey}" value="${defVal}" min="0"
+            style="width:80px;font-size:13px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;outline:none;"
+            ${tipo==='ignorar'?'disabled style="width:80px;font-size:13px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit;outline:none;"':''} />
+        </div>
+      </td>
+      <td style="color:var(--text2);">${cnt}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function onTipoChange(faseKey){
+  const sel=g('tipo-fase-'+faseKey);
+  const inp=g('val-fase-'+faseKey);
+  const tipo=sel.value;
+  // update badge color
+  const badge=g('badge-'+faseKey);
+  if(badge){
+    badge.className='badge '+(tipo==='registrado'?'bb':tipo==='confirmado'?'ba':tipo==='comparecio'?'bg':'');
+  }
+  // update value and disabled state
+  if(tipo==='ignorar'){
+    inp.value=0; inp.disabled=true;
+    inp.style.cssText='width:80px;font-size:13px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit;outline:none;';
+  } else {
+    inp.disabled=false;
+    inp.style.cssText='width:80px;font-size:13px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;outline:none;';
+    if(parseFloat(inp.value)===0) inp.value=defaultValForTipo(tipo);
+  }
+}
+
+function parseRows(rk,sI,eI,aI){
+  const res={};
+  S[rk].data.forEach(r=>{
+    const sdr=String(r[sI]||'').trim(); if(!sdr) return;
+    const emp=eI!==''?String(r[eI]||'').trim():'—';
+    const alu=aI!==''?(parseInt(r[aI])||0):0;
+    if(!res[sdr]) res[sdr]=[];
+    res[sdr].push({emp,alumnos:alu});
+  });
+  return res;
+}
+
+function procOp(){
+  const sI=g('rawOp-sdr').value; if(sI===''){ alert('Selecciona la columna del SDR.'); return; }
+  S.op=parseRows('rawOp',sI,g('rawOp-emp').value,g('rawOp-alu').value);
+  const p=g('pill-op'); p.textContent=`✓ ${S.rawOp.data.length} oportunidades`; p.style.display='inline-flex';
+  g('mapop').style.display='none'; refresh();
+}
+
+function procGan(){
+  const sI=g('rawGan-sdr').value; if(sI===''){ alert('Selecciona la columna del SDR.'); return; }
+  S.gan=parseRows('rawGan',sI,g('rawGan-emp').value,g('rawGan-alu').value);
+  const p=g('pill-gan'); p.textContent=`✓ ${S.rawGan.data.length} ganados`; p.style.display='inline-flex';
+  g('mapgan').style.display='none'; refresh();
+}
+
+function procEvt(){
+  const sI=g('rawEvt-sdr').value; if(sI===''){ alert('Selecciona la columna del SDR.'); return; }
+  const fI=g('rawEvt-fase').value; if(fI===''){ alert('Selecciona la columna de etapa.'); return; }
+  const eI=g('rawEvt-emp').value;
+
+  // build fase map from table (tipo + valor por etapa)
+  const faseMap={};
+  g('fase-tbody').querySelectorAll('tr').forEach(tr=>{
+    const badge=tr.querySelector('.badge');
+    const sel=tr.querySelector('select');
+    const inp=tr.querySelector('input[type="number"]');
+    if(badge&&sel){
+      faseMap[badge.textContent.trim()]={
+        tipo: sel.value,
+        val: parseFloat(inp?.value)||0
+      };
+    }
+  });
+
+  const res={};
+  S.rawEvt.data.forEach(r=>{
+    const sdr=String(r[sI]||'').trim(); if(!sdr) return; // solo SDR completado
+    const fase=String(r[fI]||'').trim();
+    const fm=faseMap[fase]; if(!fm||fm.tipo==='ignorar') return;
+    const emp=eI!==''?String(r[eI]||'').trim():'—';
+    if(!res[sdr]) res[sdr]=[];
+    res[sdr].push({emp, tipo:fm.tipo, val:fm.val});
+  });
+  S.evt=res;
+
+  const total=Object.values(res).reduce((a,v)=>a+v.length,0);
+  const p=g('pill-evt'); p.textContent=`✓ ${total} registros de eventos`; p.style.display='inline-flex';
+  g('mapevt').style.display='none'; refresh();
+}
+
+function refresh(){ rendRel(); bldSel(); rendInd(); }
+
+function rendRel(){
+  const ok=hasData();
+  g('erel').style.display=ok?'none':'block';
+  g('brel').style.display=ok?'block':'none';
+  if(!ok) return;
+  document.querySelectorAll('.cl').forEach(el=>el.textContent=corte());
+
+  const sdrs=allSdrs();
+  const tb=g('tbrel'); tb.innerHTML='';
+  let tOp=0,tcOp=0,tAte=0,tAcima=0,tcGan=0,tPipe=0;
+  sdrs.forEach(n=>{
+    const r=calc(n);
+    tOp+=r.ops.length; tcOp+=r.co; tAte+=r.ate.length; tAcima+=r.acima.length;
+    tcGan+=r.ca+r.cac; tPipe+=r.totalPipe;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="fw">${n}</td><td>${r.ops.length}</td><td>${fmt(r.co)}</td><td>${r.ate.length}</td><td>${r.acima.length}</td><td>${fmt(r.ca+r.cac)}</td><td class="fw">${fmt(r.totalPipe)}</td>`;
+    tb.appendChild(tr);
+  });
+  g('ftop').textContent=tOp; g('ftcop').textContent=fmt(tcOp);
+  g('ftate').textContent=tAte; g('ftacima').textContent=tAcima;
+  g('ftcgan').textContent=fmt(tcGan); g('ftpipe').textContent=fmt(tPipe);
+
+  // Tabela eventos
+  const hasEvt=Object.keys(S.evt).length>0;
+  g('evt-sect-label').style.display=hasEvt?'block':'none';
+  g('evt-twrap').style.display=hasEvt?'block':'none';
+  if(hasEvt){
+    const tbe=g('tbevt'); tbe.innerHTML='';
+    let tReg=0,tcReg=0,tConf=0,tcConf=0,tComp=0,tcComp=0,tEvt=0;
+    sdrs.forEach(n=>{
+      const r=calc(n);
+      tReg+=r.regs.length; tcReg+=r.creg;
+      tConf+=r.confs.length; tcConf+=r.cconf;
+      tComp+=r.comps.length; tcComp+=r.ccomp;
+      tEvt+=r.totalEvt;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="fw">${n}</td><td>${r.regs.length}</td><td>${fmt(r.creg)}</td><td>${r.confs.length}</td><td>${fmt(r.cconf)}</td><td>${r.comps.length}</td><td>${fmt(r.ccomp)}</td><td class="fw">${fmt(r.totalEvt)}</td>`;
+      tbe.appendChild(tr);
+    });
+    g('ftreg').textContent=tReg; g('ftcreg').textContent=fmt(tcReg);
+    g('ftconf').textContent=tConf; g('ftcconf').textContent=fmt(tcConf);
+    g('ftcomp').textContent=tComp; g('ftccomp').textContent=fmt(tcComp);
+    g('ftcevt').textContent=fmt(tEvt);
+  }
+
+  const tTot=sdrs.reduce((a,n)=>a+calc(n).total,0);
+  const tEvtTot=sdrs.reduce((a,n)=>a+calc(n).totalEvt,0);
+  g('summary').innerHTML=`
+    <div class="mcard"><div class="ml">Total comisiones</div><div class="mv">${fmt(tTot)}</div><div class="ms">${getMes()}</div></div>
+    <div class="mcard"><div class="ml">Com. oportunidades</div><div class="mv">${fmt(tcOp)}</div><div class="ms">${tOp} abiertas</div></div>
+    <div class="mcard"><div class="ml">Com. ganados</div><div class="mv">${fmt(tcGan)}</div><div class="ms">${tAte+tAcima} cerrados</div></div>
+    ${hasEvt?`<div class="mcard"><div class="ml">Com. eventos</div><div class="mv">${fmt(tEvtTot)}</div><div class="ms">${sdrs.reduce((a,n)=>a+calc(n).evts.length,0)} registros</div></div>`:''}
+    <div class="mcard"><div class="ml">SDRs activos</div><div class="mv">${sdrs.length}</div><div class="ms">en el mes</div></div>`;
+
+  const c=corte(); let html='';
+  sdrs.forEach(n=>{
+    const r=calc(n); if(!r.gans.length) return;
+    html+=`<p style="font-size:13px;font-weight:600;margin:1rem 0 6px;">${n}</p>
+    <div class="twrap"><table><thead><tr><th>Empresa</th><th>Alumnos</th><th>Categoría</th><th>Comisión</th></tr></thead><tbody>`;
+    r.gans.forEach(d=>{
+      const bc=d.alumnos<=c?'ba':'bg', cat=d.alumnos<=c?`≤${c} al.`:`>${c} al.`, val=d.alumnos<=c?vate():vacima();
+      html+=`<tr><td>${d.emp}</td><td>${d.alumnos}</td><td><span class="badge ${bc}">${cat}</span></td><td>${fmt(val)}</td></tr>`;
+    });
+    html+='</tbody></table></div>';
+  });
+  g('dealsdet').innerHTML=html;
+  g('detgan').style.display=(tAte+tAcima>0)?'block':'none';
+}
+
+function bldSel(){
+  const sel=g('sdrs'), cur=sel.value; sel.innerHTML='';
+  allSdrs().forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+  if(cur&&allSdrs().includes(cur)) sel.value=cur;
+}
+
+function rendInd(){
+  const ok=hasData();
+  g('eind').style.display=ok?'none':'block';
+  g('bind').style.display=ok?'block':'none';
+  if(!ok) return;
+  const n=g('sdrs').value; if(!n) return;
+  const r=calc(n), c=corte();
+
+  const opsH=r.ops.map(d=>`<div class="rrow"><div class="rn">${d.emp}</div><span>${fmt(vop())}</span></div>`).join('');
+  const ganH=[
+    ...r.ate.map(d=>`<div class="rrow"><div class="rn">${d.emp}<div class="rsub">${d.alumnos} alumnos — ≤${c}</div></div><span>${fmt(vate())}</span></div>`),
+    ...r.acima.map(d=>`<div class="rrow"><div class="rn">${d.emp}<div class="rsub">${d.alumnos} alumnos — >${c}</div></div><span>${fmt(vacima())}</span></div>`)
+  ].join('');
+  const regH=r.regs.map(d=>`<div class="rrow"><div class="rn">${d.emp}<div class="rsub">Registrado</div></div><span>${fmt(d.val||vreg())}</span></div>`).join('');
+  const confH=r.confs.map(d=>`<div class="rrow"><div class="rn">${d.emp}<div class="rsub">Confirmado</div></div><span>${fmt(d.val||vconf())}</span></div>`).join('');
+  const compH=r.comps.map(d=>`<div class="rrow"><div class="rn">${d.emp}<div class="rsub">Compareció</div></div><span>${fmt(d.val||vcomp())}</span></div>`).join('');
+
+  const hasEvt=r.evts.length>0;
+
+  g('rptind').innerHTML=`
+  <div class="rcard">
+    <div class="rhdr">
+      <div><h3>${n}</h3><div class="rd">Comprobante de comisiones — ${getMes()}</div></div>
+      <div style="text-align:right;font-size:12px;color:var(--text2);line-height:2.1;">
+        ${r.ops.length} oportunidades · ${r.gans.length} ganados${hasEvt?` · ${r.evts.length} eventos`:''}
+      </div>
+    </div>
+
+    ${r.ops.length||r.gans.length?`
+    <div class="rsec">
+      <h4>Pipeline de ventas</h4>
+      ${r.ops.length?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Oportunidades abiertas — ${fmt(vop())} c/u</div>${opsH}`:''}
+      ${r.gans.length?`<div style="font-size:11px;color:var(--text2);margin:8px 0 4px;">Negocios ganados</div>${ganH}`:''}
+    </div>`:''}
+
+    ${hasEvt?`
+    <div class="rsec">
+      <h4>Eventos</h4>
+      ${r.regs.length?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Registrados — ${fmt(vreg())} c/u</div>${regH}`:''}
+      ${r.confs.length?`<div style="font-size:11px;color:var(--text2);margin:8px 0 4px;">Confirmados — ${fmt(vconf())} c/u</div>${confH}`:''}
+      ${r.comps.length?`<div style="font-size:11px;color:var(--text2);margin:8px 0 4px;">Comparecieron — ${fmt(vcomp())} c/u</div>${compH}`:''}
+    </div>`:''}
+
+    <div class="rsubt">
+      ${r.ops.length?`<div class="rrow"><span>Subtotal oportunidades (${r.ops.length} × ${fmt(vop())})</span><span>${fmt(r.co)}</span></div>`:''}
+      ${r.ate.length?`<div class="rrow"><span>Subtotal ganados ≤${c} al. (${r.ate.length} × ${fmt(vate())})</span><span>${fmt(r.ca)}</span></div>`:''}
+      ${r.acima.length?`<div class="rrow"><span>Subtotal ganados >${c} al. (${r.acima.length} × ${fmt(vacima())})</span><span>${fmt(r.cac)}</span></div>`:''}
+      ${r.regs.length?`<div class="rrow"><span>Subtotal registrados (${r.regs.length} cliente${r.regs.length>1?'s':''})</span><span>${fmt(r.creg)}</span></div>`:''}
+      ${r.confs.length?`<div class="rrow"><span>Subtotal confirmados (${r.confs.length} cliente${r.confs.length>1?'s':''})</span><span>${fmt(r.cconf)}</span></div>`:''}
+      ${r.comps.length?`<div class="rrow"><span>Subtotal comparecieron (${r.comps.length} cliente${r.comps.length>1?'s':''})</span><span>${fmt(r.ccomp)}</span></div>`:''}
+    </div>
+    <div class="rtot"><span class="rl">Total a cobrar</span><span class="rv">${fmt(r.total)}</span></div>
+  </div>`;
+}
+
+function expCSV(){
+  const c=corte();
+  let csv=`SDR,Oport.,Com.oport.,Gan.≤${c},Gan.>${c},Com.ganados,Registrados,Com.reg.,Confirmados,Com.conf.,Comparecieron,Com.comp.,Total\n`;
+  allSdrs().forEach(n=>{
+    const r=calc(n);
+    csv+=`"${n}",${r.ops.length},${Math.round(r.co)},${r.ate.length},${r.acima.length},${Math.round(r.ca+r.cac)},${r.regs.length},${Math.round(r.creg)},${r.confs.length},${Math.round(r.cconf)},${r.comps.length},${Math.round(r.ccomp)},${Math.round(r.total)}\n`;
+  });
+  const mes=g('mes').value||'sin-fecha';
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`comisiones-${mes}.csv`; a.click();
+}
+
+function resetar(){
+  if(!confirm('¿Limpiar todos los datos importados?')) return;
+  S.op={}; S.gan={}; S.evt={};
+  S.rawOp={data:[],cols:[]}; S.rawGan={data:[],cols:[]}; S.rawEvt={data:[],cols:[]};
+  ['pill-op','pill-gan','pill-evt'].forEach(id=>g(id).style.display='none');
+  [['zop','fiop'],['zgan','figan'],['zevt','fievt']].forEach(([z,f])=>{
+    const el=g(z); el.classList.remove('loaded');
+    el.innerHTML='<p>Clic para seleccionar o arrastrar</p><small>.xlsx · .xls · .csv</small>';
+    g(f).value='';
+  });
+  ['mapop','mapgan','mapevt'].forEach(id=>g(id).style.display='none');
+  refresh();
+}
+
+['vop','vate','vacima','vregistrado','vconfirmado','vcomparecio','moneda','mes'].forEach(id=>{
+  g(id).addEventListener('input',()=>{ if(hasData()){ rendRel(); rendInd(); } });
+});
+
+setupZone('zop','fiop','rawOp','mapop','colsop',null);
+setupZone('zgan','figan','rawGan','mapgan','colsgan',null);
+setupZone('zevt','fievt','rawEvt','mapevt','colsevt','buildFaseTable');
+</script>
+</body>
+</html>
