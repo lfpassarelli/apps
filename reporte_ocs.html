@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte de OCs - Original vs Confirmado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F7F6FD;
+    --accent: #4B3E98;
+    --accent-hover: #3A2F7A;
+    --accent-yellow: #FEC238;
+    --accent-orange: #F47432;
+    --accent-blue: #9FC2E6;
+    --text: #1A1530;
+    --text-muted: #6B6490;
+    --border: #DDD9F5;
+    --success: #2E9D57;
+    --danger: #C0392B;
+    --block-original: #EFEDFB;
+    --block-original-strong: #E1DDF6;
+    --block-confirmado: #EAF3FC;
+    --block-confirmado-strong: #D7E9F8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 32px;
+    min-width: 960px;
+  }
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0 0 4px;
+    color: var(--accent);
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+  }
+  .upload-box {
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .upload-box label {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    display: inline-block;
+    background: white;
+    border: 1px solid var(--accent);
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+  .upload-box label:hover { background: var(--accent); color: white; }
+  input[type="file"] { display: none; }
+  #filename { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+  .legend {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .meta-bar strong { color: var(--text); }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  thead tr.group-row th {
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 10px 8px;
+  }
+  thead tr.group-row th.g-nome { background: var(--accent-hover); }
+  thead tr.group-row th.g-original { background: var(--accent); border-left: 2px solid white; border-right: 2px solid white; }
+  thead tr.group-row th.g-confirmado { background: var(--accent-hover); }
+  thead tr.col-row th {
+    font-weight: 700;
+    font-size: 12px;
+    text-align: right;
+    padding: 9px 10px;
+    border-bottom: 2px solid var(--accent);
+    white-space: nowrap;
+  }
+  thead tr.col-row th:first-child { text-align: left; background: #F1EFFB; color: var(--accent); }
+  thead tr.col-row th.col-original { background: var(--block-original-strong); color: var(--accent-hover); }
+  thead tr.col-row th.col-confirmado { background: var(--block-confirmado-strong); color: #1A5A8A; }
+  tbody td {
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text);
+    background: #FBFAFF;
+  }
+  tbody td.col-original { background: var(--block-original); }
+  tbody td.col-confirmado { background: var(--block-confirmado); }
+  tbody tr:nth-child(even) td.col-original { background: #E7E4F8; }
+  tbody tr:nth-child(even) td.col-confirmado { background: #E1EEFA; }
+  tbody tr:nth-child(even) td:first-child { background: #F5F3FC; }
+  td.total-col, th.total-col { font-weight: 700; }
+  .diff {
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+  .diff.up { color: var(--success); }
+  .diff.down { color: var(--danger); }
+  tfoot td {
+    padding: 11px 10px;
+    text-align: right;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    background: var(--accent-yellow);
+    color: var(--text);
+    border-top: 2px solid var(--accent);
+  }
+  tfoot td:first-child { text-align: left; }
+  .empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px;
+    font-size: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+  }
+  .tab-btn {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .print-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+  .print-btn {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .print-btn:hover { background: var(--accent-hover); }
+  @page { size: portrait; margin: 12mm; }
+  @media print {
+    .tabs, .upload-box, .print-bar, .meta-bar { display: none !important; }
+    body { padding: 0; min-width: 0; }
+    .tab-panel { display: none !important; }
+    #panel-tabla { display: block !important; }
+    h1 { font-size: 18px; }
+    .subtitle { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Reporte de OCs — Original vs Confirmado</h1>
+<p class="subtitle">Preescolar + Primaria por colegio, considerando solo la versión más reciente de cada registro duplicado (según Fecha_Confirmacion)</p>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-btn-importar" onclick="showTab('importar')">1. Importar</button>
+  <button class="tab-btn" id="tab-btn-tabla" onclick="showTab('tabla')" disabled>2. Tabla</button>
+</div>
+
+<div class="tab-panel active" id="panel-importar">
+  <div class="upload-box">
+    <div>Importa el archivo CSV de OCs</div>
+    <label for="csvInput">Elegir archivo</label>
+    <input type="file" id="csvInput" accept=".csv">
+    <div id="filename">Ningún archivo seleccionado</div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-tabla">
+  <div class="print-bar">
+    <button class="print-btn" onclick="window.print()">Imprimir / Exportar PDF</button>
+  </div>
+
+  <div class="meta-bar" id="metaBar" style="display:none;">
+    <span><strong id="metaTotal"></strong> colegios</span>
+    <span><strong id="metaDup"></strong> duplicidades resueltas (se mantuvo la más reciente)</span>
+  </div>
+
+  <div class="legend" id="legendBar" style="display:none;">
+    <span><span class="diff up">▲</span> Aumentó respecto al original</span>
+    <span><span class="diff down">▼</span> Disminuyó respecto al original</span>
+  </div>
+
+  <div id="tableWrap">
+    <div class="empty-state">Esperando la importación del CSV para generar la tabla.</div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-btn-' + name).classList.add('active');
+}
+</script>
+
+<script>
+document.getElementById('csvInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('filename').textContent = file.name;
+  Papa.parse(file, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      processData(results.data);
+    }
+  });
+});
+
+function parseDate(str) {
+  if (!str) return new Date(0);
+  const [datePart, timePart] = String(str).split(' ');
+  const [d, m, y] = datePart.split('/').map(Number);
+  const [hh, mm, ss] = (timePart || '0:0:0').split(':').map(Number);
+  return new Date(y, m - 1, d, hh || 0, mm || 0, ss || 0);
+}
+
+function processData(rows) {
+  const preOrig = ['Preescolar_3a_Original','Preescolar_4a_Original','Preescolar_5a_Original'];
+  const preConf = ['Preescolar_3a_Confirmado','Preescolar_4a_Confirmado','Preescolar_5a_Confirmado'];
+  const priOrig = ['Primaria_1er_Original','Primaria_2do_Original','Primaria_3er_Original','Primaria_4to_Original','Primaria_5to_Original','Primaria_6to_Original'];
+  const priConf = ['Primaria_1er_Confirmado','Primaria_2do_Confirmado','Primaria_3er_Confirmado','Primaria_4to_Confirmado','Primaria_5to_Confirmado','Primaria_6to_Confirmado'];
+
+  const latest = {};
+  let dupCount = 0;
+  rows.forEach(r => {
+    const nome = r.Nombre_Comercial;
+    if (!nome) return;
+    const dt = parseDate(r.Fecha_Confirmacion);
+    if (!latest[nome] || dt > latest[nome]._dt) {
+      if (latest[nome]) dupCount++;
+      latest[nome] = Object.assign({}, r, { _dt: dt });
+    } else {
+      dupCount++;
+    }
+  });
+
+  const sumCols = (row, cols) => cols.reduce((acc, c) => acc + (Number(row[c]) || 0), 0);
+
+  const data = Object.values(latest).map(row => {
+    const preO = sumCols(row, preOrig);
+    const preC = sumCols(row, preConf);
+    const priO = sumCols(row, priOrig);
+    const priC = sumCols(row, priConf);
+    return {
+      nome: row.Nombre_Comercial,
+      preO, priO, totO: preO + priO,
+      preC, priC, totC: preC + priC
+    };
+  }).sort((a, b) => a.nome.localeCompare(b.nome, 'es'));
+
+  renderTable(data, Object.keys(latest).length, dupCount);
+}
+
+function diffArrow(orig, conf) {
+  if (conf > orig) return '<span class="diff up">▲</span>';
+  if (conf < orig) return '<span class="diff down">▼</span>';
+  return '';
+}
+
+function renderTable(data, total, dupCount) {
+  document.getElementById('metaBar').style.display = 'flex';
+  document.getElementById('legendBar').style.display = 'flex';
+  document.getElementById('metaTotal').textContent = total;
+  document.getElementById('metaDup').textContent = dupCount;
+
+  const totals = data.reduce((acc, d) => {
+    acc.preO += d.preO; acc.priO += d.priO; acc.totO += d.totO;
+    acc.preC += d.preC; acc.priC += d.priC; acc.totC += d.totC;
+    return acc;
+  }, { preO:0, priO:0, totO:0, preC:0, priC:0, totC:0 });
+
+  const fmt = n => n.toLocaleString('es-MX');
+
+  let html = '<table><thead>';
+  html += '<tr class="group-row"><th class="g-nome">&nbsp;</th><th class="g-original" colspan="3">Original</th><th class="g-confirmado" colspan="3">Confirmado</th></tr>';
+  html += '<tr class="col-row"><th>Colegio</th>' +
+    '<th class="col-original">Preescolar</th><th class="col-original">Primaria</th><th class="col-original total-col">Total</th>' +
+    '<th class="col-confirmado">Preescolar</th><th class="col-confirmado">Primaria</th><th class="col-confirmado total-col">Total</th></tr>';
+  html += '</thead><tbody>';
+  data.forEach(d => {
+    html += `<tr>
+      <td>${d.nome}</td>
+      <td class="col-original">${fmt(d.preO)}</td>
+      <td class="col-original">${fmt(d.priO)}</td>
+      <td class="col-original total-col">${fmt(d.totO)}</td>
+      <td class="col-confirmado">${fmt(d.preC)}${diffArrow(d.preO, d.preC)}</td>
+      <td class="col-confirmado">${fmt(d.priC)}${diffArrow(d.priO, d.priC)}</td>
+      <td class="col-confirmado total-col">${fmt(d.totC)}${diffArrow(d.totO, d.totC)}</td>
+    </tr>`;
+  });
+  html += '</tbody><tfoot><tr>';
+  html += `<td>Total general</td>
+    <td>${fmt(totals.preO)}</td><td>${fmt(totals.priO)}</td><td>${fmt(totals.totO)}</td>
+    <td>${fmt(totals.preC)}${diffArrow(totals.preO, totals.preC)}</td>
+    <td>${fmt(totals.priC)}${diffArrow(totals.priO, totals.priC)}</td>
+    <td>${fmt(totals.totC)}${diffArrow(totals.totO, totals.totC)}</td>`;
+  html += '</tr></tfoot></table>';
+
+  document.getElementById('tableWrap').innerHTML = html;
+
+  const tabBtnTabla = document.getElementById('tab-btn-tabla');
+  tabBtnTabla.disabled = false;
+  showTab('tabla');
+}
+</script>
+
+</body>
+</html>
