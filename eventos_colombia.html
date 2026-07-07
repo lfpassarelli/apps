@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Eventos Colombia · LIV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root{
+    --liv-purple:#4B3E98; --liv-purple-d:#26215C; --liv-purple-l:#EEEDFE; --liv-purple-m:#7F77DD;
+    --liv-yellow:#FEC238; --liv-orange:#F47432; --liv-blue:#9FC2E6; --liv-gray:#B4B2A9;
+    --bg:#F6F5FB; --card:#FFFFFF; --ink:#2C2C2A; --ink-2:#5F5E5A; --ink-3:#9A988F;
+    --border:#E7E5F0; --radius:14px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;line-height:1.5}
+  h1,h2,h3,.disp{font-family:'Outfit','DM Sans',sans-serif}
+
+  header.top{background:var(--liv-purple);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:18px}
+  header.top img{height:46px;width:auto;display:block}
+  header.top .tt{display:flex;flex-direction:column;gap:2px}
+  header.top .tt h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.12em}
+  header.top .tt span{font-size:13px;color:#CECBF6;letter-spacing:.04em}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 28px 60px}
+
+  /* upload */
+  #drop{background:var(--card);border:2px dashed var(--liv-blue);border-radius:var(--radius);padding:48px 28px;text-align:center;margin-top:32px}
+  #drop.drag{border-color:var(--liv-purple);background:var(--liv-purple-l)}
+  #drop i{font-size:13px;color:var(--ink-2)}
+  #drop h2{margin:0 0 6px;font-size:20px;font-weight:600;color:var(--liv-purple)}
+  #drop p{margin:0 0 20px;color:var(--ink-2);font-size:14px}
+  .btn{font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;border:none;border-radius:var(--radius-sm);padding:11px 22px;cursor:pointer;background:var(--liv-purple);color:#fff;transition:filter .15s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--liv-purple);border:1px solid var(--border)}
+  .err{color:#A32D2D;font-size:13px;margin-top:14px}
+
+  /* toolbar */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .src{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+  .filters{display:flex;gap:6px;align-items:center}
+  .filters .lbl{font-size:12px;color:var(--ink-2);margin-right:4px}
+  .fbtn{font-family:'Outfit',sans-serif;font-size:13px;padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--card);color:var(--ink-2);cursor:pointer}
+  .fbtn.on{background:var(--liv-purple);border-color:var(--liv-purple);color:#fff}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:22px}
+  .tab{font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;background:none;border:none;border-bottom:3px solid transparent;color:var(--ink-2);padding:11px 18px;cursor:pointer}
+  .tab.on{color:var(--liv-purple);border-bottom-color:var(--liv-purple)}
+
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+  .stat .k{font-size:13px;color:var(--ink-2)}
+  .stat .v{font-family:'Outfit',sans-serif;font-size:26px;font-weight:600;color:var(--ink);margin-top:2px}
+
+  .citecard{border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px}
+  .citecard.total{border-color:var(--liv-purple);background:var(--liv-purple-l)}
+  .citecard .nm{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;margin-bottom:10px}
+  .citecard .pct{font-weight:400;color:var(--ink-3);font-size:13px}
+  .row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);margin:4px 0}
+  .row b{color:var(--ink);font-weight:600}
+  .row.calrow{padding:3px 8px;margin:4px -8px;background:rgba(254,194,56,.16);border-radius:6px;font-weight:500}
+
+  .secttl{font-size:13px;color:var(--ink-2);margin:0 0 8px;font-weight:500}
+  .chartbox{position:relative;width:100%}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink-2);margin-bottom:8px}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  .funnel{border:1px dashed var(--liv-blue);border-radius:var(--radius);padding:14px 16px}
+  .funnel .ft{font-size:13px;color:var(--ink-2);margin-bottom:4px;font-weight:500}
+  .funnel .fh{font-size:11px;color:var(--ink-3);margin-bottom:12px}
+  .fgroup{margin-top:12px}
+  .fgroup .gn{font-size:13px;font-weight:600;font-family:'Outfit',sans-serif;margin-bottom:7px}
+  .stages{display:flex;align-items:stretch;flex-wrap:wrap}
+  .stg{flex:1 1 0;min-width:118px;border-radius:var(--radius-sm);padding:9px 11px}
+  .conn{display:flex;align-items:center;justify-content:center;padding:0 6px}
+  .conn .cv{font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--liv-purple-d);background:var(--liv-purple-l);border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .conn .cv.off{color:var(--ink-3);background:#F1EFE8}
+  .stg .sk{font-size:11px}
+  .stg .sv{font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;margin-top:1px}
+  .stg.fill{background:var(--liv-purple)} .stg.fill .sk{color:#CECBF6} .stg.fill .sv{color:#fff}
+  .stg.fillcal{background:var(--liv-orange)} .stg.fillcal .sk{color:#FFE3D2} .stg.fillcal .sv{color:#fff}
+  .stg.filldone{background:#6F63C4} .stg.filldone .sk{color:#E2DEF7} .stg.filldone .sv{color:#fff}
+  .stg .sea{font-size:11px;margin-top:3px;padding-top:4px;border-top:1px solid rgba(0,0,0,.05)}
+  .stg.fill .sea{color:#CECBF6;border-top-color:rgba(255,255,255,.18)}
+  .stg.fillcal .sea{color:#FFE3D2;border-top-color:rgba(255,255,255,.25)}
+  .stg.filldone .sea{color:#E2DEF7;border-top-color:rgba(255,255,255,.2)}
+  .stg.empty .sea{color:#B4B2A9}
+  .fgroup .gpct{font-weight:400;font-size:13px;color:var(--ink-3)}
+  .fgroup.ftotal{border:1px solid #C9C4F0;border-radius:12px;padding:10px 12px;background:rgba(75,62,152,.04);margin-top:6px;margin-bottom:14px}
+  .stg.empty{background:#F1EFE8} .stg.empty .sk{color:var(--ink-2)} .stg.empty .sv{color:var(--ink-3)}
+
+  .chanblk{background:#F1EFE8;border-radius:var(--radius-sm);padding:11px 13px}
+  .chanblk .cn{font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;margin-bottom:5px}
+  .chanblk .ce{font-size:12px;color:var(--ink-2)}
+  .chanblk .ce .rt{color:var(--ink-3)}
+  .chanblk .ca{font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;margin-top:2px}
+  .note{font-size:11px;color:var(--ink-3);margin-top:10px}
+  .ncbox{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--liv-gray);border-radius:var(--radius);padding:14px 16px}
+  .ncbox .nck{font-size:14px;color:var(--ink);font-family:'Outfit',sans-serif}
+  .ncbox .ncsub{font-size:11px;color:var(--ink-3);margin:2px 0 8px}
+  .ncbox .ncn{font-family:'Outfit',sans-serif;font-size:28px;font-weight:600;color:var(--ink);line-height:1}
+  .ncbox .nca{font-size:12px;color:var(--liv-orange);font-weight:500;margin-top:4px}
+  .hide{display:none!important}
+  .printonly{display:none}
+
+  /* Durante la exportación: revelar abas 1 y 2 apiladas para que se rendericen */
+  body.exporting .panel[data-p="0"],
+  body.exporting .panel[data-p="1"]{display:block!important;margin-bottom:26px}
+  body.exporting .panel[data-p="2"]{display:none!important}
+
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:12mm}
+    body{background:#fff}
+    header.top{padding:14px 0}
+    .toolbar,.tabs,#drop{display:none!important}
+    .printonly{display:block;font-size:13px;color:var(--ink-2);margin:6px 0 14px}
+    .wrap{padding:0}
+    .panel[data-p="0"],.panel[data-p="1"]{display:block!important}
+    .panel[data-p="2"]{display:none!important}
+    .panel[data-p="1"]{page-break-before:always}
+    .panel[data-p]::before{display:block;font-family:'Outfit',sans-serif;font-size:17px;font-weight:600;color:var(--liv-purple);margin:0 0 14px}
+    .panel[data-p="0"]::before{content:"Embudo y Canales"}
+    .panel[data-p="1"]::before{content:"Perfiles"}
+    .card,.stat,.citecard,.funnel,.chanblk,.fgroup{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"/>
+  <div class="tt">
+    <h1>EVENTOS COLOMBIA</h1>
+    <span>Dashboard de registros · campaña 2026</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Upload -->
+  <div id="drop">
+    <h2>Importá el export de eventos</h2>
+    <p>Arrastrá el archivo <b>.xls</b> exportado de Bitrix24, o seleccionalo. Todo se calcula en tu navegador; no se sube nada.</p>
+    <input id="file" type="file" accept=".xls,.xlsx,.html,.htm" class="hide"/>
+    <button class="btn" id="pick">Seleccionar archivo</button>
+    <div class="err hide" id="err"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dash" class="hide">
+    <div class="toolbar">
+      <div class="src"><i class="ti"></i><span id="srcname"></span> · <button class="btn ghost" id="reimport" style="padding:5px 12px;font-size:12px">Reimportar</button> <button class="btn" id="export" style="padding:5px 12px;font-size:12px">Exportar PDF</button></div>
+      <div class="filters">
+        <span class="lbl">Evento</span>
+        <button class="fbtn on" data-ev="Todos">Todos</button>
+        <button class="fbtn" data-ev="Evento Bogota">Bogotá</button>
+        <button class="fbtn" data-ev="Evento Medellin">Medellín</button>
+      </div>
+    </div>
+
+    <div id="printinfo" class="printonly"></div>
+    <div class="tabs">
+      <button class="tab on" data-t="0">Embudo y Canales</button>
+      <button class="tab" data-t="1">Perfiles</button>
+      <button class="tab" data-t="2">SDR</button>
+    </div>
+
+    <div class="panel" data-p="0"></div>
+    <div class="panel hide" data-p="1"></div>
+    <div class="panel hide" data-p="2"></div>
+  </div>
+
+</div>
+
+<script>
+const C = {purple:'#4B3E98',purpleD:'#26215C',yellow:'#FEC238',orange:'#F47432',blue:'#9FC2E6',gray:'#B4B2A9'};
+const EVTS = ['Evento Bogota','Evento Medellin'];
+const EVLABEL = {'Evento Bogota':'Bogotá','Evento Medellin':'Medellín'};
+const BITRIX_STAGES = ['Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline
+const FUNNEL = ['Registrado','Calificado','Confirmado','Presente']; // Calificado = calculado; 'A confirmar' se colapsa en Registrado
+const NIV_ORDER = ['Preescolar','Primaria','Secundaria','Media'];
+// Calificado = nivel (Preescolar y/o Primaria) Y cargo en esta lista
+const NIV_CALIF = ['Preescolar','Primaria'];
+const CARGO_CALIF = ['Propietario(a) / Socio(a)','Rector(a)','Vice Rector(a)','Director(a) General',
+  'Director(a) Académico','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria',
+  'Director(a) Media','Coordinador(a) / Subdirector(a)','Psicólogo(a) / Psicopedagogo(a)','Administrador(a)'];
+const CARGO_DEC = ['Propietario(a) / Socio(a)','Director(a) General','Director(a) Académico','Director(a) Académico(a)','Rector(a)','Vice Rector(a)','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria','Director(a) Media'];
+const CARGO_INF = ['Otro rol directivo','Coordinador(a) / Subdirector(a)','Psicólogo(a) / Psicopedagogo(a)','Administrador(a)'];
+
+// ¿el registro alcanzó (o superó) una etapa de Bitrix?
+function alcanzo(etapa, stage){ const i=BITRIX_STAGES.indexOf(etapa); return i>=0 && i>=BITRIX_STAGES.indexOf(stage); }
+function esRegistrado(r){ return BITRIX_STAGES.includes(r.etapa); }
+function nivelCalifOk(r){
+  const niveles = r.niveles ? r.niveles.split('\u03A9').map(s=>s.trim()) : [];
+  return NIV_CALIF.some(n=>niveles.includes(n));
+}
+function cargoCalifOk(r){ return CARGO_CALIF.includes(r.cargo); }
+function esCalificado(r){ return esRegistrado(r) && nivelCalifOk(r) && cargoCalifOk(r); }
+
+let RECORDS = [];           // todas las filas válidas (sin test)
+let scope = 'Todos';
+let activeTab = 0;
+let charts = {};
+
+const fmt = n => Math.round(n).toLocaleString('es-CO');
+const pct = (n,t) => t? (n/t*100).toFixed(1).replace('.',',') : '0,0';
+const rat = (a,b) => b? (a/b).toFixed(2).replace('.',',') : '0,00';
+const pctLabel = v => (Math.round(v*10)/10).toLocaleString('es-CO')+'%';
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Parsing del .xls (HTML disfrazado) ---------- */
+function parseFile(text){
+  const doc = new DOMParser().parseFromString(text,'text/html');
+  const table = doc.querySelector('table');
+  if(!table) throw new Error('No se encontró ninguna tabla en el archivo.');
+  const trs = Array.from(table.querySelectorAll('tr'));
+  if(!trs.length) throw new Error('La tabla está vacía.');
+  const headCells = Array.from(trs[0].querySelectorAll('th,td')).map(c=>c.textContent.trim());
+  const idx = {};
+  headCells.forEach((h,i)=>{ idx[h]=i; });
+  const need = ['ID','Evento','Negocio','Etapa','Pessoa responsável','Contato: Cargo',
+                'cf_niveles_educativos','cf_calendario','Nr de Alumnos (primera campaña)','Empresa: ID'];
+  const missing = need.filter(n=>!(n in idx));
+  if(missing.length) throw new Error('Faltan columnas esperadas: '+missing.join(', '));
+
+  const recs = [];
+  for(let r=1;r<trs.length;r++){
+    const tds = Array.from(trs[r].querySelectorAll('td,th'));
+    if(!tds.length) continue;
+    const get = name => { const i=idx[name]; return i==null||!tds[i] ? '' : tds[i].textContent.trim(); };
+    const negocio = get('Negocio');
+    if(negocio.includes('2Colegio Test')) continue;        // excluir registros de prueba
+    const alumRaw = get('Nr de Alumnos (primera campaña)').replace(/[^0-9-]/g,'');
+    recs.push({
+      id: get('ID'),
+      evento: get('Evento'),
+      etapa: get('Etapa'),
+      resp: get('Pessoa responsável'),
+      cargo: get('Contato: Cargo'),
+      niveles: get('cf_niveles_educativos'),
+      calendario: get('cf_calendario'),
+      alumnos: alumRaw? parseInt(alumRaw,10) : 0,
+      empresa: get('Empresa: ID') || ('__r'+r)
+    });
+  }
+  if(!recs.length) throw new Error('No se encontraron filas de datos (después de excluir pruebas).');
+  return recs;
+}
+
+function canalDe(resp){
+  if(resp==='Milena Drakić') return 'Inbound';
+  if(resp==='Fabiano Passarelli') return 'Relación directa';
+  return 'SDR convertido';
+}
+// alumnos por escuela única (1 valor por empresa = máximo)
+function alumnosUnicos(rows){
+  const m = new Map();
+  rows.forEach(r=>{ const v=m.get(r.empresa)||0; if(r.alumnos>v) m.set(r.empresa,r.alumnos); });
+  let s=0; m.forEach(v=>s+=v); return s;
+}
+function escuelasUnicas(rows){ return new Set(rows.map(r=>r.empresa)).size; }
+
+/* ---------- Cálculo del scope ---------- */
+function compute(){
+  const base = scope==='Todos' ? RECORDS : RECORDS.filter(r=>r.evento===scope);
+  const reg  = base.filter(esRegistrado);          // alcanzó el registro (todos)
+  const calif= reg.filter(esCalificado);           // subconjunto Calificado (nivel + cargo)
+  const totReg = reg.length;
+
+  const eventos = scope==='Todos' ? EVTS : [scope];
+  // cards: Registros = todos los registrados; Calificado/Escuelas/Alumnos = sólo Calificado
+  const porEvento = eventos.map(ev=>{
+    const rr = reg.filter(r=>r.evento===ev);
+    const cc = calif.filter(r=>r.evento===ev);
+    return {ev, label:EVLABEL[ev], reg:rr.length, calif:cc.length, esc:escuelasUnicas(cc), alum:alumnosUnicos(cc)};
+  });
+  const total = {reg:totReg, calif:calif.length, esc:escuelasUnicas(calif), alum:alumnosUnicos(calif)};
+
+  // canales — todo sobre Calificado
+  const canales = ['Inbound','Relación directa','SDR convertido'];
+  const porCanal = canales.map(cn=>{
+    const cc = calif.filter(r=>canalDe(r.resp)===cn);
+    return {cn, reg:cc.length, esc:escuelasUnicas(cc), alum:alumnosUnicos(cc)};
+  });
+  const canalEv = canales.map(cn=>({
+    cn, byEv: EVTS.map(ev=> calif.filter(r=>canalDe(r.resp)===cn && r.evento===ev).length)
+  }));
+
+  // perfil — todo sobre Calificado
+  const niv = {}; NIV_ORDER.forEach(n=>niv[n]=0);
+  calif.forEach(r=>{ if(r.niveles) r.niveles.split('\u03A9').forEach(p=>{ const k=p.trim(); if(k in niv) niv[k]++; }); });
+
+  const calMap = {};
+  calif.forEach(r=>{ const k=r.calendario? r.calendario : 'No informado'; calMap[k]=(calMap[k]||0)+1; });
+
+  const cargoMap = {};
+  calif.forEach(r=>{ const k=r.cargo||'(sin cargo)'; cargoMap[k]=(cargoMap[k]||0)+1; });
+  const cargoDet = Object.entries(cargoMap).sort((a,b)=>b[1]-a[1]);
+
+  const cat = {Decisor:0,Influyente:0,'Técnico':0};
+  calif.forEach(r=>{
+    if(CARGO_DEC.includes(r.cargo)) cat.Decisor++;
+    else if(CARGO_INF.includes(r.cargo)) cat.Influyente++;
+    else cat['Técnico']++;
+  });
+
+  // tamaño de colegios — escuelas únicas Calificado
+  const sizes = new Map();
+  calif.forEach(r=>{ const v=sizes.get(r.empresa)||0; if(r.alumnos>v) sizes.set(r.empresa,r.alumnos); });
+  let peq=0,med=0,gra=0;
+  sizes.forEach(v=>{ if(v<=150) peq++; else if(v<=500) med++; else gra++; });
+
+  // embudo post-registro — etapas: Registrado → Calificado → Confirmado → Presente
+  // 'A confirmar' es organizativa: cuenta como Registrado (no avanza en el embudo)
+  // desde Calificado en adelante, sólo deals calificados · cada etapa trae también escuelas y alumnos
+  function funnelRow(g){
+    const s0 = g.filter(esRegistrado);
+    const s1 = g.filter(esCalificado);
+    const s2 = s1.filter(d=>alcanzo(d.etapa,'Confirmado'));
+    const s3 = s1.filter(d=>alcanzo(d.etapa,'Presente'));
+    const st = [s0,s1,s2,s3].map(s=>({n:s.length, esc:escuelasUnicas(s), al:alumnosUnicos(s)}));
+    const conv = [
+      st[0].n>0 ? st[1].n/st[0].n*100 : null,
+      st[1].n>0 ? st[2].n/st[1].n*100 : null,
+      st[2].n>0 ? st[3].n/st[2].n*100 : null
+    ];
+    return {stages:st, conv};
+  }
+  const funnel = [];
+  if(eventos.length>1){
+    funnel.push(Object.assign({label:'Total', pct:100, isTotal:true}, funnelRow(base)));
+  }
+  eventos.forEach(ev=>{
+    const g = base.filter(r=>r.evento===ev);
+    const pctv = eventos.length>1 ? (totReg>0 ? g.filter(esRegistrado).length/totReg*100 : 0) : null;
+    funnel.push(Object.assign({label:EVLABEL[ev], pct:pctv, isTotal:false}, funnelRow(g)));
+  });
+
+  // no calificados — motivos mutuamente excluyentes (sobre los registrados del scope)
+  const noCal = reg.filter(r=>!esCalificado(r));
+  const soloNiv = noCal.filter(r=>cargoCalifOk(r) && !nivelCalifOk(r));
+  const soloCar = noCal.filter(r=>nivelCalifOk(r) && !cargoCalifOk(r));
+  const ambos   = noCal.filter(r=>!nivelCalifOk(r) && !cargoCalifOk(r));
+  const noCalif = {
+    soloNiv:{n:soloNiv.length, alum:alumnosUnicos(soloNiv)},
+    soloCar:{n:soloCar.length, alum:alumnosUnicos(soloCar)},
+    ambos:{n:ambos.length, alum:alumnosUnicos(ambos)},
+    total:noCal.length
+  };
+
+  // SDR (etapas frías — sin cambios)
+  const cont = base.filter(r=>r.etapa==='Contacto').length;
+  const invi = base.filter(r=>r.etapa==='Invitado').length;
+  const sdrEv = EVTS.map(ev=>({
+    contacto: base.filter(r=>r.evento===ev && r.etapa==='Contacto').length,
+    invitado: base.filter(r=>r.evento===ev && r.etapa==='Invitado').length
+  }));
+
+  return {totReg, porEvento, total, porCanal, canalEv, niv, cal:calMap, cargoDet, cat,
+          tam:{peq,med,gra}, funnel, sdr:{cont,invi,sdrEv}, noCalif};
+}
+
+/* ---------- Charts helpers ---------- */
+const gridc='rgba(0,0,0,.06)', tickc='#5F5E5A';
+Chart.defaults.font.family="Outfit, 'DM Sans', sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.animation=false;   // garante captura completa na impressão/PDF
+function destroyTab(t){ (charts[t]||[]).forEach(c=>c.destroy()); charts[t]=[]; }
+function reg(t,c){ (charts[t]=charts[t]||[]).push(c); }
+
+const dlPie = {color:'#fff',font:{size:11,weight:'600'},formatter:(v,c)=>{
+  const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); const p=t?v/t*100:0;
+  return p<3?'':Math.round(p)+'%';
+}};
+function pie(t,id,labels,data,colors){
+  const el=document.getElementById(id); if(!el)return;
+  reg(t,new Chart(el,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},datalabels:dlPie}},
+    plugins:[ChartDataLabels]}));
+}
+function barV(t,id,labels,datasets,stacked){
+  const el=document.getElementById(id); if(!el)return;
+  const dl = stacked
+    ? {color:'#fff',anchor:'center',align:'center',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''}
+    : {color:'#3C3489',anchor:'end',align:'top',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''};
+  reg(t,new Chart(el,{type:'bar',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:stacked?4:20}},
+      plugins:{legend:{display:false},datalabels:dl},
+      scales:{x:{stacked:!!stacked,grid:{display:false},ticks:{color:tickc}},y:{stacked:!!stacked,grid:{color:gridc},ticks:{color:tickc}}}},
+    plugins:[ChartDataLabels]}));
+}
+function barH(t,id,labels,data){
+  const el=document.getElementById(id); if(!el)return;
+  reg(t,new Chart(el,{type:'bar',data:{labels,datasets:[{data,backgroundColor:C.purple,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:30}},
+      plugins:{legend:{display:false},datalabels:{color:'#3C3489',anchor:'end',align:'right',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''}},
+      scales:{x:{grid:{color:gridc},ticks:{color:tickc}},y:{grid:{display:false},ticks:{color:tickc}}}},
+    plugins:[ChartDataLabels]}));
+}
+function legendHTML(items){ // [{c,label,n}]
+  return '<div class="legend">'+items.map(i=>`<span><span class="dot" style="background:${i.c}"></span>${esc(i.label)} ${fmt(i.n)}</span>`).join('')+'</div>';
+}
+
+/* ---------- Render de cada pestaña ---------- */
+function renderTab0(D){
+  const p=document.querySelector('.panel[data-p="0"]');
+  const stageKind = ['reg','cal','done','done'];
+  const funnelHTML = D.funnel.map(f=>{
+    const color = f.isTotal ? C.purpleD : (f.label==='Bogotá'?C.purple:C.orange);
+    const pctSpan = f.pct!=null ? ` <span class="gpct">· ${pctLabel(f.pct)}</span>` : '';
+    let cells='';
+    FUNNEL.forEach((s,i)=>{
+      const st=f.stages[i]; const filled=st.n>0; const kind=stageKind[i];
+      const cls = filled ? (kind==='reg'?'fill':kind==='cal'?'fillcal':'filldone') : 'empty';
+      cells += `<div class="stg ${cls}">
+          <div class="sk">${s}</div>
+          <div class="sv">${filled?fmt(st.n):'—'}</div>
+          <div class="sea">${filled?`${fmt(st.esc)} esc · ${fmt(st.al)} al`:'— esc · — al'}</div>
+        </div>`;
+      if(i<FUNNEL.length-1){
+        const cv=f.conv[i]; const show=(f.stages[i+1].n>0 && cv!=null);
+        cells += `<div class="conn"><span class="cv ${show?'':'off'}">${show?Math.round(cv)+'%':'—'}</span></div>`;
+      }
+    });
+    return `<div class="fgroup ${f.isTotal?'ftotal':''}">
+      <div class="gn" style="color:${color}">${f.label}${pctSpan}</div>
+      <div class="stages">${cells}</div>
+    </div>`;
+  }).join('');
+
+  const canalColors={'Inbound':C.purple,'Relación directa':C.yellow,'SDR convertido':C.blue};
+  const canalDetail = D.porCanal.map(c=>{
+    const tc = c.cn==='Inbound'?C.purple : c.cn==='Relación directa'?'#946A00':'#185FA5';
+    return `<div class="chanblk">
+      <div class="cn" style="color:${tc}">${c.cn}</div>
+      <div class="ce">${fmt(c.reg)} calif · ${fmt(c.esc)} esc <span class="rt">(${rat(c.reg,c.esc)})</span></div>
+      <div class="ca">${fmt(c.alum)} al.</div>
+    </div>`;
+  }).join('');
+
+  p.innerHTML = `
+    <div class="funnel" style="margin-bottom:18px">
+      <div class="ft">Embudo post-registro</div>
+      <div class="fh">Evolución por evento · desde Calificado en adelante se cuentan sólo deals calificados · 'A confirmar' cuenta como Registrado · las etapas siguientes se completan al reimportar</div>
+      ${funnelHTML}
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Calificado por canal</div>
+        ${legendHTML(D.porCanal.map(c=>({c:canalColors[c.cn],label:c.cn,n:c.reg})))}
+        <div class="chartbox" style="height:170px"><canvas id="c0_canal"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Calificado · canal × evento</div>
+        ${legendHTML([{c:C.purple,label:'Bogotá',n:D.canalEv.reduce((a,c)=>a+c.byEv[0],0)},{c:C.orange,label:'Medellín',n:D.canalEv.reduce((a,c)=>a+c.byEv[1],0)}])}
+        <div class="chartbox" style="height:200px"><canvas id="c0_ce"></canvas></div>
+      </div>
+    </div>
+    <div class="secttl">Detalle por canal · sólo Calificado (calificados · escuelas · alumnos · ratio contacto/escuela)</div>
+    <div class="grid g3">${canalDetail}</div>
+  `;
+
+  pie(0,'c0_canal', D.porCanal.map(c=>c.cn), D.porCanal.map(c=>c.reg),
+      D.porCanal.map(c=>canalColors[c.cn]));
+  barV(0,'c0_ce', D.porCanal.map(c=>c.cn.replace(' ','\n')),
+      [{label:'Bogotá',data:D.canalEv.map(c=>c.byEv[0]),backgroundColor:C.purple,borderRadius:4},
+       {label:'Medellín',data:D.canalEv.map(c=>c.byEv[1]),backgroundColor:C.orange,borderRadius:4}], true);
+}
+
+function renderTab1(D){
+  const p=document.querySelector('.panel[data-p="1"]');
+  const evAlum = D.porEvento.map(e=>`<div class="stat"><div class="k">${e.label}</div><div class="v" style="color:${e.ev==='Evento Bogota'?C.purple:C.orange}">${fmt(e.alum)}</div></div>`).join('');
+  const calItems = Object.entries(D.cal).sort((a,b)=>b[1]-a[1]);
+  const calColor = k => k==='No informado'?C.gray : k==='A'?C.purple : k==='B'?C.orange : k==='A-B'?C.yellow : C.blue;
+  const cargoTop = D.cargoDet.slice(0,8);
+
+  p.innerHTML = `
+    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Todos los indicadores de esta pestaña consideran únicamente la cohorte <b>Calificado</b> (${fmt(D.total.calif)} de ${fmt(D.total.reg)} registrados).</div>
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Alumnos · total</div><div class="v">${fmt(D.total.alum)}</div></div>
+      ${evAlum}
+    </div>
+    <div class="grid" style="grid-template-columns:0.8fr 1.2fr;margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Cargo · 3 categorías</div>
+        ${legendHTML([{c:C.purple,label:'Decisor',n:D.cat.Decisor},{c:C.blue,label:'Influyente',n:D.cat.Influyente},{c:C.gray,label:'Técnico',n:D.cat['Técnico']}])}
+        <div class="chartbox" style="height:185px"><canvas id="c1_cat"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Cargo · detalle</div>
+        <div class="chartbox" style="height:${Math.max(220, cargoTop.length*34+40)}px"><canvas id="c1_cargo"></canvas></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Calendario</div>
+        ${legendHTML(calItems.map(([k,n])=>({c:calColor(k),label:k,n})))}
+        <div class="chartbox" style="height:185px"><canvas id="c1_cal"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Tamaño de colegios</div>
+        ${legendHTML([{c:C.blue,label:'Pequeños',n:D.tam.peq},{c:C.orange,label:'Medianos',n:D.tam.med},{c:C.purple,label:'Grandes',n:D.tam.gra}])}
+        <div class="chartbox" style="height:185px"><canvas id="c1_tam"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="secttl">Niveles educativos</div>
+      <div class="chartbox" style="height:185px"><canvas id="c1_niv"></canvas></div>
+    </div>
+    <div class="note">Tamaño: Pequeños ≤150 · Medianos 151–500 · Grandes &gt;500 alumnos. Niveles y tamaño calculados por escuela única.</div>
+
+    <div class="secttl" style="margin-top:22px">No calificados · motivo (${fmt(D.noCalif.total)} de ${fmt(D.total.reg)} registrados)</div>
+    <div class="grid g3">
+      <div class="ncbox">
+        <div class="nck">Solo por <b>Nivel</b></div>
+        <div class="ncsub">cargo válido · sin Preescolar/Primaria</div>
+        <div class="ncn">${fmt(D.noCalif.soloNiv.n)}</div>
+        <div class="nca">${fmt(D.noCalif.soloNiv.alum)} alumnos de potencial</div>
+      </div>
+      <div class="ncbox">
+        <div class="nck">Solo por <b>Cargo</b></div>
+        <div class="ncsub">nivel válido · cargo fuera de la lista</div>
+        <div class="ncn">${fmt(D.noCalif.soloCar.n)}</div>
+        <div class="nca">${fmt(D.noCalif.soloCar.alum)} alumnos de potencial</div>
+      </div>
+      <div class="ncbox">
+        <div class="nck">Por <b>ambos</b></div>
+        <div class="ncsub">falla nivel y cargo</div>
+        <div class="ncn">${fmt(D.noCalif.ambos.n)}</div>
+        <div class="nca">${fmt(D.noCalif.ambos.alum)} alumnos de potencial</div>
+      </div>
+    </div>
+    <div class="note">Categorías mutuamente excluyentes: suman el total de no calificados. Potencial de alumnos por escuela única dentro de cada grupo.</div>
+  `;
+
+  pie(1,'c1_cat',['Decisor','Influyente','Técnico'],[D.cat.Decisor,D.cat.Influyente,D.cat['Técnico']],[C.purple,C.blue,C.gray]);
+  barH(1,'c1_cargo', cargoTop.map(c=>c[0]), cargoTop.map(c=>c[1]));
+  pie(1,'c1_cal', calItems.map(c=>c[0]), calItems.map(c=>c[1]), calItems.map(c=>calColor(c[0])));
+  pie(1,'c1_tam',['Pequeños','Medianos','Grandes'],[D.tam.peq,D.tam.med,D.tam.gra],[C.blue,C.orange,C.purple]);
+  barV(1,'c1_niv', NIV_ORDER, [{data:NIV_ORDER.map(n=>D.niv[n]),backgroundColor:C.purple,borderRadius:4}], false);
+}
+
+function renderTab2(D){
+  const p=document.querySelector('.panel[data-p="2"]');
+  p.innerHTML = `
+    <div class="grid g3" style="margin-bottom:14px">
+      <div class="stat"><div class="k">Contacto</div><div class="v">${fmt(D.sdr.cont)}</div></div>
+      <div class="stat"><div class="k">Invitado</div><div class="v">${fmt(D.sdr.invi)}</div></div>
+      <div class="stat"><div class="k">Total etapa fría</div><div class="v">${fmt(D.sdr.cont+D.sdr.invi)}</div></div>
+    </div>
+    <div class="card">
+      ${legendHTML([{c:C.purple,label:'Bogotá',n:D.sdr.sdrEv[0].contacto+D.sdr.sdrEv[0].invitado},{c:C.orange,label:'Medellín',n:D.sdr.sdrEv[1].contacto+D.sdr.sdrEv[1].invitado}])}
+      <div class="chartbox" style="height:210px"><canvas id="c2_sdr"></canvas></div>
+      <div class="note">Gonzalo y Patricia comparten la misma atribución; la división Contacto/Invitado es estructural, no de desempeño.</div>
+    </div>
+  `;
+  barV(2,'c2_sdr',['Contacto','Invitado'],
+    [{label:'Bogotá',data:[D.sdr.sdrEv[0].contacto,D.sdr.sdrEv[0].invitado],backgroundColor:C.purple,borderRadius:4},
+     {label:'Medellín',data:[D.sdr.sdrEv[1].contacto,D.sdr.sdrEv[1].invitado],backgroundColor:C.orange,borderRadius:4}], false);
+}
+
+function renderActive(){
+  const D = compute();
+  destroyTab(activeTab);
+  if(activeTab===0) renderTab0(D);
+  else if(activeTab===1) renderTab1(D);
+  else renderTab2(D);
+}
+
+/* ---------- Eventos UI ---------- */
+function showDash(name){
+  document.getElementById('drop').classList.add('hide');
+  document.getElementById('dash').classList.remove('hide');
+  document.getElementById('srcname').textContent = name;
+  renderActive();
+}
+function loadText(text,name){
+  try{
+    RECORDS = parseFile(text);
+    scope='Todos'; activeTab=0;
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('on',b.dataset.ev==='Todos'));
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t==='0'));
+    document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!=='0'));
+    showDash(name);
+  }catch(e){
+    const el=document.getElementById('err'); el.textContent='No se pudo leer el archivo: '+e.message; el.classList.remove('hide');
+  }
+}
+function handleFile(f){ if(!f)return; const rd=new FileReader(); rd.onload=()=>loadText(rd.result,f.name); rd.readAsText(f,'UTF-8'); }
+
+const fileInput=document.getElementById('file');
+document.getElementById('pick').addEventListener('click',()=>fileInput.click());
+document.getElementById('reimport').addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>handleFile(e.target.files[0]));
+
+const drop=document.getElementById('drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
+
+document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); scope=b.dataset.ev; renderActive();
+}));
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); activeTab=parseInt(b.dataset.t,10);
+  document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!==String(activeTab)));
+  renderActive();
+}));
+
+/* ---------- Exportar PDF (abas 1 y 2) ---------- */
+function exportPDF(){
+  const D = compute();
+  document.body.classList.add('exporting');
+  destroyTab(0); renderTab0(D);
+  destroyTab(1); renderTab1(D);
+  document.getElementById('printinfo').textContent =
+    'Evento: ' + (scope==='Todos' ? 'Todos' : EVLABEL[scope]) + ' · generado el ' + new Date().toLocaleDateString('es-CO');
+  setTimeout(()=>window.print(), 80);   // deja pintar los gráficos antes de imprimir
+}
+window.addEventListener('afterprint',()=>{
+  document.body.classList.remove('exporting');
+  document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!==String(activeTab)));
+  renderActive();
+});
+document.getElementById('export').addEventListener('click',exportPDF);
+</script>
+</body>
+</html>
