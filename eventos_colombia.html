@@ -188,7 +188,7 @@
 const C = {purple:'#4B3E98',purpleD:'#26215C',yellow:'#FEC238',orange:'#F47432',blue:'#9FC2E6',gray:'#B4B2A9'};
 const EVTS = ['Evento Bogota','Evento Medellin'];
 const EVLABEL = {'Evento Bogota':'Bogotá','Evento Medellin':'Medellín'};
-const BITRIX_STAGES = ['Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline
+const BITRIX_STAGES = ['Estado Probatório','Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline
 const FUNNEL = ['Registrado','Calificado','Confirmado','Presente']; // Calificado = calculado; 'A confirmar' se colapsa en Registrado
 const NIV_ORDER = ['Preescolar','Primaria','Secundaria','Media'];
 // Calificado = nivel (Preescolar y/o Primaria) Y cargo en esta lista
@@ -231,7 +231,7 @@ function parseFile(text){
   const idx = {};
   headCells.forEach((h,i)=>{ idx[h]=i; });
   const need = ['ID','Evento','Negocio','Etapa','Pessoa responsável','Contato: Cargo',
-                'cf_niveles_educativos','cf_calendario','Nr de Alumnos (primera campaña)','Empresa: ID'];
+                'cf_niveles_educativos','cf_calendario','Nr de Alumnos (primera campaña)','Empresa: ID','Etiqueta'];
   const missing = need.filter(n=>!(n in idx));
   if(missing.length) throw new Error('Faltan columnas esperadas: '+missing.join(', '));
 
@@ -248,6 +248,7 @@ function parseFile(text){
       evento: get('Evento'),
       etapa: get('Etapa'),
       resp: get('Pessoa responsável'),
+      etiqueta: get('Etiqueta'),
       cargo: get('Contato: Cargo'),
       niveles: get('cf_niveles_educativos'),
       calendario: get('cf_calendario'),
@@ -259,10 +260,14 @@ function parseFile(text){
   return recs;
 }
 
-function canalDe(resp){
-  if(resp==='Milena Drakić') return 'Inbound';
-  if(resp==='Fabiano Passarelli') return 'Relación directa';
-  return 'SDR convertido';
+// canal = valor del campo Etiqueta, sin corchetes y con typos normalizados
+// registros con Etiqueta vacía devuelven null (quedan excluidos del cálculo de canales)
+const ETIQUETA_NORM = {'Inboud':'Inbound'};
+function canalDe(etiqueta){
+  if(!etiqueta) return null;
+  let v = etiqueta.trim().replace(/^\[|\]$/g,'').trim();
+  if(!v) return null;
+  return ETIQUETA_NORM[v] || v;
 }
 // alumnos por escuela única (1 valor por empresa = máximo)
 function alumnosUnicos(rows){
@@ -288,14 +293,14 @@ function compute(){
   });
   const total = {reg:totReg, calif:calif.length, esc:escuelasUnicas(calif), alum:alumnosUnicos(calif)};
 
-  // canales — todo sobre Calificado
-  const canales = ['Inbound','Relación directa','SDR convertido'];
+  // canales — dinámicos según valores únicos de Etiqueta (vacíos quedan excluidos) — todo sobre Calificado
+  const canales = Array.from(new Set(calif.map(r=>canalDe(r.etiqueta)).filter(cn=>cn!==null))).sort();
   const porCanal = canales.map(cn=>{
-    const cc = calif.filter(r=>canalDe(r.resp)===cn);
+    const cc = calif.filter(r=>canalDe(r.etiqueta)===cn);
     return {cn, reg:cc.length, esc:escuelasUnicas(cc), alum:alumnosUnicos(cc)};
   });
   const canalEv = canales.map(cn=>({
-    cn, byEv: EVTS.map(ev=> calif.filter(r=>canalDe(r.resp)===cn && r.evento===ev).length)
+    cn, byEv: EVTS.map(ev=> calif.filter(r=>canalDe(r.etiqueta)===cn && r.evento===ev).length)
   }));
 
   // perfil — todo sobre Calificado
@@ -440,9 +445,15 @@ function renderTab0(D){
     </div>`;
   }).join('');
 
-  const canalColors={'Inbound':C.purple,'Relación directa':C.yellow,'SDR convertido':C.blue};
+  // paleta dinámica: soporta cualquier cantidad de canales (valores únicos de Etiqueta)
+  const CANAL_PALETTE = [C.purple, C.orange, C.blue, C.yellow, C.purpleD, C.gray, '#946A00','#185FA5','#6B9E4E','#B0508C'];
+  const canalColors={}; const canalTextColors={};
+  D.porCanal.forEach((c,i)=>{
+    canalColors[c.cn] = CANAL_PALETTE[i % CANAL_PALETTE.length];
+    canalTextColors[c.cn] = CANAL_PALETTE[i % CANAL_PALETTE.length];
+  });
   const canalDetail = D.porCanal.map(c=>{
-    const tc = c.cn==='Inbound'?C.purple : c.cn==='Relación directa'?'#946A00':'#185FA5';
+    const tc = canalTextColors[c.cn];
     return `<div class="chanblk">
       <div class="cn" style="color:${tc}">${c.cn}</div>
       <div class="ce">${fmt(c.reg)} calif · ${fmt(c.esc)} esc <span class="rt">(${rat(c.reg,c.esc)})</span></div>
@@ -453,7 +464,7 @@ function renderTab0(D){
   p.innerHTML = `
     <div class="funnel" style="margin-bottom:18px">
       <div class="ft">Embudo post-registro</div>
-      <div class="fh">Evolución por evento · desde Calificado en adelante se cuentan sólo deals calificados · 'A confirmar' cuenta como Registrado · las etapas siguientes se completan al reimportar</div>
+      <div class="fh">Evolución por evento · 'Estado Probatório' cuenta como Registrado (base del cálculo de calificación) · desde Calificado en adelante se cuentan sólo deals calificados · 'A confirmar' cuenta como Registrado · las etapas siguientes se completan al reimportar</div>
       ${funnelHTML}
     </div>
     <div class="grid g2" style="margin-bottom:18px">
@@ -469,7 +480,7 @@ function renderTab0(D){
       </div>
     </div>
     <div class="secttl">Detalle por canal · sólo Calificado (calificados · escuelas · alumnos · ratio contacto/escuela)</div>
-    <div class="grid g3">${canalDetail}</div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">${canalDetail}</div>
   `;
 
   pie(0,'c0_canal', D.porCanal.map(c=>c.cn), D.porCanal.map(c=>c.reg),
