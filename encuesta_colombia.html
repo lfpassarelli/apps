@@ -379,24 +379,13 @@
         <div class="error-msg">Por favor selecciona una opción.</div>
       </div>
 
-      <div class="field">
-        <label class="fieldlabel">¿El evento te aportó nuevas reflexiones o enfoques sobre el desarrollo socioemocional en tu colegio? <span class="required-mark">*</span></label>
-        <div class="option-list" data-group="reflexiones">
-          <label class="option"><input type="radio" name="reflexiones" value="Sí, bastante"><span class="opt-text">Sí, bastante</span></label>
-          <label class="option"><input type="radio" name="reflexiones" value="Sí, algo"><span class="opt-text">Sí, algo</span></label>
-          <label class="option"><input type="radio" name="reflexiones" value="No mucho"><span class="opt-text">No mucho</span></label>
-        </div>
-        <div class="error-msg">Por favor selecciona una opción.</div>
-      </div>
-    </div>
-
     <!-- STEP 4: Propuesta LIV -->
     <div class="step" data-step="4">
       <div class="eyebrow">Próximos pasos</div>
       <h2>Propuesta LIV</h2>
 
       <div class="field">
-        <label class="fieldlabel">¿Qué te ayudaría más a avanzar en tu decisión? <span class="required-mark">*</span></label>
+        <label class="fieldlabel">¿Qué te gustaría profundizar? <span class="required-mark">*</span></label>
         <div class="option-list" data-group="avance_decision">
           <label class="option"><input type="radio" name="avance_decision" value="Más demostración del programa"><span class="opt-text">Más demostración del programa</span></label>
           <label class="option"><input type="radio" name="avance_decision" value="Casos de éxito"><span class="opt-text">Casos de éxito</span></label>
@@ -600,7 +589,6 @@
       trabajo_socioemocional: getRadioValue('trabajo_socioemocional'),
       urgencia: getRadioValue('urgencia'),
       conviccion: getRadioValue('conviccion'),
-      reflexiones: getRadioValue('reflexiones'),
       avance_decision: getRadioValue('avance_decision'),
       compartiria: document.getElementById('compartiria').value,
       nota_organizacion: scaleRow.dataset.selected || "",
