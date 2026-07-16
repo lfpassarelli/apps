@@ -4,24 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Encuesta Eventos Colombia</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root{
-    --dark:#1e1847;
-    --purple:#4b3e98;
-    --light:#f3f1fc;
-    --border:#dedaf5;
-    --green:#0ca30c;
-    --amber:#fab219;
-    --gray:#898781;
-    --red:#d03b3b;
-    --blue:#378ADD;
-    --text-main:#1e1847;
-    --text-sub:#5f5aa0;
+    --dark:#4B3E98;
+    --purple:#4B3E98;
+    --light:#F7F6FD;
+    --border:#DDD9F5;
+    --green:#2E9D57;
+    --amber:#FEC238;
+    --gray:#6B6490;
+    --red:#C0392B;
+    --blue:#9FC2E6;
+    --text-main:#1A1530;
+    --text-sub:#6B6490;
   }
   *{box-sizing:border-box;}
-  body{ margin:0; font-family:'Sora', sans-serif; background:var(--light); color:var(--text-main); }
+  body{ margin:0; font-family:'DM Sans', sans-serif; background:var(--light); color:var(--text-main); }
+  h1,h2,h3{ font-family:'Outfit', sans-serif; }
   header{
     background:var(--dark); color:#fff; padding:28px 32px;
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
@@ -29,14 +30,14 @@
   header img{ height:34px; }
   header .title{ display:flex; flex-direction:column; gap:2px; }
   header .title h1{ font-size:20px; font-weight:600; margin:0; }
-  header .title p{ font-size:12px; font-family:'DM Mono', monospace; color:#cfc9ee; margin:0; }
+  header .title p{ font-size:12px; font-family:'DM Sans', sans-serif; color:#cfc9ee; margin:0; }
   header .actions{ display:flex; align-items:center; gap:12px; }
   header button{
     background:var(--purple); color:#fff; border:none; padding:10px 18px; border-radius:8px;
     font-family:'Sora', sans-serif; font-size:13px; font-weight:500; cursor:pointer;
   }
   header button:hover{ background:#5c4eb0; }
-  header .status{ font-size:12px; font-family:'DM Mono', monospace; color:#cfc9ee; }
+  header .status{ font-size:12px; font-family:'DM Sans', sans-serif; color:#cfc9ee; }
   main{ max-width:1240px; margin:0 auto; padding:28px 24px 60px; }
 
   .filters{ display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
@@ -54,7 +55,7 @@
 
   .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-bottom:8px; }
   .kpi-card{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
-  .kpi-card .label{ font-size:12px; font-family:'DM Mono', monospace; color:var(--text-sub); margin:0 0 8px; text-transform:uppercase; letter-spacing:0.03em; }
+  .kpi-card .label{ font-size:12px; font-family:'DM Sans', sans-serif; color:var(--text-sub); margin:0 0 8px; text-transform:uppercase; letter-spacing:0.03em; }
   .kpi-card .value{ font-size:28px; font-weight:600; margin:0; color:var(--dark); }
   .kpi-card .sub{ font-size:12px; color:var(--text-sub); margin:6px 0 0; }
 
@@ -69,7 +70,7 @@
   table{ width:100%; border-collapse:collapse; font-size:13px; }
   th{
     text-align:left; padding:8px 10px; color:var(--text-sub); font-weight:500;
-    border-bottom:1px solid var(--border); font-family:'DM Mono', monospace; font-size:11px;
+    border-bottom:1px solid var(--border); font-family:'DM Sans', sans-serif; font-size:11px;
     text-transform:uppercase; letter-spacing:0.03em; white-space:nowrap;
   }
   td{ padding:8px 10px; border-bottom:1px solid #f0eefa; }
@@ -86,9 +87,9 @@
   .legend-dot{ width:10px; height:10px; border-radius:2px; display:inline-block; }
 
   .empty-state{ text-align:center; padding:60px 20px; color:var(--text-sub); }
-  .loading{ text-align:center; padding:60px 20px; color:var(--text-sub); font-family:'DM Mono', monospace; font-size:13px; }
+  .loading{ text-align:center; padding:60px 20px; color:var(--text-sub); font-family:'DM Sans', sans-serif; font-size:13px; }
   .error-box{ background:#fceded; border:1px solid #f0b8b8; color:#8c2b2b; border-radius:10px; padding:14px 18px; font-size:13px; margin-bottom:20px; }
-  footer{ text-align:center; padding:24px; font-size:11px; color:var(--text-sub); font-family:'DM Mono', monospace; }
+  footer{ text-align:center; padding:24px; font-size:11px; color:var(--text-sub); font-family:'DM Sans', sans-serif; }
 </style>
 </head>
 <body>
@@ -146,13 +147,13 @@ const PESO_INTENCION = {
   'No es una prioridad en este momento': 1
 };
 const PESO_CONVICCION = {
-  'Sí, totalmente': 5,
-  'Sí, en gran parte': 4,
+  'Totalmente': 5,
+  'En gran parte': 4,
   'Más o menos': 3,
-  'Poco convencido(a)': 2,
-  'No convencido(a)': 1
+  'Poco alineada': 2,
+  'No alineada': 1
 };
-const ORDEN_CONVICCION = ['Sí, totalmente','Sí, en gran parte','Más o menos','Poco convencido(a)','No convencido(a)'];
+const ORDEN_CONVICCION = ['Totalmente','En gran parte','Más o menos','Poco alineada','No alineada'];
 const ORDEN_URGENCIA = ['Muy urgente','Urgente','En evaluación','No es una prioridad actualmente'];
 const ORDEN_TRABAJO_SE = ['Contamos con un programa estructurado','Tenemos iniciativas puntuales','De manera informal, sin un programa definido','No lo trabajamos aún'];
 const ORDEN_INTENCION = ['Me gustaría conversar con el equipo de LIV','Tengo interés, pero necesito alinear internamente','Aún estoy evaluando, quiero más información','No es una prioridad en este momento'];
@@ -281,7 +282,7 @@ function render(){
   }
 
   const total = rows.length;
-  const conviccionAlta = rows.filter(r => r.conviccion === 'Sí, totalmente' || r.conviccion === 'Sí, en gran parte').length;
+  const conviccionAlta = rows.filter(r => r.conviccion === 'Totalmente' || r.conviccion === 'En gran parte').length;
   const intencionConversar = rows.filter(r => r.intencion === 'Me gustaría conversar con el equipo de LIV').length;
   const notas = rows.map(r => r.notaOrg).filter(n => n !== null);
   const notaProm = notas.length ? (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1) : '–';
@@ -370,9 +371,9 @@ function render(){
       <p class="desc">Prioriza qué cargos seguir de cerca esta semana</p>
       <div class="chart-wrap" style="height:${Math.max(160, cargoLabels.length*46+40)}px;"><canvas id="chCargo" role="img" aria-label="Intención comercial por cargo del respondiente"></canvas></div>
       <div class="legend-row">
-        <span class="legend-item"><span class="legend-dot" style="background:#0ca30c;"></span>Intención alta</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#fab219;"></span>Intención media</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#898781;"></span>Intención baja</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#2E9D57;"></span>Intención alta</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#FEC238;"></span>Intención media</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#6B6490;"></span>Intención baja</span>
       </div>
     </div>
 
@@ -431,22 +432,18 @@ function render(){
     </div>
   `;
 
-  drawPieChart('chTrabajoSE', 'legTrabajoSE', countBy(rows,'trabajoSE',ORDEN_TRABAJO_SE), PALETA_PURPURA);
-  drawPieChart('chUrgencia', 'legUrgencia', countBy(rows,'urgencia',ORDEN_URGENCIA), PALETA_AZUL);
-  drawPieChart('chConviccion', 'legConviccion', countBy(rows,'conviccion',ORDEN_CONVICCION), PALETA_VERDE);
-  drawPieChart('chAyuda', 'legAyuda', countBy(rows,'ayudaria',ORDEN_AYUDA), PALETA_NARANJA);
-  drawPieChart('chIntencion', 'legIntencion', countBy(rows,'intencion',ORDEN_INTENCION), PALETA_ROSA);
+  drawPieChart('chTrabajoSE', 'legTrabajoSE', countBy(rows,'trabajoSE',ORDEN_TRABAJO_SE), PALETA_LIV);
+  drawPieChart('chUrgencia', 'legUrgencia', countBy(rows,'urgencia',ORDEN_URGENCIA), PALETA_LIV);
+  drawPieChart('chConviccion', 'legConviccion', countBy(rows,'conviccion',ORDEN_CONVICCION), PALETA_LIV);
+  drawPieChart('chAyuda', 'legAyuda', countBy(rows,'ayudaria',ORDEN_AYUDA), PALETA_LIV);
+  drawPieChart('chIntencion', 'legIntencion', countBy(rows,'intencion',ORDEN_INTENCION), PALETA_LIV);
   drawNotaChart(rows);
   drawCargoChart(cargos, cargoLabels);
   if(eventosPresentes.length > 1) drawCiudadChart(rows, eventosPresentes);
 }
 
-/* Paletas por bloque temático (un hue, distintos tonos) */
-const PALETA_PURPURA = ['#3C3489','#534AB7','#7F77DD','#AFA9EC','#CECBF6'];
-const PALETA_AZUL    = ['#0C447C','#185FA5','#378ADD','#85B7EB','#B5D4F4'];
-const PALETA_VERDE   = ['#173404','#27500A','#3B6D11','#639922','#97C459'];
-const PALETA_NARANJA = ['#412402','#633806','#854F0B','#BA7517','#EF9F27'];
-const PALETA_ROSA    = ['#4B1528','#72243E','#993556','#D4537E','#ED93B1'];
+/* Paleta cores-liv — hues distintos para máxima diferenciación visual entre categorías */
+const PALETA_LIV = ['#4B3E98','#FEC238','#F47432','#9FC2E6','#2E9D57','#C0392B'];
 
 function drawPieChart(canvasId, legendId, dataset, paleta){
   const ctx = document.getElementById(canvasId);
@@ -475,7 +472,7 @@ function drawNotaChart(rows){
   rows.forEach(r => { if(r.notaOrg !== null && r.notaOrg >= 0 && r.notaOrg <= 10) buckets[Math.round(r.notaOrg)]++; });
   new Chart(ctx, {
     type:'bar',
-    data: { labels:['0','1','2','3','4','5','6','7','8','9','10'], datasets:[{ data:buckets, backgroundColor:'#7F77DD', borderRadius:4, maxBarThickness:26 }] },
+    data: { labels:['0','1','2','3','4','5','6','7','8','9','10'], datasets:[{ data:buckets, backgroundColor:'#4B3E98', borderRadius:4, maxBarThickness:26 }] },
     options: {
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
@@ -493,9 +490,9 @@ function drawCargoChart(cargos, labels){
   new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets: [
-      { label:'Intención alta', data:alta, backgroundColor:'#0ca30c' },
-      { label:'Intención media', data:media, backgroundColor:'#fab219' },
-      { label:'Intención baja', data:baja, backgroundColor:'#898781' }
+      { label:'Intención alta', data:alta, backgroundColor:'#2E9D57' },
+      { label:'Intención media', data:media, backgroundColor:'#FEC238' },
+      { label:'Intención baja', data:baja, backgroundColor:'#6B6490' }
     ]},
     options: {
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -508,7 +505,7 @@ function drawCargoChart(cargos, labels){
 function drawCiudadChart(rows, eventos){
   const ctx = document.getElementById('chCiudad');
   if(!ctx) return;
-  const colores = { 'Bogotá':'#378ADD', 'Medellín':'#EF9F27' };
+  const colores = { 'Bogotá':'#4B3E98', 'Medellín':'#F47432' };
   const metrics = ['Convicción alta','Intención "conversar ya"','Nota organización (x10)'];
   const datasets = eventos.map(ev => {
     const subset = rows.filter(r => r.evento === ev);
