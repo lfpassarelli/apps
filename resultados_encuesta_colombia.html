@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Encuesta Eventos Colombia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --dark:#1e1847;
+    --purple:#4b3e98;
+    --light:#f3f1fc;
+    --border:#dedaf5;
+    --green:#0ca30c;
+    --amber:#fab219;
+    --gray:#898781;
+    --red:#d03b3b;
+    --blue:#378ADD;
+    --text-main:#1e1847;
+    --text-sub:#5f5aa0;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Sora', sans-serif; background:var(--light); color:var(--text-main); }
+  header{
+    background:var(--dark); color:#fff; padding:28px 32px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  }
+  header img{ height:34px; }
+  header .title{ display:flex; flex-direction:column; gap:2px; }
+  header .title h1{ font-size:20px; font-weight:600; margin:0; }
+  header .title p{ font-size:12px; font-family:'DM Mono', monospace; color:#cfc9ee; margin:0; }
+  header .actions{ display:flex; align-items:center; gap:12px; }
+  header button{
+    background:var(--purple); color:#fff; border:none; padding:10px 18px; border-radius:8px;
+    font-family:'Sora', sans-serif; font-size:13px; font-weight:500; cursor:pointer;
+  }
+  header button:hover{ background:#5c4eb0; }
+  header .status{ font-size:12px; font-family:'DM Mono', monospace; color:#cfc9ee; }
+  main{ max-width:1240px; margin:0 auto; padding:28px 24px 60px; }
+
+  .filters{ display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+  .filter-btn{
+    border:1px solid var(--border); background:#fff; padding:8px 16px; border-radius:20px;
+    font-family:'Sora', sans-serif; font-size:13px; cursor:pointer; color:var(--text-sub);
+  }
+  .filter-btn.active{ background:var(--purple); border-color:var(--purple); color:#fff; }
+
+  .section-title{
+    display:flex; align-items:baseline; gap:10px; margin:36px 0 16px;
+  }
+  .section-title h2{ font-size:15px; font-weight:600; margin:0; text-transform:uppercase; letter-spacing:0.03em; color:var(--purple); }
+  .section-title .line{ flex:1; height:1px; background:var(--border); }
+
+  .kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-bottom:8px; }
+  .kpi-card{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .kpi-card .label{ font-size:12px; font-family:'DM Mono', monospace; color:var(--text-sub); margin:0 0 8px; text-transform:uppercase; letter-spacing:0.03em; }
+  .kpi-card .value{ font-size:28px; font-weight:600; margin:0; color:var(--dark); }
+  .kpi-card .sub{ font-size:12px; color:var(--text-sub); margin:6px 0 0; }
+
+  .panel{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:22px 24px; margin-bottom:24px; }
+  .panel h3{ font-size:15px; font-weight:600; margin:0 0 4px; color:var(--dark); }
+  .panel .desc{ font-size:12.5px; color:var(--text-sub); margin:0 0 18px; }
+  .chart-wrap{ position:relative; width:100%; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+  @media (max-width:960px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{
+    text-align:left; padding:8px 10px; color:var(--text-sub); font-weight:500;
+    border-bottom:1px solid var(--border); font-family:'DM Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.03em; white-space:nowrap;
+  }
+  td{ padding:8px 10px; border-bottom:1px solid #f0eefa; }
+  .badge{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:500; white-space:nowrap; }
+  .badge-bogota{ background:#e6f1fb; color:#0c447c; }
+  .badge-medellin{ background:#faeeda; color:#854f0b; }
+  .badge-sin{ background:#f1efe8; color:#5f5e5a; }
+  .badge-prio-alta{ background:#eaf3de; color:#173404; }
+  .badge-prio-media{ background:#faeeda; color:#412402; }
+  .badge-prio-baja{ background:#f1efe8; color:#5f5e5a; }
+
+  .legend-row{ display:flex; flex-wrap:wrap; gap:16px; margin:10px 0 0; font-size:12px; color:var(--text-sub); }
+  .legend-item{ display:flex; align-items:center; gap:6px; }
+  .legend-dot{ width:10px; height:10px; border-radius:2px; display:inline-block; }
+
+  .empty-state{ text-align:center; padding:60px 20px; color:var(--text-sub); }
+  .loading{ text-align:center; padding:60px 20px; color:var(--text-sub); font-family:'DM Mono', monospace; font-size:13px; }
+  .error-box{ background:#fceded; border:1px solid #f0b8b8; color:#8c2b2b; border-radius:10px; padding:14px 18px; font-size:13px; margin-bottom:20px; }
+  footer{ text-align:center; padding:24px; font-size:11px; color:var(--text-sub); font-family:'DM Mono', monospace; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV">
+  </div>
+  <div class="title">
+    <h1>Encuesta Eventos Colombia</h1>
+    <p id="lastUpdate">Cargando datos...</p>
+  </div>
+  <div class="actions">
+    <span class="status" id="statusText"></span>
+    <button onclick="loadData()">↻ Actualizar datos</button>
+  </div>
+</header>
+
+<main>
+  <div id="content">
+    <div class="loading">Conectando con la planilla...</div>
+  </div>
+</main>
+
+<footer>LIV Latam · Dashboard generado para uso interno · Datos desde Google Sheets</footer>
+
+<script>
+/* ============ CONFIGURACIÓN ============ */
+const SHEET_ID = '1rUmd9NkH_izC3NenBYxZiwAJENiPLttHJeOl6ihVjC4';
+const GID = '26235259';
+const JSONP_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID}&tqx=out:json;responseHandler:handleGvizResponse`;
+
+const EVENTOS = [
+  { nombre: 'Bogotá',   inicio: '2026-08-04', fin: '2026-08-10' },
+  { nombre: 'Medellín', inicio: '2026-08-11', fin: '2026-08-17' }
+];
+
+function asignarEvento(fechaISO){
+  if(!fechaISO) return 'Sin evento';
+  const fecha = fechaISO.slice(0,10);
+  for(const ev of EVENTOS){ if(fecha >= ev.inicio && fecha <= ev.fin) return ev.nombre; }
+  return 'Sin evento';
+}
+function badgeClass(evento){
+  if(evento === 'Bogotá') return 'badge-bogota';
+  if(evento === 'Medellín') return 'badge-medellin';
+  return 'badge-sin';
+}
+
+/* Escalas de valor para índice de prioridad comercial */
+const PESO_INTENCION = {
+  'Me gustaría conversar con el equipo de LIV': 4,
+  'Tengo interés, pero necesito alinear internamente': 3,
+  'Aún estoy evaluando, quiero más información': 2,
+  'No es una prioridad en este momento': 1
+};
+const PESO_CONVICCION = {
+  'Sí, totalmente': 5,
+  'Sí, en gran parte': 4,
+  'Más o menos': 3,
+  'Poco convencido(a)': 2,
+  'No convencido(a)': 1
+};
+const ORDEN_CONVICCION = ['Sí, totalmente','Sí, en gran parte','Más o menos','Poco convencido(a)','No convencido(a)'];
+const ORDEN_URGENCIA = ['Muy urgente','Urgente','En evaluación','No es una prioridad actualmente'];
+const ORDEN_TRABAJO_SE = ['Contamos con un programa estructurado','Tenemos iniciativas puntuales','De manera informal, sin un programa definido','No lo trabajamos aún'];
+const ORDEN_INTENCION = ['Me gustaría conversar con el equipo de LIV','Tengo interés, pero necesito alinear internamente','Aún estoy evaluando, quiero más información','No es una prioridad en este momento'];
+const ORDEN_AYUDA = ['Más demostración del programa','Casos de éxito','Una propuesta comercial','Nada, ya está claro'];
+
+let RAW_ROWS = [];
+let CURRENT_FILTER = 'Todos';
+let loadTimeoutId = null;
+
+/* ============ CARGA DE DATOS (JSONP, evita bloqueo CORS en file://) ============ */
+function loadData(){
+  document.getElementById('statusText').textContent = 'Actualizando...';
+  document.getElementById('content').innerHTML = '<div class="loading">Conectando con la planilla...</div>';
+
+  const prevScript = document.getElementById('gvizScript');
+  if(prevScript) prevScript.remove();
+
+  loadTimeoutId = setTimeout(() => {
+    document.getElementById('statusText').textContent = '';
+    document.getElementById('content').innerHTML = `
+      <div class="error-box">No se pudo cargar la planilla (tiempo de espera agotado). Verifica tu conexión a internet
+      y que el acceso esté configurado como "cualquier persona con el enlace puede ver".</div>`;
+  }, 12000);
+
+  const script = document.createElement('script');
+  script.id = 'gvizScript';
+  script.src = JSONP_URL;
+  script.onerror = () => {
+    clearTimeout(loadTimeoutId);
+    document.getElementById('statusText').textContent = '';
+    document.getElementById('content').innerHTML = `
+      <div class="error-box">No se pudo cargar la planilla. Verifica que el acceso esté configurado como
+      "cualquier persona con el enlace puede ver", y que este archivo tenga conexión a internet.</div>`;
+  };
+  document.body.appendChild(script);
+}
+
+function handleGvizResponse(response){
+  clearTimeout(loadTimeoutId);
+  try{
+    const cols = response.table.cols.map(c => c.label);
+    const idx = (label) => cols.indexOf(label);
+
+    const iFecha = idx('Fecha de envío');
+    const iNombre = idx('Nombre');
+    const iColegio = idx('Colegio');
+    const iFuncion = idx('Función');
+    const iTrabajoSE = idx('Trabajo socioemocional');
+    const iUrgencia = idx('Urgencia');
+    const iConviccion = idx('Convicción tesis LIV');
+    const iAyudaria = idx('Qué ayudaría a avanzar');
+    const iCompartiria = idx('Con quién compartiría');
+    const iNota = idx('Nota organización (0-10)');
+    const iIntencion = idx('Señal de intención');
+    const iComentarios = idx('Comentarios');
+
+    const cellVal = (row, i) => (i>=0 && row.c[i] && row.c[i].v !== null && row.c[i].v !== undefined) ? row.c[i].v : '';
+
+    RAW_ROWS = response.table.rows.map(row => {
+      let fechaRaw = cellVal(row, iFecha);
+      let fechaISO = '';
+      if(fechaRaw instanceof Date){
+        fechaISO = fechaRaw.toISOString();
+      } else if(typeof fechaRaw === 'string' && fechaRaw.startsWith('Date(')){
+        const parts = fechaRaw.replace('Date(','').replace(')','').split(',').map(Number);
+        fechaISO = new Date(parts[0], parts[1], parts[2], parts[3]||0, parts[4]||0, parts[5]||0).toISOString();
+      } else {
+        fechaISO = String(fechaRaw);
+      }
+      return {
+        fecha: fechaISO,
+        nombre: cellVal(row, iNombre),
+        colegio: cellVal(row, iColegio),
+        funcion: cellVal(row, iFuncion) || 'Sin especificar',
+        trabajoSE: String(cellVal(row, iTrabajoSE)),
+        urgencia: String(cellVal(row, iUrgencia)),
+        conviccion: String(cellVal(row, iConviccion)),
+        ayudaria: String(cellVal(row, iAyudaria)),
+        compartiria: cellVal(row, iCompartiria),
+        notaOrg: (() => { const n = parseFloat(cellVal(row, iNota)); return isNaN(n) ? null : n; })(),
+        intencion: String(cellVal(row, iIntencion)),
+        comentarios: cellVal(row, iComentarios)
+      };
+    }).filter(r => r.fecha);
+
+    RAW_ROWS.forEach(r => {
+      r.evento = asignarEvento(r.fecha);
+      const pInt = PESO_INTENCION[r.intencion] || 0;
+      const pConv = PESO_CONVICCION[r.conviccion] || 0;
+      r.prioridad = pInt * 2 + pConv; // intención pesa más que convicción para priorizar seguimiento comercial
+    });
+
+    document.getElementById('lastUpdate').textContent =
+      `${RAW_ROWS.length} respuestas · actualizado ${new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'})}`;
+    document.getElementById('statusText').textContent = '';
+    render();
+  }catch(err){
+    document.getElementById('statusText').textContent = '';
+    document.getElementById('content').innerHTML = `
+      <div class="error-box">Los datos llegaron pero no se pudieron procesar (${err.message}). Verifica que los nombres
+      de las columnas en la planilla coincidan con los esperados.</div>`;
+  }
+}
+
+/* ============ FILTRO ============ */
+function setFilter(evento){ CURRENT_FILTER = evento; render(); }
+function getFiltered(){ return CURRENT_FILTER === 'Todos' ? RAW_ROWS : RAW_ROWS.filter(r => r.evento === CURRENT_FILTER); }
+
+/* Helpers de conteo genérico */
+function countBy(rows, field, orden){
+  const counts = {};
+  rows.forEach(r => { const v = r[field] || 'Sin respuesta'; counts[v] = (counts[v]||0)+1; });
+  const labels = orden ? orden.filter(l => counts[l] !== undefined) : Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  Object.keys(counts).forEach(k => { if(!labels.includes(k)) labels.push(k); });
+  return { labels, data: labels.map(l => counts[l]||0), pct: labels.map(l => Math.round(((counts[l]||0)/rows.length)*100)) };
+}
+
+/* ============ RENDER ============ */
+function render(){
+  const rows = getFiltered();
+  const content = document.getElementById('content');
+
+  if(RAW_ROWS.length === 0){
+    content.innerHTML = '<div class="empty-state">Todavía no hay respuestas registradas en la planilla.</div>';
+    return;
+  }
+
+  const total = rows.length;
+  const conviccionAlta = rows.filter(r => r.conviccion === 'Sí, totalmente' || r.conviccion === 'Sí, en gran parte').length;
+  const intencionConversar = rows.filter(r => r.intencion === 'Me gustaría conversar con el equipo de LIV').length;
+  const notas = rows.map(r => r.notaOrg).filter(n => n !== null);
+  const notaProm = notas.length ? (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1) : '–';
+  const pct = (n) => total ? Math.round((n/total)*100) : 0;
+
+  const eventosPresentes = [...new Set(rows.map(r => r.evento))].filter(e => e !== 'Sin evento');
+
+  // Cruce por cargo
+  const cargos = {};
+  rows.forEach(r => {
+    const c = r.funcion || 'Sin especificar';
+    if(!cargos[c]) cargos[c] = { total:0, intencion:{alta:0, media:0, baja:0}, conviccionAlta:0 };
+    cargos[c].total++;
+    const pInt = PESO_INTENCION[r.intencion] || 0;
+    if(pInt >= 3) cargos[c].intencion.alta++;
+    else if(pInt === 2) cargos[c].intencion.media++;
+    else cargos[c].intencion.baja++;
+    if(r.conviccion === 'Sí, totalmente' || r.conviccion === 'Sí, en gran parte') cargos[c].conviccionAlta++;
+  });
+  const cargoLabels = Object.keys(cargos).sort((a,b) => cargos[b].total - cargos[a].total);
+
+  // Priorización comercial: top colegios por índice de prioridad
+  const priorizados = [...rows].sort((a,b) => b.prioridad - a.prioridad).slice(0, 12);
+
+  content.innerHTML = `
+    <div class="filters">
+      ${['Todos','Bogotá','Medellín','Sin evento'].map(f => `
+        <button class="filter-btn ${CURRENT_FILTER===f?'active':''}" onclick="setFilter('${f}')">${f}</button>
+      `).join('')}
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><p class="label">Respuestas</p><p class="value">${total}</p></div>
+      <div class="kpi-card"><p class="label">Convicción alta</p><p class="value">${pct(conviccionAlta)}%</p><p class="sub">"Totalmente" + "En gran parte"</p></div>
+      <div class="kpi-card"><p class="label">Quiere conversar ya</p><p class="value">${pct(intencionConversar)}%</p><p class="sub">Máxima señal comercial</p></div>
+      <div class="kpi-card"><p class="label">Nota organización</p><p class="value">${notaProm}</p><p class="sub">Promedio 0-10</p></div>
+    </div>
+
+    <div class="section-title"><h2>Análisis por pregunta</h2><div class="line"></div></div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <h3>Trabajo socioemocional hoy</h3>
+        <p class="desc">¿En qué medida el colegio ya trabaja estos temas?</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chTrabajoSE" role="img" aria-label="Distribución de respuestas sobre trabajo socioemocional actual"></canvas></div>
+        <div class="legend-row" id="legTrabajoSE"></div>
+      </div>
+      <div class="panel">
+        <h3>Urgencia del desafío</h3>
+        <p class="desc">Prioridad interna del tema en el colegio</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chUrgencia" role="img" aria-label="Distribución de urgencia del desafío socioemocional"></canvas></div>
+        <div class="legend-row" id="legUrgencia"></div>
+      </div>
+      <div class="panel">
+        <h3>Convicción con la propuesta LIV</h3>
+        <p class="desc">Qué tan alineada encontraron la tesis con su realidad</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chConviccion" role="img" aria-label="Distribución de convicción con la propuesta LIV"></canvas></div>
+        <div class="legend-row" id="legConviccion"></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <h3>Qué ayudaría a avanzar la decisión</h3>
+        <p class="desc">Insumo para reforzar seguimiento o próximo evento</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chAyuda" role="img" aria-label="Distribución de qué ayudaría a avanzar la decisión"></canvas></div>
+        <div class="legend-row" id="legAyuda"></div>
+      </div>
+      <div class="panel">
+        <h3>Señal de intención comercial</h3>
+        <p class="desc">Cómo describen su interés en avanzar con LIV</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chIntencion" role="img" aria-label="Distribución de señal de intención comercial"></canvas></div>
+        <div class="legend-row" id="legIntencion"></div>
+      </div>
+      <div class="panel">
+        <h3>Nota de organización</h3>
+        <p class="desc">Distribución de calificaciones 0-10</p>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chNota" role="img" aria-label="Distribución de notas de organización de 0 a 10"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>Cruces comerciales</h2><div class="line"></div></div>
+
+    <div class="panel">
+      <h3>Intención comercial por cargo</h3>
+      <p class="desc">Prioriza qué cargos seguir de cerca esta semana</p>
+      <div class="chart-wrap" style="height:${Math.max(160, cargoLabels.length*46+40)}px;"><canvas id="chCargo" role="img" aria-label="Intención comercial por cargo del respondiente"></canvas></div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-dot" style="background:#0ca30c;"></span>Intención alta</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#fab219;"></span>Intención media</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#898781;"></span>Intención baja</span>
+      </div>
+    </div>
+
+    ${eventosPresentes.length > 1 ? `
+    <div class="panel">
+      <h3>Bogotá vs Medellín</h3>
+      <p class="desc">Comparación entre ciudades</p>
+      <div class="chart-wrap" style="height:240px;"><canvas id="chCiudad" role="img" aria-label="Comparación entre Bogotá y Medellín"></canvas></div>
+    </div>` : ''}
+
+    <div class="panel">
+      <h3>Lista de priorización comercial</h3>
+      <p class="desc">Ordenado por índice de prioridad (intención + convicción) — para el equipo comercial dar seguimiento primero a estos colegios</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <tr><th>Colegio</th><th>Contacto</th><th>Cargo</th><th>Evento</th><th>Convicción</th><th>Intención</th><th>Prioridad</th></tr>
+          ${priorizados.map(r => `
+            <tr>
+              <td>${r.colegio || '–'}</td>
+              <td>${r.nombre || '–'}</td>
+              <td>${r.funcion || '–'}</td>
+              <td><span class="badge ${badgeClass(r.evento)}">${r.evento}</span></td>
+              <td>${r.conviccion || '–'}</td>
+              <td>${r.intencion || '–'}</td>
+              <td><span class="badge ${r.prioridad>=11?'badge-prio-alta':r.prioridad>=7?'badge-prio-media':'badge-prio-baja'}">${r.prioridad}</span></td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>Detalle de respuestas</h2><div class="line"></div></div>
+
+    <div class="panel">
+      <p class="desc">${total} registro(s) ${CURRENT_FILTER !== 'Todos' ? '· filtrado por ' + CURRENT_FILTER : ''}</p>
+      <div style="overflow-x:auto;">
+        <table>
+          <tr><th>Fecha</th><th>Nombre</th><th>Colegio</th><th>Cargo</th><th>Evento</th><th>Trabajo SE</th><th>Urgencia</th><th>Convicción</th><th>Ayudaría</th><th>Nota</th><th>Intención</th></tr>
+          ${rows.map(r => `
+            <tr>
+              <td>${new Date(r.fecha).toLocaleDateString('es-CO')}</td>
+              <td>${r.nombre || '–'}</td>
+              <td>${r.colegio || '–'}</td>
+              <td>${r.funcion || '–'}</td>
+              <td><span class="badge ${badgeClass(r.evento)}">${r.evento}</span></td>
+              <td>${r.trabajoSE || '–'}</td>
+              <td>${r.urgencia || '–'}</td>
+              <td>${r.conviccion || '–'}</td>
+              <td>${r.ayudaria || '–'}</td>
+              <td>${r.notaOrg ?? '–'}</td>
+              <td>${r.intencion || '–'}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    </div>
+  `;
+
+  drawPieChart('chTrabajoSE', 'legTrabajoSE', countBy(rows,'trabajoSE',ORDEN_TRABAJO_SE), PALETA_PURPURA);
+  drawPieChart('chUrgencia', 'legUrgencia', countBy(rows,'urgencia',ORDEN_URGENCIA), PALETA_AZUL);
+  drawPieChart('chConviccion', 'legConviccion', countBy(rows,'conviccion',ORDEN_CONVICCION), PALETA_VERDE);
+  drawPieChart('chAyuda', 'legAyuda', countBy(rows,'ayudaria',ORDEN_AYUDA), PALETA_NARANJA);
+  drawPieChart('chIntencion', 'legIntencion', countBy(rows,'intencion',ORDEN_INTENCION), PALETA_ROSA);
+  drawNotaChart(rows);
+  drawCargoChart(cargos, cargoLabels);
+  if(eventosPresentes.length > 1) drawCiudadChart(rows, eventosPresentes);
+}
+
+/* Paletas por bloque temático (un hue, distintos tonos) */
+const PALETA_PURPURA = ['#3C3489','#534AB7','#7F77DD','#AFA9EC','#CECBF6'];
+const PALETA_AZUL    = ['#0C447C','#185FA5','#378ADD','#85B7EB','#B5D4F4'];
+const PALETA_VERDE   = ['#173404','#27500A','#3B6D11','#639922','#97C459'];
+const PALETA_NARANJA = ['#412402','#633806','#854F0B','#BA7517','#EF9F27'];
+const PALETA_ROSA    = ['#4B1528','#72243E','#993556','#D4537E','#ED93B1'];
+
+function drawPieChart(canvasId, legendId, dataset, paleta){
+  const ctx = document.getElementById(canvasId);
+  const legendEl = document.getElementById(legendId);
+  if(!ctx) return;
+  const colors = dataset.labels.map((_, i) => paleta[i % paleta.length]);
+  new Chart(ctx, {
+    type:'doughnut',
+    data: { labels: dataset.labels, datasets:[{ data: dataset.data, backgroundColor: colors, borderColor:'#fff', borderWidth:2 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'55%',
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: (c) => `${c.label}: ${c.raw} (${dataset.pct[c.dataIndex]}%)` } } }
+    }
+  });
+  if(legendEl){
+    legendEl.innerHTML = dataset.labels.map((l,i) => `
+      <span class="legend-item"><span class="legend-dot" style="background:${colors[i]};"></span>${l} ${dataset.pct[i]}%</span>
+    `).join('');
+  }
+}
+
+function drawNotaChart(rows){
+  const ctx = document.getElementById('chNota');
+  if(!ctx) return;
+  const buckets = new Array(11).fill(0);
+  rows.forEach(r => { if(r.notaOrg !== null && r.notaOrg >= 0 && r.notaOrg <= 10) buckets[Math.round(r.notaOrg)]++; });
+  new Chart(ctx, {
+    type:'bar',
+    data: { labels:['0','1','2','3','4','5','6','7','8','9','10'], datasets:[{ data:buckets, backgroundColor:'#7F77DD', borderRadius:4, maxBarThickness:26 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales: { y:{ ticks:{ stepSize:1, precision:0 } } }
+    }
+  });
+}
+
+function drawCargoChart(cargos, labels){
+  const ctx = document.getElementById('chCargo');
+  if(!ctx) return;
+  const alta = labels.map(l => Math.round((cargos[l].intencion.alta/cargos[l].total)*100));
+  const media = labels.map(l => Math.round((cargos[l].intencion.media/cargos[l].total)*100));
+  const baja = labels.map(l => Math.round((cargos[l].intencion.baja/cargos[l].total)*100));
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label:'Intención alta', data:alta, backgroundColor:'#0ca30c' },
+      { label:'Intención media', data:media, backgroundColor:'#fab219' },
+      { label:'Intención baja', data:baja, backgroundColor:'#898781' }
+    ]},
+    options: {
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales: { x:{ stacked:true, min:0, max:100, ticks:{ callback:v=>v+'%' } }, y:{ stacked:true } }
+    }
+  });
+}
+
+function drawCiudadChart(rows, eventos){
+  const ctx = document.getElementById('chCiudad');
+  if(!ctx) return;
+  const colores = { 'Bogotá':'#378ADD', 'Medellín':'#EF9F27' };
+  const metrics = ['Convicción alta','Intención "conversar ya"','Nota organización (x10)'];
+  const datasets = eventos.map(ev => {
+    const subset = rows.filter(r => r.evento === ev);
+    const t = subset.length || 1;
+    const conv = Math.round((subset.filter(r=>r.conviccion==='Sí, totalmente'||r.conviccion==='Sí, en gran parte').length/t)*100);
+    const inten = Math.round((subset.filter(r=>r.intencion==='Me gustaría conversar con el equipo de LIV').length/t)*100);
+    const notas = subset.map(r=>r.notaOrg).filter(n=>n!==null);
+    const notaProm = notas.length ? Math.round((notas.reduce((a,b)=>a+b,0)/notas.length)*10) : 0;
+    return { label: ev, data:[conv, inten, notaProm], backgroundColor: colores[ev] || '#888', borderRadius:4, maxBarThickness:32 };
+  });
+  new Chart(ctx, {
+    type:'bar',
+    data: { labels: metrics, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:true, position:'top' } },
+      scales: { y:{ min:0, max:100, ticks:{ callback:v=>v+'%' } } }
+    }
+  });
+}
+
+loadData();
+</script>
+</body>
+</html>
