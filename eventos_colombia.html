@@ -189,9 +189,9 @@ const C = {purple:'#4B3E98',purpleD:'#26215C',yellow:'#FEC238',orange:'#F47432',
 const EVTS = ['Evento Bogota','Evento Medellin'];
 const EVLABEL = {'Evento Bogota':'Bogotá','Evento Medellin':'Medellín'};
 const BITRIX_STAGES = ['Estado Probatório','Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline
-const FUNNEL = ['Registrado','Calificado','Confirmado','Presente']; // Calificado = calculado; 'A confirmar' se colapsa en Registrado
+const FUNNEL = ['Inscripto','Registrado','Confirmado','Presente']; // Registrado = calculado (nivel+cargo); 'A confirmar' se colapsa en Inscripto
 const NIV_ORDER = ['Preescolar','Primaria','Secundaria','Media'];
-// Calificado = nivel (Preescolar y/o Primaria) Y cargo en esta lista
+// Registrado (nuevo) = nivel (Preescolar y/o Primaria) Y cargo en esta lista
 const NIV_CALIF = ['Preescolar','Primaria'];
 const CARGO_CALIF = ['Propietario(a) / Socio(a)','Rector(a)','Vice Rector(a)','Director(a) General',
   'Director(a) Académico','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria',
@@ -201,13 +201,13 @@ const CARGO_INF = ['Otro rol directivo','Coordinador(a) / Subdirector(a)','Psic�
 
 // ¿el registro alcanzó (o superó) una etapa de Bitrix?
 function alcanzo(etapa, stage){ const i=BITRIX_STAGES.indexOf(etapa); return i>=0 && i>=BITRIX_STAGES.indexOf(stage); }
-function esRegistrado(r){ return BITRIX_STAGES.includes(r.etapa); }
+function esInscripto(r){ return BITRIX_STAGES.includes(r.etapa); }
 function nivelCalifOk(r){
   const niveles = r.niveles ? r.niveles.split('\u03A9').map(s=>s.trim()) : [];
   return NIV_CALIF.some(n=>niveles.includes(n));
 }
 function cargoCalifOk(r){ return CARGO_CALIF.includes(r.cargo); }
-function esCalificado(r){ return esRegistrado(r) && nivelCalifOk(r) && cargoCalifOk(r); }
+function esRegistrado(r){ return esInscripto(r) && nivelCalifOk(r) && cargoCalifOk(r); }
 
 let RECORDS = [];           // todas las filas válidas (sin test)
 let scope = 'Todos';
@@ -280,12 +280,12 @@ function escuelasUnicas(rows){ return new Set(rows.map(r=>r.empresa)).size; }
 /* ---------- Cálculo del scope ---------- */
 function compute(){
   const base = scope==='Todos' ? RECORDS : RECORDS.filter(r=>r.evento===scope);
-  const reg  = base.filter(esRegistrado);          // alcanzó el registro (todos)
-  const calif= reg.filter(esCalificado);           // subconjunto Calificado (nivel + cargo)
+  const reg  = base.filter(esInscripto);          // alcanzó el registro/inscripción (todos)
+  const calif= reg.filter(esRegistrado);           // subconjunto Registrado (nivel + cargo)
   const totReg = reg.length;
 
   const eventos = scope==='Todos' ? EVTS : [scope];
-  // cards: Registros = todos los registrados; Calificado/Escuelas/Alumnos = sólo Calificado
+  // cards: Inscriptos = todos los inscriptos; Registrado/Escuelas/Alumnos = sólo Registrado
   const porEvento = eventos.map(ev=>{
     const rr = reg.filter(r=>r.evento===ev);
     const cc = calif.filter(r=>r.evento===ev);
@@ -293,7 +293,7 @@ function compute(){
   });
   const total = {reg:totReg, calif:calif.length, esc:escuelasUnicas(calif), alum:alumnosUnicos(calif)};
 
-  // canales — dinámicos según valores únicos de Etiqueta (vacíos quedan excluidos) — todo sobre Calificado
+  // canales — dinámicos según valores únicos de Etiqueta (vacíos quedan excluidos) — todo sobre Registrado
   const canales = Array.from(new Set(calif.map(r=>canalDe(r.etiqueta)).filter(cn=>cn!==null))).sort();
   const porCanal = canales.map(cn=>{
     const cc = calif.filter(r=>canalDe(r.etiqueta)===cn);
@@ -303,7 +303,7 @@ function compute(){
     cn, byEv: EVTS.map(ev=> calif.filter(r=>canalDe(r.etiqueta)===cn && r.evento===ev).length)
   }));
 
-  // perfil — todo sobre Calificado
+  // perfil — todo sobre Registrado
   const niv = {}; NIV_ORDER.forEach(n=>niv[n]=0);
   calif.forEach(r=>{ if(r.niveles) r.niveles.split('\u03A9').forEach(p=>{ const k=p.trim(); if(k in niv) niv[k]++; }); });
 
@@ -321,18 +321,18 @@ function compute(){
     else cat['Técnico']++;
   });
 
-  // tamaño de colegios — escuelas únicas Calificado
+  // tamaño de colegios — escuelas únicas Registrado
   const sizes = new Map();
   calif.forEach(r=>{ const v=sizes.get(r.empresa)||0; if(r.alumnos>v) sizes.set(r.empresa,r.alumnos); });
   let peq=0,med=0,gra=0;
   sizes.forEach(v=>{ if(v<=150) peq++; else if(v<=500) med++; else gra++; });
 
-  // embudo post-registro — etapas: Registrado → Calificado → Confirmado → Presente
-  // 'A confirmar' es organizativa: cuenta como Registrado (no avanza en el embudo)
-  // desde Calificado en adelante, sólo deals calificados · cada etapa trae también escuelas y alumnos
+  // embudo post-registro — etapas: Inscripto → Registrado → Confirmado → Presente
+  // 'A confirmar' es organizativa: cuenta como Inscripto (no avanza en el embudo)
+  // desde Registrado en adelante, sólo deals registrados (nivel+cargo) · cada etapa trae también escuelas y alumnos
   function funnelRow(g){
-    const s0 = g.filter(esRegistrado);
-    const s1 = g.filter(esCalificado);
+    const s0 = g.filter(esInscripto);
+    const s1 = g.filter(esRegistrado);
     const s2 = s1.filter(d=>alcanzo(d.etapa,'Confirmado'));
     const s3 = s1.filter(d=>alcanzo(d.etapa,'Presente'));
     const st = [s0,s1,s2,s3].map(s=>({n:s.length, esc:escuelasUnicas(s), al:alumnosUnicos(s)}));
@@ -349,12 +349,12 @@ function compute(){
   }
   eventos.forEach(ev=>{
     const g = base.filter(r=>r.evento===ev);
-    const pctv = eventos.length>1 ? (totReg>0 ? g.filter(esRegistrado).length/totReg*100 : 0) : null;
+    const pctv = eventos.length>1 ? (totReg>0 ? g.filter(esInscripto).length/totReg*100 : 0) : null;
     funnel.push(Object.assign({label:EVLABEL[ev], pct:pctv, isTotal:false}, funnelRow(g)));
   });
 
-  // no calificados — motivos mutuamente excluyentes (sobre los registrados del scope)
-  const noCal = reg.filter(r=>!esCalificado(r));
+  // no calificados — motivos mutuamente excluyentes (sobre los inscriptos del scope)
+  const noCal = reg.filter(r=>!esRegistrado(r));
   const soloNiv = noCal.filter(r=>cargoCalifOk(r) && !nivelCalifOk(r));
   const soloCar = noCal.filter(r=>nivelCalifOk(r) && !cargoCalifOk(r));
   const ambos   = noCal.filter(r=>!nivelCalifOk(r) && !cargoCalifOk(r));
@@ -456,7 +456,7 @@ function renderTab0(D){
     const tc = canalTextColors[c.cn];
     return `<div class="chanblk">
       <div class="cn" style="color:${tc}">${c.cn}</div>
-      <div class="ce">${fmt(c.reg)} calif · ${fmt(c.esc)} esc <span class="rt">(${rat(c.reg,c.esc)})</span></div>
+      <div class="ce">${fmt(c.reg)} reg · ${fmt(c.esc)} esc <span class="rt">(${rat(c.reg,c.esc)})</span></div>
       <div class="ca">${fmt(c.alum)} al.</div>
     </div>`;
   }).join('');
@@ -464,22 +464,22 @@ function renderTab0(D){
   p.innerHTML = `
     <div class="funnel" style="margin-bottom:18px">
       <div class="ft">Embudo post-registro</div>
-      <div class="fh">Evolución por evento · 'Estado Probatório' cuenta como Registrado (base del cálculo de calificación) · desde Calificado en adelante se cuentan sólo deals calificados · 'A confirmar' cuenta como Registrado · las etapas siguientes se completan al reimportar</div>
+      <div class="fh">Evolución por evento · 'Estado Probatório' cuenta como Inscripto (base del cálculo de perfil) · desde Registrado en adelante se cuentan sólo deals que cumplen el perfil · 'A confirmar' cuenta como Inscripto · las etapas siguientes se completan al reimportar</div>
       ${funnelHTML}
     </div>
     <div class="grid g2" style="margin-bottom:18px">
       <div class="card">
-        <div class="secttl">Calificado por canal</div>
+        <div class="secttl">Registrado por canal</div>
         ${legendHTML(D.porCanal.map(c=>({c:canalColors[c.cn],label:c.cn,n:c.reg})))}
         <div class="chartbox" style="height:170px"><canvas id="c0_canal"></canvas></div>
       </div>
       <div class="card">
-        <div class="secttl">Calificado · canal × evento</div>
+        <div class="secttl">Registrado · canal × evento</div>
         ${legendHTML([{c:C.purple,label:'Bogotá',n:D.canalEv.reduce((a,c)=>a+c.byEv[0],0)},{c:C.orange,label:'Medellín',n:D.canalEv.reduce((a,c)=>a+c.byEv[1],0)}])}
         <div class="chartbox" style="height:200px"><canvas id="c0_ce"></canvas></div>
       </div>
     </div>
-    <div class="secttl">Detalle por canal · sólo Calificado (calificados · escuelas · alumnos · ratio contacto/escuela)</div>
+    <div class="secttl">Detalle por canal · sólo Registrado (registrados · escuelas · alumnos · ratio contacto/escuela)</div>
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">${canalDetail}</div>
   `;
 
@@ -498,7 +498,7 @@ function renderTab1(D){
   const cargoTop = D.cargoDet.slice(0,8);
 
   p.innerHTML = `
-    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Todos los indicadores de esta pestaña consideran únicamente la cohorte <b>Calificado</b> (${fmt(D.total.calif)} de ${fmt(D.total.reg)} registrados).</div>
+    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Todos los indicadores de esta pestaña consideran únicamente la cohorte <b>Registrado</b> (${fmt(D.total.calif)} de ${fmt(D.total.reg)} inscriptos).</div>
     <div class="grid g3" style="margin-bottom:18px">
       <div class="stat"><div class="k">Alumnos · total</div><div class="v">${fmt(D.total.alum)}</div></div>
       ${evAlum}
@@ -532,7 +532,7 @@ function renderTab1(D){
     </div>
     <div class="note">Tamaño: Pequeños ≤150 · Medianos 151–500 · Grandes &gt;500 alumnos. Niveles y tamaño calculados por escuela única.</div>
 
-    <div class="secttl" style="margin-top:22px">No calificados · motivo (${fmt(D.noCalif.total)} de ${fmt(D.total.reg)} registrados)</div>
+    <div class="secttl" style="margin-top:22px">No calificados · motivo (${fmt(D.noCalif.total)} de ${fmt(D.total.reg)} inscriptos)</div>
     <div class="grid g3">
       <div class="ncbox">
         <div class="nck">Solo por <b>Nivel</b></div>
