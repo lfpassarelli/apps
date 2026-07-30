@@ -149,19 +149,21 @@
 
 <div class="wrap">
 
-  <!-- Upload -->
+  <!-- Conexión -->
   <div id="drop">
-    <h2>Importá el export de eventos</h2>
-    <p>Arrastrá el archivo <b>.xls</b> exportado de Bitrix24, o seleccionalo. Todo se calcula en tu navegador; no se sube nada.</p>
-    <input id="file" type="file" accept=".xls,.xlsx,.html,.htm" class="hide"/>
-    <button class="btn" id="pick">Seleccionar archivo</button>
+    <h2>Conectar con Bitrix24</h2>
+    <p>Pegá tu <b>token</b> del webhook de entrada (no la URL completa). El token queda solo en la memoria de esta pestaña — no se guarda en ningún lado.</p>
+    <input id="token" type="password" placeholder="Ej: 76tghfh882wz5grv" autocomplete="off"
+      style="font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);width:280px;margin-right:8px"/>
+    <button class="btn" id="pick">Conectar</button>
+    <div style="margin-top:14px"><span id="loadmsg" style="font-size:13px;color:var(--ink-2)"></span></div>
     <div class="err hide" id="err"></div>
   </div>
 
   <!-- Dashboard -->
   <div id="dash" class="hide">
     <div class="toolbar">
-      <div class="src"><i class="ti"></i><span id="srcname"></span> · <button class="btn ghost" id="reimport" style="padding:5px 12px;font-size:12px">Reimportar</button> <button class="btn" id="export" style="padding:5px 12px;font-size:12px">Exportar PDF</button></div>
+      <div class="src"><i class="ti"></i><span id="srcname"></span> · <button class="btn ghost" id="reimport" style="padding:5px 12px;font-size:12px">Actualizar datos</button> <button class="btn" id="export" style="padding:5px 12px;font-size:12px">Exportar PDF</button></div>
       <div class="filters">
         <span class="lbl">Evento</span>
         <button class="fbtn on" data-ev="Todos">Todos</button>
@@ -220,44 +222,90 @@ const rat = (a,b) => b? (a/b).toFixed(2).replace('.',',') : '0,00';
 const pctLabel = v => (Math.round(v*10)/10).toLocaleString('es-CO')+'%';
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ---------- Parsing del .xls (HTML disfrazado) ---------- */
-function parseFile(text){
-  const doc = new DOMParser().parseFromString(text,'text/html');
-  const table = doc.querySelector('table');
-  if(!table) throw new Error('No se encontró ninguna tabla en el archivo.');
-  const trs = Array.from(table.querySelectorAll('tr'));
-  if(!trs.length) throw new Error('La tabla está vacía.');
-  const headCells = Array.from(trs[0].querySelectorAll('th,td')).map(c=>c.textContent.trim());
-  const idx = {};
-  headCells.forEach((h,i)=>{ idx[h]=i; });
-  const need = ['ID','Evento','Negocio','Etapa','Pessoa responsável','Contato: Cargo',
-                'cf_niveles_educativos','cf_calendario','Nr de Alumnos (primera campaña)','Empresa: ID','Etiqueta'];
-  const missing = need.filter(n=>!(n in idx));
-  if(missing.length) throw new Error('Faltan columnas esperadas: '+missing.join(', '));
+/* ---------- Integración en vivo con Bitrix24 REST API ---------- */
+const B24_DOMAIN = 'livlatam.bitrix24.com.br';   // dominio fijo — solo el token se pide al usuario
+const B24_USER = '1';
+const CATEGORY_ID = 27;                          // pipeline "1. [COL] Eventos"
 
-  const recs = [];
-  for(let r=1;r<trs.length;r++){
-    const tds = Array.from(trs[r].querySelectorAll('td,th'));
-    if(!tds.length) continue;
-    const get = name => { const i=idx[name]; return i==null||!tds[i] ? '' : tds[i].textContent.trim(); };
-    const negocio = get('Negocio');
-    if(negocio.includes('2Colegio Test')) continue;        // excluir registros de prueba
-    const alumRaw = get('Nr de Alumnos (primera campaña)').replace(/[^0-9-]/g,'');
-    recs.push({
-      id: get('ID'),
-      evento: get('Evento'),
-      etapa: get('Etapa'),
-      resp: get('Pessoa responsável'),
-      etiqueta: get('Etiqueta'),
-      cargo: get('Contato: Cargo'),
-      niveles: get('cf_niveles_educativos'),
-      calendario: get('cf_calendario'),
-      alumnos: alumRaw? parseInt(alumRaw,10) : 0,
-      empresa: get('Empresa: ID') || ('__r'+r)
+// campos personalizados mapeados desde crm.deal.fields / crm.contact.fields
+const F_EVENTO     = 'UF_CRM_1760998704';
+const F_ETIQUETA   = 'UF_CRM_1762865487';
+const F_NIVELES    = 'UF_CRM_1771426916';
+const F_CALENDARIO = 'UF_CRM_1781635944';
+const F_ALUMNOS    = 'UF_CRM_1771160586';
+const F_CARGO      = 'UF_CRM_1759237550';         // en Contacto
+
+const EVENTO_ITEMS = {'10233':'Evento Bogota','10235':'Evento Medellin'};
+const CARGO_ITEMS = {"93":"Propietario(a) / Socio(a)","95":"Director(a) General","563":"Director(a) Académico","255":"Rector(a)","253":"Vice Rector(a)","10245":"Director(a) Preescolar","10247":"Director(a) Primaria ","10249":"Director(a) Secundaria","10251":"Director(a) Media","565":"Otro rol directivo","101":"Coordinador(a) / Subdirector(a)","561":"Psicólogo(a) / Psicopedagogo(a)","103":"Docente","105":"Representante Legal","99":"Administrador(a)","97":"Directivo","249":"Funcionario","251":"Secretaria","259":"Presidente","257":"Socio","261":"Contador","263":"IT","567":"Alumno(a)","107":"Otro","569":"Responsable por Marketing/Comunicación","571":"Responsable por niños(as) y/o adolescentes","573":"No tengo relación con escuela"};
+const STAGE_MAP = {
+  'C27:NEW':'Contacto','C27:PREPAYMENT_INVOIC':'Invitado','C27:UC_QRKF5Y':'Estado Probatório',
+  'C27:EXECUTING':'Registrado','C27:FINAL_INVOICE':'A confirmar','C27:UC_R846HP':'Confirmado',
+  'C27:UC_XQ2DCF':'Presente','C27:UC_KK9ZWY':'Desistencia','C27:UC_NPAQ1A':'No show',
+  'C27:WON':'Ganado','C27:LOSE':'Perdido'
+};
+
+function b24url(method){ return `https://${B24_DOMAIN}/rest/${B24_USER}/${TOKEN}/${method}.json`; }
+
+async function b24call(method, params){
+  const res = await fetch(b24url(method), {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(params||{})
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error_description || data.error);
+  return data;
+}
+
+async function fetchAllDeals(){
+  let all = [], start = 0;
+  while(true){
+    const data = await b24call('crm.deal.list', {
+      filter: { CATEGORY_ID, [F_EVENTO]: ['10233','10235'] },
+      select: ['ID','TITLE','STAGE_ID',F_EVENTO,F_ETIQUETA,F_NIVELES,F_CALENDARIO,F_ALUMNOS,'COMPANY_ID','CONTACT_ID'],
+      start
     });
+    all = all.concat(data.result);
+    if(data.next==null) break;
+    start = data.next;
   }
-  if(!recs.length) throw new Error('No se encontraron filas de datos (después de excluir pruebas).');
-  return recs;
+  return all;
+}
+
+async function fetchCargoByContact(contactIds){
+  const uniq = Array.from(new Set(contactIds.filter(Boolean)));
+  const map = {};
+  const CHUNK = 50;
+  for(let i=0;i<uniq.length;i+=CHUNK){
+    const slice = uniq.slice(i,i+CHUNK);
+    const data = await b24call('crm.contact.list', {
+      filter: { ID: slice }, select: ['ID', F_CARGO]
+    });
+    data.result.forEach(c=>{ map[c.ID] = CARGO_ITEMS[c[F_CARGO]] || ''; });
+  }
+  return map;
+}
+
+async function loadFromBitrix(){
+  const deals = await fetchAllDeals();
+  const negocio = t => (t||'');
+  const filtered = deals.filter(d=>!negocio(d.TITLE).includes('2Colegio Test'));
+  const contactIds = filtered.map(d=> d.CONTACT_ID || null);
+  const cargoMap = await fetchCargoByContact(contactIds);
+  return filtered.map(d=>{
+    const cid = d.CONTACT_ID || null;
+    const alumRaw = String(d[F_ALUMNOS]||'').replace(/[^0-9-]/g,'');
+    return {
+      id: d.ID,
+      evento: EVENTO_ITEMS[d[F_EVENTO]] || '',
+      etapa: STAGE_MAP[d.STAGE_ID] || d.STAGE_ID,
+      resp: '',
+      etiqueta: d[F_ETIQUETA] || '',
+      cargo: cid ? (cargoMap[cid]||'') : '',
+      niveles: d[F_NIVELES] || '',
+      calendario: d[F_CALENDARIO] || '',
+      alumnos: alumRaw ? parseInt(alumRaw,10) : 0,
+      empresa: d.COMPANY_ID || ('__r'+d.ID)
+    };
+  });
 }
 
 // canal = valor del campo Etiqueta, sin corchetes y con typos normalizados
@@ -591,35 +639,54 @@ function renderActive(){
 }
 
 /* ---------- Eventos UI ---------- */
+let TOKEN = '';
 function showDash(name){
   document.getElementById('drop').classList.add('hide');
   document.getElementById('dash').classList.remove('hide');
   document.getElementById('srcname').textContent = name;
   renderActive();
 }
-function loadText(text,name){
+async function connectAndLoad(){
+  const err=document.getElementById('err'); err.classList.add('hide');
+  const msg=document.getElementById('loadmsg');
+  const tok = document.getElementById('token').value.trim();
+  if(!tok){ err.textContent='Pegá el token del webhook.'; err.classList.remove('hide'); return; }
+  TOKEN = tok;
+  msg.textContent = 'Cargando datos de Bitrix24...';
+  document.getElementById('pick').disabled = true;
   try{
-    RECORDS = parseFile(text);
+    RECORDS = await loadFromBitrix();
+    if(!RECORDS.length) throw new Error('No se encontraron negocios en el pipeline de Eventos.');
     scope='Todos'; activeTab=0;
     document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('on',b.dataset.ev==='Todos'));
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t==='0'));
     document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!=='0'));
-    showDash(name);
+    const now = new Date().toLocaleString('es-CO');
+    showDash('Bitrix24 en vivo · actualizado '+now);
   }catch(e){
-    const el=document.getElementById('err'); el.textContent='No se pudo leer el archivo: '+e.message; el.classList.remove('hide');
+    err.textContent='No se pudo conectar: '+e.message; err.classList.remove('hide');
+  }finally{
+    msg.textContent=''; document.getElementById('pick').disabled=false;
   }
 }
-function handleFile(f){ if(!f)return; const rd=new FileReader(); rd.onload=()=>loadText(rd.result,f.name); rd.readAsText(f,'UTF-8'); }
+async function refreshData(){
+  const btn=document.getElementById('reimport'); const orig=btn.textContent;
+  btn.textContent='Actualizando...'; btn.disabled=true;
+  try{
+    RECORDS = await loadFromBitrix();
+    const now = new Date().toLocaleString('es-CO');
+    document.getElementById('srcname').textContent = 'Bitrix24 en vivo · actualizado '+now;
+    renderActive();
+  }catch(e){
+    alert('No se pudo actualizar: '+e.message);
+  }finally{
+    btn.textContent=orig; btn.disabled=false;
+  }
+}
 
-const fileInput=document.getElementById('file');
-document.getElementById('pick').addEventListener('click',()=>fileInput.click());
-document.getElementById('reimport').addEventListener('click',()=>fileInput.click());
-fileInput.addEventListener('change',e=>handleFile(e.target.files[0]));
-
-const drop=document.getElementById('drop');
-['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
-['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
-drop.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
+document.getElementById('pick').addEventListener('click',connectAndLoad);
+document.getElementById('reimport').addEventListener('click',refreshData);
+document.getElementById('token').addEventListener('keydown',e=>{ if(e.key==='Enter') connectAndLoad(); });
 
 document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
