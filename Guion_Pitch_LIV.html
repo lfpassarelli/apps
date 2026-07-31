@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guión de Pitch — LIV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F7F6FD;
+    --accent: #4B3E98;
+    --accent-hover: #3A2F7A;
+    --accent-yellow: #FEC238;
+    --accent-orange: #F47432;
+    --accent-blue: #9FC2E6;
+    --text: #1A1530;
+    --text-muted: #6B6490;
+    --border: #DDD9F5;
+    --success: #2E9D57;
+    --danger: #C0392B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-width: 800px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER / COVER */
+  .cover {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    color: #fff;
+    padding: 28px 60px 26px;
+    border-radius: 0 0 24px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(254, 194, 56, 0.15);
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    bottom: -70px; right: 110px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: rgba(244, 116, 50, 0.12);
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .logo-row img {
+    height: 60px;
+    width: auto;
+  }
+  .kicker {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-yellow);
+  }
+  .cover h1 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 1.15;
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+  }
+  .cover p.subtitle {
+    margin-top: 10px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+    max-width: 580px;
+    position: relative;
+    z-index: 1;
+  }
+  .cover .meta {
+    margin-top: 18px;
+    display: flex;
+    gap: 26px;
+    position: relative;
+    z-index: 1;
+  }
+  .cover .meta div {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+  }
+  .cover .meta strong {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+  }
+
+  .content { padding: 0 60px; }
+
+  /* STEP SECTIONS */
+  .step {
+    margin-top: 44px;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--accent);
+  }
+  .step-header .step-tag {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-bottom: 16px;
+  }
+  .card p.line {
+    font-size: 15.5px;
+    color: var(--text);
+  }
+  .card p.line::before { content: "\201C"; color: var(--accent); font-weight: 700; }
+  .card p.line::after { content: "\201D"; color: var(--accent); font-weight: 700; }
+
+  /* 5 CAPAS STACK */
+  .capas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .capa {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .capa .n {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .capa:nth-child(2) .n { background: var(--accent-yellow); color: var(--accent-hover); }
+  .capa:nth-child(3) .n { background: var(--accent-orange); color: #fff; }
+  .capa:nth-child(4) .n { background: var(--accent-blue); color: var(--accent-hover); }
+  .capa:nth-child(5) .n { background: var(--success); color: #fff; }
+  .capa:nth-child(6) .n { background: var(--danger); color: #fff; }
+  .capa h3 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .capa p {
+    font-size: 14.5px;
+    color: var(--text);
+  }
+  .capa .highlight {
+    color: var(--accent-orange);
+    font-weight: 700;
+  }
+
+  .erp-note {
+    margin-top: 16px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 14px;
+    padding: 20px 24px;
+    font-size: 15px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .erp-note .icon {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--accent-yellow);
+    flex-shrink: 0;
+  }
+
+  /* OBJECTIONS */
+  .conexion {
+    background: var(--accent-blue);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin: 18px 0 8px;
+  }
+  .conexion p {
+    font-size: 14.5px;
+    color: var(--accent-hover);
+    font-weight: 500;
+  }
+  .conexion p::before { content: "\201C"; font-weight: 700; }
+  .conexion p::after { content: "\201D"; font-weight: 700; }
+
+  .objeciones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .objecion {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    border-top: 4px solid var(--accent-orange);
+  }
+  .objecion .tag {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .objecion p {
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  /* CLOSE */
+  .cierre {
+    background: linear-gradient(120deg, var(--accent-yellow) 0%, var(--accent-orange) 100%);
+    border-radius: 16px;
+    padding: 28px 30px;
+    text-align: center;
+  }
+  .cierre p {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--accent-hover);
+    max-width: 620px;
+    margin: 0 auto;
+  }
+  .cierre span.small {
+    display: block;
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 12.5px;
+    color: rgba(58,47,122,0.75);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  footer {
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  @media print {
+    body { min-width: 0; }
+    .cover { border-radius: 0; }
+  }
+
+  @page {
+    margin: 1.4cm 1.2cm;
+  }
+  .card, .capa, .objecion, .cierre, .erp-note, .conexion {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .step-header { break-after: avoid; page-break-after: avoid; }
+  .cover { break-after: avoid; page-break-after: avoid; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="cover">
+    <div class="logo-row">
+      <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV">
+      <span class="kicker">LIV Latam · Material INTERNO comercial</span>
+    </div>
+    <h1>Guión de pitch comercial</h1>
+    <p class="subtitle">Estructura de apertura, problema, solución en 6 capas, cierre y manejo de principales objeciones — pensada para generar autoridad rápido y sostener la conversación.</p>
+    <div class="meta">
+      <div><strong>Mercado objetivo</strong>Colombia</div>
+      <div><strong>Núcleo del pitch</strong>6 capas</div>
+      <div><strong>Principales objeciones</strong>Cubiertas explícitamente</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <h2>Apertura — Autoridad personal</h2>
+          <span class="step-tag">1 minuto</span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="line">Antes de entrar en el tema, les cuento rápido quién soy y a qué vengo. Soy [nombre/rol] de LIV. Nacimos hace once años a partir de un grupo de psicólogos y pedagogos que trabajaban dentro de colegios — Caio Lo Bianco, Pablo Doberti, Marcia Frederico, entre otros — viviendo en carne propia los mismos desafíos que hoy enfrentan ustedes. A partir de ahí, buscamos las mejores referencias mundiales en educación socioemocional para construir una solución con el ADN de un colegio — hecha por colegios y para colegios, no por una consultora externa mirando desde afuera. Hoy trabajamos con casi un millón y medio de alumnos en Brasil, mitad en colegios privados, mitad en públicos, y hace seis meses lanzamos en México, donde ya tenemos más de cincuenta colegios — cerca de dieciocho mil alumnos — de todo tipo: IB, confesionales, de cien alumnos, de cuatro mil. Y ahora estamos llegando a Colombia.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <h2>El problema — "Yo sé lo que te está pasando"</h2>
+          <span class="step-tag">1 minuto</span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="line">Sabemos que ustedes ya han hecho cosas. Contrataron psicólogos, armaron protocolos de bullying, tal vez ya probaron alguna plataforma de medición de clima escolar. Y sabemos también que, aun así, sienten que falta algo — que un profesor se fue y se llevó su sensibilidad socioemocional con él, que un curso quedó a mitad de camino, que las iniciativas conviven pero no se conectan entre sí. Esto no es un problema de este colegio. Es lo que le está pasando a toda la región. Y no es que les falte compromiso — es que nadie hasta ahora sistematizó esto de punta a punta.</p>
+      </div>
+    </div>
+
+    <div class="conexion">
+      <p>Y frente a esto, nuestra respuesta no es un taller más ni una charla puntual. Es un sistema completo, con seis capas que se sostienen unas a otras. Se los muestro para que vean exactamente dónde está la diferencia entre lo que ya intentaron y lo que les proponemos hoy.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div>
+          <h2>Transición a la solución — Las 6 capas</h2>
+          <span class="step-tag">3 – 5 minutos · el corazón del pitch</span>
+        </div>
+      </div>
+
+      <div class="capas">
+        <div class="capa">
+          <div class="n">1</div>
+          <div>
+            <h3>Fundamentos teóricos y conceptuales</h3>
+            <p>Antes de construir un currículo, hicimos algo que ningún otro programa en la región hizo: partimos de la <span class="highlight">experiencia real</span> de quienes vivían el problema todos los días dentro de un colegio, y la cruzamos con años de estudio teórico y conceptual profundo. No fue un equipo de académicos mirando desde afuera, ni tampoco solo la intuición de quienes estaban en el día a día — fue la combinación de ambas cosas. Esa experiencia práctica de once años nos dijo qué preguntas hacerle a la teoría, y esa teoría —psicología del desarrollo, neurociencia, pedagogía y los marcos internacionales de referencia— nos permitió convertir lo que vivíamos en un sistema con respaldo científico real. Sin esta combinación, cualquier programa socioemocional es una colección de buenas intenciones, o de teoría que nunca pisó un aula. <span class="highlight">Con ella, es un sistema construido desde adentro y validado desde afuera.</span></p>
+          </div>
+        </div>
+        <div class="capa">
+          <div class="n">2</div>
+          <div>
+            <h3>Currículo</h3>
+            <p>Desde kínder hasta bachillerato, basado en <span class="highlight">CASEL</span> —la referencia internacional en la que se apoyan la mayoría de los programas socioemocionales de Occidente— y adaptado a la realidad y la ley colombiana.</p>
+          </div>
+        </div>
+        <div class="capa">
+          <div class="n">3</div>
+          <div>
+            <h3>Acciones didácticas</h3>
+            <p>Un currículo solo define objetivos. Nosotros diseñamos también el cómo: clase a clase, año a año. Lo emocional no se aprende, <span class="highlight">se vive</span>. Por eso nuestra pedagogía es experiencial, no instruccional.</p>
+          </div>
+        </div>
+        <div class="capa">
+          <div class="n">4</div>
+          <div>
+            <h3>Capacitación</h3>
+            <p>Formamos a todo el cuerpo docente y no docente en la ejecución pedagógica del programa. Esta capacitación es profunda porque le da al docente la seguridad de saber qué hacer, sin improvisar. Y además de la capacitación pedagógica, acompañamos a cada docente y a cada adulto de la comunidad escolar con un <span class="highlight">seguimiento adicional</span>, pensado para que ellos mismos puedan sostener emocionalmente el desafío de estar a cargo de estos temas día a día. No los dejamos solos con la herramienta — los acompañamos también a ellos.</p>
+          </div>
+        </div>
+        <div class="capa">
+          <div class="n">5</div>
+          <div>
+            <h3>Recursos</h3>
+            <p>Cada recurso —un cuento, un juego de mesa, un material audiovisual— está diseñado y respaldado en <span class="highlight">conceptos pedagógicos, estudios y evidencia</span> específica para cada edad y etapa de desarrollo. Y están adaptados a la lengua y realidad cultural de cada país — no traducidos. Sabemos que ustedes están acostumbrados a soluciones que llegan de Estados Unidos o Europa, traducidas pero no pensadas para acá. Nosotros construimos y adaptamos cada recurso con ese respaldo técnico y esa mirada cultural.</p>
+          </div>
+        </div>
+        <div class="capa">
+          <div class="n">6</div>
+          <div>
+            <h3>Medición</h3>
+            <p>Medimos el impacto, individual y colectivo, para retroalimentar el currículo. El ciclo se cierra y vuelve a empezar.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="erp-note">
+        <div class="icon">＋</div>
+        <div>Esto no es un módulo suelto más. Es la diferencia entre comprar un módulo de cobranzas y tener un <strong>ERP completo</strong>. Ustedes probablemente ya tienen algunos módulos. Nosotros traemos el sistema entero, ya armado, con once años de prueba y error.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div>
+          <h2>Cierre — Pregunta, no monólogo</h2>
+        </div>
+      </div>
+      <div class="cierre">
+        <p>"¿Les hace sentido lo que planteamos? Cuéntenme, de estas seis capas, ¿cuál sienten que hoy tienen menos resuelta en el colegio?"</p>
+        <span class="small">Generar interacción, no monólogo</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div>
+          <h2>Manejo de las 6 objeciones</h2>
+          <span class="step-tag">Insertar según lo que surja en la conversación</span>
+        </div>
+      </div>
+      <div class="objeciones">
+        <div class="objecion">
+          <span class="tag">Timing / presupuesto</span>
+          <p>Sabemos que el presupuesto de este ciclo ya está armado. No venimos a competir por esa línea — venimos a mostrarles qué implica no dar este paso un año más.</p>
+        </div>
+        <div class="objecion">
+          <span class="tag">Somos nuevos / early adopter</span>
+          <p>Es cierto, recién llegamos a Colombia. Pero no llegamos improvisando — llegamos con el mismo sistema que ya funciona en Brasil y México con perfiles de colegio muy similares a los suyos, y ahora le toca a Colombia.</p>
+        </div>
+        <div class="objecion">
+          <span class="tag">Fatiga de soluciones / familias</span>
+          <p>Entendemos la preocupación de que esto sea "una cosa más". Por eso el programa no pide más horas de clase — funciona con una hora cátedra semanal, y el resto se distribuye en "derrames": momentos cotidianos ya existentes en la vida escolar.</p>
+        </div>
+        <div class="objecion">
+          <span class="tag">No hay espacio curricular</span>
+          <p>Entendemos la preocupación por el espacio curricular. Por eso el programa no pide una materia nueva ni bloques adicionales de horas — funciona con una sola hora cátedra semanal, y el resto vive en los "derrames": momentos que ya existen en la vida escolar, como el recreo, la hora de comer o las transiciones entre clases. No competimos por espacio en la grilla, trabajamos con el tiempo que el colegio ya tiene.</p>
+        </div>
+        <div class="objecion">
+          <span class="tag">Ya tenemos programa propio</span>
+          <p>Qué bueno que ya tienen un camino recorrido — eso muestra que el colegio ya entendió la importancia del tema, y ahí no partimos de cero. La pregunta no es si lo que tienen sirve, sino si está sistematizado de punta a punta: currículo progresivo, acciones didácticas por clase, capacitación continua, recursos por edad y medición que retroalimenta todo. Muchas veces lo que hay son iniciativas valiosas pero sueltas — como módulos separados sin un ERP que los conecte. Podemos conversar sobre cómo integrar o potenciar lo que ya construyeron.</p>
+        </div>
+        <div class="objecion">
+          <span class="tag">Valores ya cerrados con familias</span>
+          <p>Entendemos que los valores para el próximo ciclo ya están cerrados y comunicados — no venimos a pedirles que lo reabran a mitad de camino. Lo que proponemos es explorar juntos un camino de negociación exclusivo que haga viable el ingreso del programa este mismo ciclo, sin afectar lo comunicado a las familias. Porque cada año que pasa es un año en el que esos alumnos se quedan sin la oportunidad de desarrollarse emocionalmente — y esa es una pérdida que no se recupera después.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>LIV Latam · Material comercial interno</span>
+      <span>Guión de pitch</span>
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>
