@@ -279,7 +279,7 @@ async function fetchCargoByContact(contactIds){
     const data = await b24call('crm.contact.list', {
       filter: { ID: slice }, select: ['ID', F_CARGO]
     });
-    data.result.forEach(c=>{ map[c.ID] = CARGO_ITEMS[c[F_CARGO]] || ''; });
+    data.result.forEach(c=>{ map[c.ID] = (CARGO_ITEMS[c[F_CARGO]] || '').trim(); });
   }
   return map;
 }
