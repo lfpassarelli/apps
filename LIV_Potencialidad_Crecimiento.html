@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Potencialidad de Crecimiento — LIV LatAm 2027–2028</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F7F6FD; --surface-2: #EEEAF9;
+    --accent: #4B3E98; --accent-hover: #3A2F7A;
+    --accent-yellow: #FEC238; --accent-orange: #F47432;
+    --accent-blue: #9FC2E6; --text: #1A1530; --text-muted: #6B6490;
+    --border: #DDD9F5; --success: #2E9D57; --danger: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+  /* ── COVER ── */
+  .cover { background: var(--accent); padding: 16px 32px 14px; position: relative; overflow: hidden; }
+  .cover::before { content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px; border-radius:50%; background:rgba(254,194,56,0.10); pointer-events:none; }
+  .cover::after { content:''; position:absolute; right:80px; bottom:-80px; width:140px; height:140px; border-radius:50%; background:rgba(244,116,50,0.08); pointer-events:none; }
+  .cover-label { font-family:'Outfit',sans-serif; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent-yellow); margin-bottom:0; }
+  .cover h1 { font-family:'Outfit',sans-serif; font-weight:700; color:#fff; line-height:1.2; margin-bottom:0; }
+  .cover-sub { display:none; }
+  .cover-meta { display:flex; gap:28px; position:relative; z-index:1; }
+  .cover-meta-item { display:flex; flex-direction:column; gap:1px; }
+  .cover-meta-item span:first-child { font-size:10px; letter-spacing:0.8px; text-transform:uppercase; color:rgba(255,255,255,0.5); }
+  .cover-meta-item span:last-child { font-size:12px; font-weight:600; color:rgba(255,255,255,0.9); }
+  .accent-bar { height:4px; background:linear-gradient(90deg,var(--accent-yellow) 0%,var(--accent-orange) 100%); }
+
+  /* ── HEADER BUTTONS ── */
+  .header-btn { position:relative; z-index:5; font-family:'Outfit',sans-serif; font-size:12.5px; font-weight:700; border-radius:50px; padding:8px 18px; cursor:pointer; white-space:nowrap; display:none; }
+  .header-btn-outline { background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,0.5); }
+  .header-btn-outline:hover { background:rgba(255,255,255,0.1); border-color:#fff; }
+  .header-btn-solid { background:var(--accent-yellow); color:var(--accent); border:none; }
+  .header-btn-solid:hover { background:#ffd35c; }
+
+  /* ── UPLOAD SCREEN ── */
+  #upload-screen { max-width:700px; margin:80px auto; padding:0 32px; }
+  #upload-screen h2 { font-family:'Outfit',sans-serif; font-size:22px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+  #upload-screen p { font-size:13.5px; color:var(--text-muted); margin-bottom:36px; }
+  .upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
+  .upload-card { border:2px dashed var(--border); border-radius:12px; padding:28px 24px; text-align:center; cursor:pointer; transition:border-color .2s, background .2s; position:relative; }
+  .upload-card:hover { border-color:var(--accent); background:var(--surface); }
+  .upload-card.ready { border-color:var(--success); border-style:solid; background:#f0faf4; }
+  .upload-card input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .upload-icon { font-size:32px; margin-bottom:10px; }
+  .upload-card h3 { font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+  .upload-card p { font-size:12px; color:var(--text-muted); margin-bottom:0; }
+  .upload-card .file-name { font-size:12px; font-weight:600; color:var(--success); margin-top:8px; }
+  .btn-primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:14px 32px; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; width:100%; opacity:.4; pointer-events:none; transition:opacity .2s; }
+  .btn-primary.active { opacity:1; pointer-events:all; }
+  .btn-primary.active:hover { background:var(--accent-hover); }
+
+  /* ── BODY ── */
+  #dashboard { display:none; }
+  .body-wrap { max-width:1100px; margin:0 auto; padding:48px 48px 64px; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header { display:flex; align-items:flex-start; gap:16px; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid var(--border); }
+  .section-number { font-family:'Outfit',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; color:var(--accent-yellow); background:var(--accent); padding:4px 10px; border-radius:4px; margin-top:4px; white-space:nowrap; }
+  .section-title-block h2 { font-family:'Outfit',sans-serif; font-size:20px; font-weight:700; color:var(--accent); line-height:1.2; }
+  .section-title-block p { font-size:13px; color:var(--text-muted); margin-top:3px; }
+  section { margin-bottom:56px; }
+
+  /* ── EXEC SUMMARY ── */
+  .exec-summary { background:var(--surface); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:24px 28px; margin-bottom:40px; }
+  .exec-summary h3 { font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+  .exec-summary ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .exec-summary ul li { font-size:13.5px; color:var(--text); padding-left:20px; position:relative; }
+  .exec-summary ul li::before { content:'→'; position:absolute; left:0; color:var(--accent-orange); font-weight:700; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px; }
+  .kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 20px 16px; position:relative; overflow:hidden; }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-card.c1::before { background:var(--accent); }
+  .kpi-card.c2::before { background:var(--accent-yellow); }
+  .kpi-card.c3::before { background:var(--accent-orange); }
+  .kpi-card.c4::before { background:var(--accent-blue); }
+  .kpi-label { font-size:11px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+  .kpi-value { font-family:'Outfit',sans-serif; font-size:28px; font-weight:800; color:var(--accent); line-height:1; margin-bottom:4px; }
+  .kpi-value.yellow { color:var(--accent-yellow); }
+  .kpi-value.orange { color:var(--accent-orange); }
+  .kpi-value.blue { color:#3A7EC0; }
+  .kpi-sub { font-size:12px; color:var(--text-muted); }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--border); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead tr { background:var(--accent); }
+  thead th { font-family:'Outfit',sans-serif; font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.85); padding:12px 14px; text-align:left; white-space:nowrap; }
+  tbody tr:nth-child(odd) { background:var(--bg); }
+  tbody tr:nth-child(even) { background:var(--surface); }
+  tbody tr:hover { background:var(--surface-2); }
+  tbody td { padding:10px 14px; color:var(--text); border-bottom:1px solid var(--border); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .rev { color:var(--success); font-weight:600; }
+  tfoot tr { background:var(--surface-2); }
+  tfoot td { padding:11px 14px; font-weight:700; font-family:'Outfit',sans-serif; font-size:13px; border-top:2px solid var(--border); color:var(--accent); }
+
+  /* ── BADGES ── */
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; letter-spacing:0.5px; font-family:'Outfit',sans-serif; }
+  .badge-GG { background:#EDE9FD; color:#4B3E98; }
+  .badge-G  { background:#E8F5ED; color:#2E7D4F; }
+  .badge-M  { background:#FFF7E6; color:#B07B00; }
+  .badge-P  { background:#F5F5F5; color:#666; }
+  .badge-XP { background:#FFE9E9; color:#C0392B; }
+  .badge-ganado    { background:#E8F5ED; color:#2E7D4F; }
+  .badge-afirmar   { background:#FFF3E0; color:#E65100; }
+  .badge-propuesta { background:#EDE9FD; color:#4B3E98; }
+
+  /* ── CHARTS ── */
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px; }
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; }
+  .chart-card h4 { font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+  .chart-card p { font-size:12px; color:var(--text-muted); margin-bottom:16px; }
+  .chart-container { position:relative; height:220px; }
+
+  /* ── NOTE BOX ── */
+  .note-box { background:#FFF8E6; border-left:3px solid var(--accent-yellow); border-radius:0 6px 6px 0; padding:12px 16px; font-size:12.5px; color:#7A5C00; margin-top:16px; }
+  .note-box strong { color:#5A4200; }
+
+  /* ── PROPUESTAS NOTE ── */
+  .propuestas-note { background:var(--surface); border:1px dashed var(--border); border-radius:8px; padding:14px 18px; font-size:12.5px; color:var(--text-muted); margin-bottom:20px; display:flex; gap:10px; align-items:flex-start; }
+
+  /* ── MINI STATS ── */
+  .mini-stats { display:flex; gap:10px; margin-bottom:20px; flex-wrap:nowrap; }
+  .mini-stat { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:2px; flex:1 1 0; min-width:0; }
+  .mini-stat-val { font-family:'Outfit',sans-serif; font-size:18px; font-weight:800; color:var(--accent); white-space:nowrap; }
+  .mini-stat-lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; line-height:1.3; }
+
+  /* ── FOOTER ── */
+  .report-footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .report-footer span { font-size:11.5px; color:var(--text-muted); }
+  .footer-logo { font-family:'Outfit',sans-serif; font-size:14px; font-weight:800; color:var(--accent); }
+
+  /* ── RELOAD BTN ── */
+  /* (header buttons defined above near .cover) */
+
+  /* ══════════════════════════════════════ */
+  /* ── PRINT / PDF EXPORT RULES ── */
+  /* ══════════════════════════════════════ */
+  @media print {
+    @page { size: A4 landscape; margin: 10mm 12mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    body { font-size: 11px; }
+    .header-btn, #upload-screen { display: none !important; }
+    #dashboard { display: block !important; }
+    .body-wrap { max-width: 100%; padding: 0 6mm; }
+
+    .cover { padding: 8mm 10mm 7mm; break-after: avoid; }
+    .cover h1 { font-size: 18px; }
+    .accent-bar { break-after: avoid; }
+
+    .exec-summary { break-inside: avoid; margin-bottom: 20px; }
+    .kpi-grid { break-inside: avoid; margin-bottom: 20px; }
+    .kpi-card { break-inside: avoid; }
+    #total-highlight { break-inside: avoid; margin-bottom: 24px; }
+
+    section { break-before: page; margin-bottom: 0; padding-top: 4mm; }
+    section:first-of-type { break-before: auto; }
+
+    .section-header { break-after: avoid; break-inside: avoid; }
+    .mini-stats { break-inside: avoid; }
+    .charts-row { break-inside: avoid; }
+    .chart-card { break-inside: avoid; }
+    .chart-container { height: 180px !important; }
+
+    .table-wrap { break-inside: auto; }
+    table { font-size: 10px; }
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+    tbody tr { break-inside: avoid; }
+
+    .note-box, .propuestas-note { break-inside: avoid; }
+    .report-footer { break-inside: avoid; margin-top: 24px; }
+
+    canvas { max-width: 100% !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1 1 auto;">
+      <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" style="height:40px;width:auto;display:block;flex-shrink:0;">
+      <div style="min-width:0;">
+        <div class="cover-label">LATAM · Análisis Estratégico</div>
+        <h1 style="font-size:22px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Potencialidad de Crecimiento — Campaña 2027–2028</h1>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; flex-shrink:0; position:relative; z-index:5;">
+      <button class="header-btn header-btn-outline" id="reload-btn" onclick="resetDashboard()">↑ Cargar archivos</button>
+      <button class="header-btn header-btn-outline" id="snapshot-btn" onclick="exportSnapshot()">📤 Compartir Resultado</button>
+      <button class="header-btn header-btn-solid" id="export-btn" onclick="exportToPDF()">⬇ Exportar a PDF</button>
+    </div>
+  </div>
+  <div class="cover-meta" style="margin-top:14px;">
+    <div class="cover-meta-item"><span>Campaña</span><span>2027 – 2028</span></div>
+    <div class="cover-meta-item"><span>Ticket de referencia</span><span>US$ 45 / alumno</span></div>
+    <div class="cover-meta-item"><span>Base de análisis</span><span>Ganados + A firmar + Embudo Activo</span></div>
+    <div class="cover-meta-item"><span>Fecha de análisis</span><span id="cover-date">—</span></div>
+  </div>
+</div>
+<div class="accent-bar"></div>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <h2>Cargar datos para el análisis</h2>
+  <p>Sube los dos archivos para generar el dashboard. Los datos se procesan localmente — nada se envía a ningún servidor.</p>
+  <div class="upload-grid">
+    <div class="upload-card" id="card-csv">
+      <input type="file" id="input-csv" accept=".csv">
+      <div class="upload-icon">📋</div>
+      <h3>Categorización de Colegios</h3>
+      <p>Archivo CSV con datos de escuelas, niveles y grupos</p>
+      <div class="file-name" id="name-csv"></div>
+    </div>
+    <div class="upload-card" id="card-xls">
+      <input type="file" id="input-xls" accept=".xls,.xlsx,.html,.htm">
+      <div class="upload-icon">📊</div>
+      <h3>Reporte CRM (Bitrix24)</h3>
+      <p>Exportación XLS del pipeline de oportunidades</p>
+      <div class="file-name" id="name-xls"></div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-generate" onclick="generateDashboard()">Generar Dashboard</button>
+</div>
+
+<!-- DASHBOARD (hidden until files loaded) -->
+<div id="dashboard">
+  <div class="body-wrap">
+
+    <!-- EXEC SUMMARY -->
+    <div class="exec-summary">
+      <h3>Resumen Ejecutivo</h3>
+      <ul id="exec-list"></ul>
+    </div>
+
+    <!-- KPI GLOBAL -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi-card c1">
+        <div class="kpi-label">Capa 1 — Upsell Directo</div>
+        <div class="kpi-value" id="kpi1-val">—</div>
+        <div class="kpi-sub" id="kpi1-sub"></div>
+      </div>
+      <div class="kpi-card c2">
+        <div class="kpi-label">Capa 2 — Expansión de Grupos</div>
+        <div class="kpi-value yellow" id="kpi2-val">—</div>
+        <div class="kpi-sub" id="kpi2-sub"></div>
+      </div>
+      <div class="kpi-card c4">
+        <div class="kpi-label">Capa 3 — Funil Restante</div>
+        <div class="kpi-value blue" id="kpi4-val">—</div>
+        <div class="kpi-sub" id="kpi4-sub"></div>
+      </div>
+    </div>
+
+    <!-- TOTAL HIGHLIGHT -->
+    <div id="total-highlight" style="background:var(--accent);border-radius:10px;padding:20px 28px;display:flex;justify-content:space-between;align-items:center;margin-bottom:48px;">
+      <div>
+        <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;">Potencial Total Identificado (3 Capas)</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;color:#FEC238;line-height:1;" id="total-alunos">—</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;color:rgba(255,255,255,0.75);margin-top:4px;" id="total-revenue">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:6px;">Desglose por capa</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.9;" id="total-breakdown"></div>
+      </div>
+    </div>
+
+    <!-- CAPA 1 -->
+    <section>
+      <div class="section-header">
+        <div class="section-number">CAPA 1</div>
+        <div class="section-title-block">
+          <h2>Upsell Directo — Sec. &amp; Prepa. en Clientes Ganados</h2>
+          <p>Escuelas Ganadas y A Firmar que ya tienen alumnos en Secundaria o Preparatoria. Relación comercial establecida — máxima probabilidad de conversión en 2027–2028.</p>
+        </div>
+      </div>
+      <div class="mini-stats" id="c1-mini"></div>
+      <div class="note-box" id="c1-fx-note" style="margin-top:0; margin-bottom:20px;"></div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>Alumnos Sec+Prepa por escuela (Top 6)</h4>
+          <p>Volumen disponible para upsell campaña 2027–2028</p>
+          <div style="overflow-y:auto;height:220px;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:var(--accent);">
+                  <th style="text-align:left;padding:6px 8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.85);font-weight:600;">Escuela</th>
+                  <th style="text-align:right;padding:6px 8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.85);font-weight:600;">Alumnos</th>
+                  <th style="text-align:right;padding:6px 8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.85);font-weight:600;">US$</th>
+                </tr>
+              </thead>
+              <tbody id="c1-top6"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4>Distribución por Categorización Final</h4>
+          <p>Alumnos Sec+Prepa agrupados por tamaño de escuela</p>
+          <div class="chart-container"><canvas id="chartC1Cat"></canvas></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Escuela</th><th>Estado</th><th>Cat.</th>
+              <th class="num">Alumnos Sec+Prepa</th><th class="num">Precio/Aluno</th><th class="num">Potencial US$</th><th>Responsable</th>
+            </tr>
+          </thead>
+          <tbody id="c1-tbody"></tbody>
+          <tfoot id="c1-tfoot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- CAPA 2 -->
+    <section>
+      <div class="section-header">
+        <div class="section-number">CAPA 2</div>
+        <div class="section-title-block">
+          <h2>Expansión de Grupos y Congregaciones</h2>
+          <p>Escuelas que pertenecen a redes educativas. Un cliente activo es la puerta de entrada a toda la congregación. Potencial estimado basado en 350 alumnos (todos los niveles) por colegio de red.</p>
+        </div>
+      </div>
+      <div class="mini-stats" id="c2-mini"></div>
+      <div class="table-wrap" style="margin-top:24px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Puerta de Entrada</th><th>Estado</th><th>Cat.</th>
+              <th>Grupo / Congregación</th>
+              <th class="num">Colegios en Red</th>
+              <th class="num">Alumnos Est. (Todos los niveles)</th>
+              <th class="num">Potencial US$</th>
+            </tr>
+          </thead>
+          <tbody id="c2-tbody"></tbody>
+          <tfoot id="c2-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="note-box">
+        <strong>Nota metodológica:</strong> El potencial de grupos se estima con 350 alumnos (todos los niveles educativos: Preescolar, Primaria, Secundaria y Preparatoria) por colegio de la red (proxy conservador). Las escuelas ya contempladas en otras capas no se duplican.
+      </div>
+    </section>
+
+    <!-- CAPA 3 (antes Capa 4) -->
+    <section>
+      <div class="section-header">
+        <div class="section-number">CAPA 3</div>
+        <div class="section-title-block">
+          <h2>Funil Restante — Campaña 2026–2027</h2>
+          <p>Oportunidades activas (Contacto → Profundización Pedagógica) y perdidas por motivos recuperables.</p>
+        </div>
+      </div>
+      <div class="mini-stats" id="c4-mini"></div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>Funil Activo — Por Etapa</h4>
+          <p>Oportunidades y alumnos en cada etapa del funil comercial</p>
+          <div class="chart-container"><canvas id="chartFunil"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>Perdidas Recuperables — Por Motivo</h4>
+          <p>Volumen de alumnos por motivo de pérdida reabordable</p>
+          <div class="chart-container"><canvas id="chartMotivos"></canvas></div>
+        </div>
+      </div>
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px;">3A — Funil Activo (Contacto → Profundización Pedagógica)</h3>
+      <div class="table-wrap" style="margin-bottom:24px;">
+        <table>
+          <thead><tr><th>Etapa</th><th class="num">Oportunidades</th><th class="num">Alumnos</th><th class="num">Potencial US$</th></tr></thead>
+          <tbody id="c4a-tbody"></tbody>
+          <tfoot id="c4a-tfoot"></tfoot>
+        </table>
+      </div>
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px;">3B — Perdidas con Motivo Recuperable</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Motivo de Pérdida</th><th class="num">Oportunidades</th><th class="num">Alumnos</th><th class="num">Potencial US$</th></tr></thead>
+          <tbody id="c4b-tbody"></tbody>
+          <tfoot id="c4b-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="note-box" style="margin-top:12px;">
+        <strong>Nota sobre Timing:</strong> Las oportunidades perdidas por timing son candidatos prioritarios para reactivación al inicio de la campaña 2027–2028, ya que el motivo es temporal, no estructural.
+      </div>
+    </section>
+
+    <div class="report-footer">
+      <span>Documento interno · Confidencial · LIV LatAm</span>
+      <span class="footer-logo">LIV LatAm</span>
+      <span id="footer-date">Campaña 2027–2028</span>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.color = '#6B6490';
+
+const TICKET = 45;
+const AVG_ALUMNOS_COLEGIO = 350; // promedio de alumnos por colegio de red (todos los niveles), usado en Capa 2
+const MOTIVOS_REC = ['Timing','Sin acceso a Decision Maker','Precio','Competencia',
+  'Programa autoral','Contrato vigente','No quieren ser Early Adopter','Sin espacio curricular'];
+const ETAPAS_FUNIL = ['Contacto','Diagnostico','Proyecto Comercial','Profundización Pedagogica'];
+const ETAPAS_ORDER = ['Contacto','Diagnostico','Proyecto Comercial','Profundización Pedagogica'];
+
+let csvData = null, crmData = null;
+let chartCat = null, chartFunil = null, chartMotivos = null;
+
+// ── Exchange rate (MXN per 1 USD), fetched live with offline fallback
+const FX_FALLBACK = { rate: 17.48, source: 'valor de referencia (sin conexión)', date: null };
+let fxPromise = fetchExchangeRate();
+
+async function fetchExchangeRate() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data && data.result === 'success' && data.rates && data.rates.MXN) {
+      return { rate: data.rates.MXN, source: 'open.er-api.com', date: data.time_last_update_utc || null };
+    }
+  } catch (err) {
+    console.warn('No se pudo obtener el tipo de cambio en tiempo real, usando valor de referencia.', err);
+  }
+  return FX_FALLBACK;
+}
+
+// ── Set today's date
+function setDate() {
+  const d = new Date();
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const str = `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+  document.getElementById('cover-date').textContent = str;
+  document.getElementById('footer-date').textContent = `Campaña 2027–2028 · ${str}`;
+}
+setDate();
+
+// ── File upload handlers
+document.getElementById('input-csv').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('name-csv').textContent = '✓ ' + file.name;
+  document.getElementById('card-csv').classList.add('ready');
+  Papa.parse(file, {
+    header: true, skipEmptyLines: true,
+    complete: function(results) {
+      csvData = results.data;
+      checkReady();
+    }
+  });
+});
+
+document.getElementById('input-xls').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('name-xls').textContent = '✓ ' + file.name;
+  document.getElementById('card-xls').classList.add('ready');
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const html = ev.target.result;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const table = doc.querySelector('table');
+    if (!table) return;
+    const headers = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    const rows = [...table.querySelectorAll('tbody tr')].map(tr => {
+      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = cells[i] || '');
+      return obj;
+    });
+    crmData = rows;
+    checkReady();
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+function checkReady() {
+  const btn = document.getElementById('btn-generate');
+  if (csvData && crmData) btn.classList.add('active');
+}
+
+function num(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  const s = String(v).replace(/\./g,'').replace(',','.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+// Parses US-formatted money strings like "1,104.00" (comma = thousands, dot = decimal)
+function parseMoney(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  const s = String(v).replace(/,/g,'').trim();
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function fmt(n) { return Math.round(n).toLocaleString('es-MX'); }
+function fmtUSD(n) { return 'US$ ' + Math.round(n).toLocaleString('es-MX'); }
+
+function badgeEstado(e) {
+  const map = {'Ganado':'ganado','A firmar':'afirmar','Propuesta':'propuesta'};
+  const cls = map[e] || 'propuesta';
+  return `<span class="badge badge-${cls}">${e}</span>`;
+}
+function badgeCat(c) {
+  return `<span class="badge badge-${c||'P'}">${c||'—'}</span>`;
+}
+
+function extractGroupSize(text) {
+  if (!text) return null;
+  const matches = text.match(/(\d+)\s*(?:colegios?|escuelas?|instituciones?)/gi);
+  if (!matches) return null;
+  const nums = matches.map(m => parseInt(m.match(/\d+/)[0]));
+  return Math.max(...nums);
+}
+
+async function generateDashboard() {
+  const fx = await fxPromise;
+  const FX_RATE = fx.rate;
+
+  // ══ CAPA 1 ══
+  const base = csvData.filter(r => ['Ganado','5. Aceptación Verbal','6. A firmar'].includes(r['Estado']));
+  base.forEach(r => {
+    r._sec = num(r['Número alumnos secundaria']) + num(r['Número alumnos preparatoria']);
+    r._resta = num(r['Resta buscar de Primera Campaña']);
+    const precio2Mxn = parseMoney(r['Precio Año 2']);
+    r._precioUSD = precio2Mxn > 0 ? (precio2Mxn / FX_RATE) : TICKET;
+    r._precioContratado = precio2Mxn > 0;
+  });
+
+  const upsell = base.filter(r => r._sec > 0).sort((a,b) => b._sec - a._sec);
+  const c1_sec = upsell.reduce((s,r) => s + r._sec, 0);
+  const c1_sec_rev = upsell.reduce((s,r) => s + (r._sec * r._precioUSD), 0);
+  const c1_resta = base.reduce((s,r) => s + r._resta, 0);
+  const c1_resta_rev = c1_resta * TICKET;
+  const c1_total = c1_sec + c1_resta;
+  const c1_rev = c1_sec_rev + c1_resta_rev;
+  const escCon = base.filter(r => r._sec > 0).length;
+  const escContratado = upsell.filter(r => r._precioContratado).length;
+
+  // mini-stats C1
+  document.getElementById('c1-mini').innerHTML = `
+    <div class="mini-stat"><div class="mini-stat-val">${escCon}</div><div class="mini-stat-lbl">Escuelas con Sec/Prepa</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${fmt(c1_sec)}</div><div class="mini-stat-lbl">Alumnos Sec+Prepa</div></div>
+    ${c1_resta > 0 ? `<div class="mini-stat"><div class="mini-stat-val">${fmt(c1_resta)}</div><div class="mini-stat-lbl">Alumnos restantes 1ª Camp.</div></div>` : ''}
+    <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">${fmtUSD(c1_rev)}</div><div class="mini-stat-lbl">Potencial Facturación Total</div></div>
+    ${escContratado > 0 ? `<div class="mini-stat"><div class="mini-stat-val">${escContratado}</div><div class="mini-stat-lbl">Escuelas con precio Año 2 contratado</div></div>` : ''}
+  `;
+
+  const fxDateStr = fx.date ? ` · actualizado ${fx.date}` : '';
+  document.getElementById('c1-fx-note').innerHTML = `
+    <strong>Tipo de cambio utilizado:</strong> 1 USD = ${FX_RATE.toFixed(4)} MXN (fuente: ${fx.source}${fxDateStr}). Para las ${escContratado} escuela(s) con "Precio Año 2" pactado en contrato, el potencial se calcula con ese precio convertido a USD, en vez del ticket de referencia de US$ 45/alumno.
+  `;
+
+  // top 6 list
+  const top6 = upsell.slice(0, 6);
+  document.getElementById('c1-top6').innerHTML = top6.map((r,i) => `
+    <tr style="border-bottom:1px solid var(--border);${i%2===1?'background:var(--surface);':''}">
+      <td style="padding:5px 8px;color:var(--text);">${r['Nombre Colegio']}</td>
+      <td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--accent);">${fmt(r._sec)}</td>
+      <td style="padding:5px 8px;text-align:right;color:var(--success);font-weight:600;">$${fmt(r._sec*r._precioUSD)}</td>
+    </tr>`).join('');
+
+  // donut chart
+  const catGroups = {};
+  upsell.forEach(r => {
+    const c = r['Categorización final'] || 'P';
+    catGroups[c] = (catGroups[c] || 0) + r._sec;
+  });
+  const catOrder = ['GG','G','M','P','XP'];
+  const catColors = ['#4B3E98','#2E9D57','#FEC238','#9FC2E6','#F47432'];
+  const catLabels = catOrder.filter(c => catGroups[c]);
+  const catVals = catLabels.map(c => catGroups[c]);
+  const catCols = catLabels.map(c => catColors[catOrder.indexOf(c)]);
+  if (chartCat) chartCat.destroy();
+  chartCat = new Chart(document.getElementById('chartC1Cat'), {
+    type: 'doughnut',
+    data: { labels: catLabels, datasets: [{ data: catVals, backgroundColor: catCols, borderWidth:2, borderColor:'#fff' }] },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins: { legend:{ position:'right', labels:{ font:{size:12}, padding:12, usePointStyle:true } },
+        tooltip:{ callbacks:{ label:(ctx) => ` ${ctx.label}: ${fmt(ctx.raw)} alumnos` } } } }
+  });
+
+  // main table C1
+  document.getElementById('c1-tbody').innerHTML = upsell.map((r,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${r['Nombre Colegio']}</td>
+      <td>${badgeEstado(r['Estado'])}</td>
+      <td>${badgeCat(r['Categorización final'])}</td>
+      <td class="num">${fmt(r._sec)}</td>
+      <td class="num" style="font-size:11px;color:var(--text-muted);">${r._precioContratado ? `$${r._precioUSD.toFixed(2)}*` : `$${TICKET}`}</td>
+      <td class="num rev">$${fmt(r._sec*r._precioUSD)}</td>
+      <td>${r['Responsable Comercial']||'—'}</td>
+    </tr>`).join('');
+
+  const restaRows = base.filter(r => r._resta > 0);
+  document.getElementById('c1-tfoot').innerHTML = `
+    <tr><td colspan="6">Subtotal Sec+Prepa</td><td class="num rev">${fmtUSD(c1_sec_rev)}</td><td></td></tr>
+    ${c1_resta > 0 ? `<tr><td colspan="6">Alumnos restantes 1ª Camp. (${restaRows.map(r=>r['Nombre Colegio']).join(' + ')})</td><td class="num rev">${fmtUSD(c1_resta_rev)}</td><td></td></tr>` : ''}
+    <tr><td colspan="4">TOTAL CAPA 1</td><td class="num">${fmt(c1_total)}</td><td></td><td class="num rev">${fmtUSD(c1_rev)}</td><td></td></tr>
+  `;
+
+  // ══ CAPA 2 ══
+  const allRows = csvData.filter(r => r['Estado']);
+  allRows.forEach(r => r._grupo = extractGroupSize(r['Comentarios']));
+  const grupos = allRows.filter(r => r._grupo).sort((a,b) => b._grupo - a._grupo);
+  const c2_colegios = grupos.reduce((s,r) => s + r._grupo, 0);
+  const c2_alunos = c2_colegios * AVG_ALUMNOS_COLEGIO;
+  const c2_rev = c2_alunos * TICKET;
+
+  document.getElementById('c2-mini').innerHTML = `
+    <div class="mini-stat"><div class="mini-stat-val">${grupos.length}</div><div class="mini-stat-lbl">Puertas de entrada</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${fmt(c2_colegios)}</div><div class="mini-stat-lbl">Colegios accesibles</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">~${fmt(c2_alunos)}</div><div class="mini-stat-lbl">Alumnos Est. (Todos los niveles)</div></div>
+    <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">${fmtUSD(c2_rev)}</div><div class="mini-stat-lbl">Potencial Estimado</div></div>
+  `;
+
+  document.getElementById('c2-tbody').innerHTML = grupos.map(r => `
+    <tr>
+      <td>${r['Nombre Colegio']}</td>
+      <td>${badgeEstado(r['Estado'])}</td>
+      <td>${badgeCat(r['Categorización final'])}</td>
+      <td style="font-size:12px;color:var(--text-muted);">${r['Comentarios']||'—'}</td>
+      <td class="num">${r._grupo}</td>
+      <td class="num">${fmt(r._grupo*AVG_ALUMNOS_COLEGIO)}</td>
+      <td class="num rev">$${fmt(r._grupo*AVG_ALUMNOS_COLEGIO*TICKET)}</td>
+    </tr>`).join('');
+
+  document.getElementById('c2-tfoot').innerHTML = `
+    <tr><td colspan="4">TOTAL CAPA 2 (estimado)</td><td class="num">${fmt(c2_colegios)}</td><td class="num">~${fmt(c2_alunos)}</td><td class="num rev">${fmtUSD(c2_rev)}</td></tr>
+  `;
+
+  // ══ CAPA 3 (antes Capa 4) — Funil Restante ══
+  const ativo = crmData.filter(r => ETAPAS_FUNIL.includes(r['Etapa']));
+  ativo.forEach(r => r._nr = num(r['Nr de Alumnos']) || 250);
+  const perdidos = crmData.filter(r => r['Etapa'] === 'Perdido' && MOTIVOS_REC.includes(r['Motivo de perdida']));
+  perdidos.forEach(r => r._nr = num(r['Nr de Alumnos']) || 350);
+
+  const c4a_alunos = ativo.reduce((s,r) => s + r._nr, 0);
+  const c4b_alunos = perdidos.reduce((s,r) => s + r._nr, 0);
+  const c4_total = c4a_alunos + c4b_alunos;
+  const c4_rev = c4_total * TICKET;
+
+  document.getElementById('c4-mini').innerHTML = `
+    <div class="mini-stat"><div class="mini-stat-val">${ativo.length}</div><div class="mini-stat-lbl">Oportunidades activas</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${fmt(c4a_alunos)}</div><div class="mini-stat-lbl">Alumnos funil activo</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${perdidos.length}</div><div class="mini-stat-lbl">Perdidas recuperables</div></div>
+    <div class="mini-stat"><div class="mini-stat-val">${fmt(c4b_alunos)}</div><div class="mini-stat-lbl">Alumnos perdidas rec.</div></div>
+    <div class="mini-stat"><div class="mini-stat-val" style="color:var(--success)">${fmtUSD(c4_rev)}</div><div class="mini-stat-lbl">Potencial total C4</div></div>
+  `;
+
+  // funil by etapa
+  const etapaMap = {};
+  ativo.forEach(r => {
+    if (!etapaMap[r['Etapa']]) etapaMap[r['Etapa']] = {count:0, alunos:0};
+    etapaMap[r['Etapa']].count++;
+    etapaMap[r['Etapa']].alunos += r._nr;
+  });
+  const etapaOrdered = ETAPAS_ORDER.filter(e => etapaMap[e]);
+  document.getElementById('c4a-tbody').innerHTML = etapaOrdered.map(e => `
+    <tr><td>${e}</td><td class="num">${etapaMap[e].count}</td><td class="num">${fmt(etapaMap[e].alunos)}</td><td class="num rev">${fmtUSD(etapaMap[e].alunos*TICKET)}</td></tr>
+  `).join('');
+  document.getElementById('c4a-tfoot').innerHTML = `<tr><td>TOTAL FUNIL ACTIVO</td><td class="num">${ativo.length}</td><td class="num">${fmt(c4a_alunos)}</td><td class="num rev">${fmtUSD(c4a_alunos*TICKET)}</td></tr>`;
+
+  // perdidos by motivo
+  const motivoMap = {};
+  perdidos.forEach(r => {
+    const m = r['Motivo de perdida'];
+    if (!motivoMap[m]) motivoMap[m] = {count:0, alunos:0};
+    motivoMap[m].count++;
+    motivoMap[m].alunos += r._nr;
+  });
+  const motivosSorted = Object.entries(motivoMap).sort((a,b) => b[1].alunos - a[1].alunos);
+  document.getElementById('c4b-tbody').innerHTML = motivosSorted.map(([m,v]) => `
+    <tr><td>${m}</td><td class="num">${v.count}</td><td class="num">${fmt(v.alunos)}</td><td class="num rev">${fmtUSD(v.alunos*TICKET)}</td></tr>
+  `).join('');
+  document.getElementById('c4b-tfoot').innerHTML = `<tr><td>TOTAL PERDIDAS RECUPERABLES</td><td class="num">${perdidos.length}</td><td class="num">${fmt(c4b_alunos)}</td><td class="num rev">${fmtUSD(c4b_alunos*TICKET)}</td></tr>`;
+
+  // charts C4
+  if (chartFunil) chartFunil.destroy();
+  chartFunil = new Chart(document.getElementById('chartFunil'), {
+    type: 'bar',
+    data: { labels: etapaOrdered,
+      datasets: [
+        { label:'Oportunidades', data: etapaOrdered.map(e=>etapaMap[e].count), backgroundColor:'#4B3E98', borderRadius:4, yAxisID:'y1' },
+        { label:'Alumnos', data: etapaOrdered.map(e=>etapaMap[e].alunos), backgroundColor:'#FEC238', borderRadius:4, yAxisID:'y2' }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ font:{size:11}, usePointStyle:true } } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:10}} },
+        y1:{ position:'left', grid:{color:'#DDD9F5'}, ticks:{font:{size:11}}, title:{display:true,text:'Oportunidades',font:{size:10}} },
+        y2:{ position:'right', grid:{display:false}, ticks:{font:{size:11}}, title:{display:true,text:'Alumnos',font:{size:10}} }
+      }
+    }
+  });
+
+  if (chartMotivos) chartMotivos.destroy();
+  const mColors = ['#4B3E98','#F47432','#FEC238','#9FC2E6','#2E9D57','#A078D0','#E8704A','#B0CCEE'];
+  chartMotivos = new Chart(document.getElementById('chartMotivos'), {
+    type: 'bar',
+    data: { labels: motivosSorted.map(([m])=>m), datasets:[{ label:'Alumnos', data:motivosSorted.map(([,v])=>v.alunos), backgroundColor:mColors, borderRadius:4 }] },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{grid:{color:'#DDD9F5'}, ticks:{font:{size:11}}}, y:{grid:{display:false}, ticks:{font:{size:11}}} }
+    }
+  });
+
+  // ══ KPI CARDS ══
+  document.getElementById('kpi1-val').textContent = fmt(c1_total);
+  document.getElementById('kpi1-sub').innerHTML = `alumnos (Sec/Prepa + 1ª Camp.) · <strong class="rev">${fmtUSD(c1_rev)}</strong>`;
+  document.getElementById('kpi2-val').textContent = fmt(c2_colegios);
+  document.getElementById('kpi2-sub').innerHTML = `colegios accesibles · <strong>~${fmt(c2_alunos)} alumnos est.</strong><br><strong class="rev">${fmtUSD(c2_rev)} est.</strong>`;
+  document.getElementById('kpi4-val').textContent = fmt(c4_total);
+  document.getElementById('kpi4-sub').innerHTML = `alumnos en juego · <strong class="rev">${fmtUSD(c4_rev)}</strong>`;
+
+  // ══ TOTAL HIGHLIGHT ══
+  const totalAlunos = c1_total + c2_alunos + c4_total;
+  const totalRev = c1_rev + c2_rev + c4_rev;
+  document.getElementById('total-alunos').textContent = `~${fmt(totalAlunos)} alumnos`;
+  document.getElementById('total-revenue').textContent = fmtUSD(totalRev);
+  document.getElementById('total-breakdown').innerHTML = `
+    Upsell directo: <strong style="color:#FEC238">${fmt(c1_total)} alumnos</strong> · ${fmtUSD(c1_rev)}<br>
+    Grupos: <strong style="color:#FEC238">~${fmt(c2_alunos)} alumnos est.</strong> · ${fmtUSD(c2_rev)}<br>
+    Funil restante: <strong style="color:#FEC238">${fmt(c4_total)} alumnos</strong> · ${fmtUSD(c4_rev)}
+  `;
+
+  // ══ EXEC SUMMARY ══
+  document.getElementById('exec-list').innerHTML = `
+    <li>La campaña 2026–2027 cubre únicamente Preescolar y Primaria. La expansión a <strong>Secundaria y Preparatoria</strong> en 2027–2028 representa la mayor oportunidad de crecimiento orgánico de la compañía.</li>
+    <li><strong>${escCon} de ${base.length} escuelas</strong> Ganadas/A Firmar ya tienen alumnos en Secundaria o Prepa — upsell natural con relación comercial establecida.</li>
+    <li>El funil restante de la campaña actual (activo + perdidos recuperables) suma <strong>${fmt(c4_total)} alumnos</strong> y <strong>${fmtUSD(c4_rev)}</strong> en oportunidades que, si se convierten, se suman al pipeline de upsell 2027–2028.</li>
+    <li>La expansión vía grupos y congregaciones abre acceso a <strong>${fmt(c2_colegios)} colegios adicionales</strong> con un potencial estimado de <strong>${fmtUSD(c2_rev)}</strong>, considerando todos los niveles educativos.</li>
+    <li>El potencial total identificado asciende a <strong>${fmtUSD(totalRev)}</strong> en las tres capas de análisis.</li>
+  `;
+
+  // ══ SHOW DASHBOARD ══
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('reload-btn').style.display = 'inline-block';
+  document.getElementById('snapshot-btn').style.display = 'inline-block';
+  document.getElementById('export-btn').style.display = 'inline-block';
+}
+
+function exportSnapshot() {
+  try {
+    // Clone the dashboard content
+    const dashClone = document.getElementById('dashboard').cloneNode(true);
+    const coverClone = document.querySelector('.cover').cloneNode(true);
+    const accentBar = document.querySelector('.accent-bar').outerHTML;
+
+    // Remove header buttons from the cloned cover
+    coverClone.querySelectorAll('.header-btn').forEach(btn => btn.remove());
+
+    // Replace live canvases with frozen PNG snapshots (charts won't need Chart.js to display)
+    const liveCanvases = document.querySelectorAll('#dashboard canvas');
+    const clonedCanvases = dashClone.querySelectorAll('canvas');
+    liveCanvases.forEach((liveCanvas, i) => {
+      const clonedCanvas = clonedCanvases[i];
+      if (!clonedCanvas) return;
+      try {
+        const dataUrl = liveCanvas.toDataURL('image/png');
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.style.maxWidth = '100%';
+        img.style.height = liveCanvas.style.height || '220px';
+        img.style.display = 'block';
+        img.style.margin = '0 auto';
+        clonedCanvas.replaceWith(img);
+      } catch (e) {
+        console.warn('No se pudo congelar un gráfico:', e);
+      }
+    });
+
+    // Grab all CSS from the current document's <style> tag
+    const styleContent = document.querySelector('style').outerHTML;
+
+    // Build the standalone document
+    const snapshotDate = document.getElementById('cover-date').textContent;
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potencialidad de Crecimiento — Resultado Congelado</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+${styleContent}
+<style>
+  .snapshot-banner { background:#FFF3CD; color:#7A5C00; text-align:center; font-size:12px; padding:8px; font-family:'DM Sans',sans-serif; }
+  .header-btn, #upload-screen, .reload-btn, .export-btn { display:none !important; }
+</style>
+</head>
+<body>
+<div class="snapshot-banner">📄 Documento estático — resultado congelado el ${snapshotDate}. Los datos no se recalculan; para una versión actualizada, use la herramienta original con los archivos fuente.</div>
+${coverClone.outerHTML}
+${accentBar}
+${dashClone.outerHTML}
+</body>
+</html>`;
+
+    // Trigger download
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LIV_Potencialidad_Resultado.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('No fue posible generar el archivo para compartir. Detalle: ' + err.message);
+  }
+}
+
+function exportToPDF() {
+  try {
+    window.print();
+  } catch (err) {
+    alert('No fue posible abrir el diálogo de impresión en este entorno.\n\nPor favor descarga el archivo HTML y ábrelo directamente en tu navegador (Chrome o Edge) haciendo doble clic sobre él. Luego usa este mismo botón, o el atajo Ctrl+P (Cmd+P en Mac) y selecciona "Guardar como PDF".');
+  }
+}
+
+function resetDashboard() {
+  csvData = null; crmData = null;
+  document.getElementById('upload-screen').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('reload-btn').style.display = 'none';
+  document.getElementById('snapshot-btn').style.display = 'none';
+  document.getElementById('export-btn').style.display = 'none';
+  document.getElementById('card-csv').classList.remove('ready');
+  document.getElementById('card-xls').classList.remove('ready');
+  document.getElementById('name-csv').textContent = '';
+  document.getElementById('name-xls').textContent = '';
+  document.getElementById('input-csv').value = '';
+  document.getElementById('input-xls').value = '';
+  document.getElementById('btn-generate').classList.remove('active');
+}
+</script>
+</body>
+</html>
