@@ -152,7 +152,7 @@
   <!-- Conexión -->
   <div id="drop">
     <h2>Conectar con Bitrix24</h2>
-    <p>Informe tu <b>contraseña</b> para acceder a los datos.</p>
+    <p>Pegá tu <b>token</b> del webhook de entrada (no la URL completa). El token queda solo en la memoria de esta pestaña — no se guarda en ningún lado.</p>
     <input id="token" type="password" placeholder="Ej: 76tghfh882wz5grv" autocomplete="off"
       style="font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);width:280px;margin-right:8px"/>
     <button class="btn" id="pick">Conectar</button>
@@ -246,10 +246,30 @@ const STAGE_MAP = {
 
 function b24url(method){ return `https://${B24_DOMAIN}/rest/${B24_USER}/${TOKEN}/${method}.json`; }
 
+// convierte objeto anidado a pares clave[subclave]=valor, formato que Bitrix24 espera en form-urlencoded
+function toFormPairs(obj, prefix, out){
+  out = out || [];
+  if(Array.isArray(obj)){
+    obj.forEach((v,i)=> toFormPairs(v, `${prefix}[${i}]`, out));
+  } else if(obj !== null && typeof obj === 'object'){
+    Object.keys(obj).forEach(k=> toFormPairs(obj[k], prefix ? `${prefix}[${k}]` : k, out));
+  } else if(obj !== undefined && obj !== null){
+    out.push([prefix, String(obj)]);
+  }
+  return out;
+}
+
 async function b24call(method, params){
-  const res = await fetch(b24url(method), {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(params||{})
-  });
+  const pairs = toFormPairs(params||{}, '');
+  const body = new URLSearchParams(pairs);
+  let res;
+  try{
+    // sin header explícito de Content-Type: el navegador usa application/x-www-form-urlencoded
+    // y esto evita el preflight CORS (OPTIONS) que bloquea la llamada JSON desde file://
+    res = await fetch(b24url(method), { method:'POST', body });
+  }catch(networkErr){
+    throw new Error('No se pudo conectar a Bitrix24 (red/CORS). Verificá el token y tu conexión. Detalle: '+networkErr.message);
+  }
   const data = await res.json();
   if(data.error) throw new Error(data.error_description || data.error);
   return data;
@@ -381,8 +401,8 @@ function compute(){
   function funnelRow(g){
     const s0 = g.filter(esInscripto);
     const s1 = g.filter(esRegistrado);
-    const s2 = s1.filter(d=>alcanzo(d.etapa,'Confirmado'));
-    const s3 = s1.filter(d=>alcanzo(d.etapa,'Presente'));
+    const s2 = g.filter(d=>esInscripto(d) && alcanzo(d.etapa,'Confirmado'));
+    const s3 = g.filter(d=>esInscripto(d) && alcanzo(d.etapa,'Presente'));
     const st = [s0,s1,s2,s3].map(s=>({n:s.length, esc:escuelasUnicas(s), al:alumnosUnicos(s)}));
     const conv = [
       st[0].n>0 ? st[1].n/st[0].n*100 : null,
@@ -512,7 +532,7 @@ function renderTab0(D){
   p.innerHTML = `
     <div class="funnel" style="margin-bottom:18px">
       <div class="ft">Embudo post-registro</div>
-      <div class="fh">Evolución por evento · 'Estado Probatório' cuenta como Inscripto (base del cálculo de perfil) · desde Registrado en adelante se cuentan sólo deals que cumplen el perfil · 'A confirmar' cuenta como Inscripto · las etapas siguientes se completan al reimportar</div>
+      <div class="fh">Evolución por evento · 'Estado Probatório' cuenta como Inscripto (base del cálculo de perfil) · 'Registrado' exige perfil calificado (nivel + cargo) · desde 'Confirmado' en adelante se cuentan todos los que llegaron a esa etapa, sin distinción de perfil (incluye acompañantes) · 'A confirmar' cuenta como Inscripto</div>
       ${funnelHTML}
     </div>
     <div class="grid g2" style="margin-bottom:18px">
