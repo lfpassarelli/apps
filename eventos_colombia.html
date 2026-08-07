@@ -177,11 +177,13 @@
       <button class="tab on" data-t="0">Embudo y Canales</button>
       <button class="tab" data-t="1">Perfiles</button>
       <button class="tab" data-t="2">SDR</button>
+      <button class="tab" data-t="3">Presentes</button>
     </div>
 
     <div class="panel" data-p="0"></div>
     <div class="panel hide" data-p="1"></div>
     <div class="panel hide" data-p="2"></div>
+    <div class="panel hide" data-p="3"></div>
   </div>
 
 </div>
@@ -190,7 +192,7 @@
 const C = {purple:'#4B3E98',purpleD:'#26215C',yellow:'#FEC238',orange:'#F47432',blue:'#9FC2E6',gray:'#B4B2A9'};
 const EVTS = ['Evento Bogota','Evento Medellin'];
 const EVLABEL = {'Evento Bogota':'Bogotá','Evento Medellin':'Medellín'};
-const BITRIX_STAGES = ['Estado Probatório','Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline
+const BITRIX_STAGES = ['Estado Probatório','Registrado','A confirmar','Confirmado','Presente'];   // etapas reales del pipeline (para mostrar el nombre de la etapa actual)
 const FUNNEL = ['Inscripto','Registrado','Confirmado','Presente']; // Registrado = calculado (nivel+cargo); 'A confirmar' se colapsa en Inscripto
 const NIV_ORDER = ['Preescolar','Primaria','Secundaria','Media'];
 // Registrado (nuevo) = nivel (Preescolar y/o Primaria) Y cargo en esta lista
@@ -201,15 +203,27 @@ const CARGO_CALIF = ['Propietario(a) / Socio(a)','Rector(a)','Vice Rector(a)','D
 const CARGO_DEC = ['Propietario(a) / Socio(a)','Director(a) General','Director(a) Académico','Director(a) Académico(a)','Rector(a)','Vice Rector(a)','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria','Director(a) Media'];
 const CARGO_INF = ['Otro rol directivo','Coordinador(a) / Subdirector(a)','Psicólogo(a) / Psicopedagogo(a)','Administrador(a)'];
 
-// ¿el registro alcanzó (o superó) una etapa de Bitrix?
-function alcanzo(etapa, stage){ const i=BITRIX_STAGES.indexOf(etapa); return i>=0 && i>=BITRIX_STAGES.indexOf(stage); }
-function esInscripto(r){ return BITRIX_STAGES.includes(r.etapa); }
+// ranking de progreso: cuenta el punto más avanzado que la persona alcanzó en el pipeline.
+// 'No show' y 'Desistencia' son desenlaces laterales — el punto real que alcanzaron antes de caer ahí
+// se calcula a partir de PREVIOUS_STAGE_ID (la etapa inmediatamente anterior en Bitrix), con Registrado
+// como piso mínimo (todo No show / Desistencia al menos llegó a Registrado, si califica por perfil).
+const LATERAL_STAGES = ['No show','Desistencia'];
+const STAGE_RANK = {'Estado Probatório':1,'Registrado':2,'A confirmar':3,'Confirmado':4,'Presente':5};
+function rankOf(r){
+  if(LATERAL_STAGES.includes(r.etapa)){
+    const prevRank = STAGE_RANK[r.prevEtapa];
+    return Math.max(STAGE_RANK['Registrado'], prevRank!==undefined ? prevRank : 0);
+  }
+  return STAGE_RANK[r.etapa];
+}
+function alcanzo(r, stage){ const rk=rankOf(r); return rk!==undefined && rk>=STAGE_RANK[stage]; }
+function esInscripto(r){ return rankOf(r)!==undefined; }
 function nivelCalifOk(r){
   const niveles = r.niveles ? r.niveles.split('\u03A9').map(s=>s.trim()) : [];
   return NIV_CALIF.some(n=>niveles.includes(n));
 }
 function cargoCalifOk(r){ return CARGO_CALIF.includes(r.cargo); }
-function esRegistrado(r){ return esInscripto(r) && nivelCalifOk(r) && cargoCalifOk(r); }
+function esRegistrado(r){ return esInscripto(r) && alcanzo(r,'Registrado') && nivelCalifOk(r) && cargoCalifOk(r); }
 
 let RECORDS = [];           // todas las filas válidas (sin test)
 let scope = 'Todos';
@@ -280,7 +294,7 @@ async function fetchAllDeals(){
   while(true){
     const data = await b24call('crm.deal.list', {
       filter: { CATEGORY_ID, [F_EVENTO]: ['10233','10235'] },
-      select: ['ID','TITLE','STAGE_ID',F_EVENTO,F_ETIQUETA,F_NIVELES,F_CALENDARIO,F_ALUMNOS,'COMPANY_ID','CONTACT_ID'],
+      select: ['ID','TITLE','STAGE_ID','PREVIOUS_STAGE_ID',F_EVENTO,F_ETIQUETA,F_NIVELES,F_CALENDARIO,F_ALUMNOS,'COMPANY_ID','CONTACT_ID'],
       start
     });
     all = all.concat(data.result);
@@ -317,6 +331,7 @@ async function loadFromBitrix(){
       id: d.ID,
       evento: EVENTO_ITEMS[d[F_EVENTO]] || '',
       etapa: STAGE_MAP[d.STAGE_ID] || d.STAGE_ID,
+      prevEtapa: STAGE_MAP[d.PREVIOUS_STAGE_ID] || null,
       resp: '',
       etiqueta: d[F_ETIQUETA] || '',
       cargo: cid ? (cargoMap[cid]||'') : '',
@@ -401,8 +416,8 @@ function compute(){
   function funnelRow(g){
     const s0 = g.filter(esInscripto);
     const s1 = g.filter(esRegistrado);
-    const s2 = g.filter(d=>esInscripto(d) && alcanzo(d.etapa,'Confirmado'));
-    const s3 = g.filter(d=>esInscripto(d) && alcanzo(d.etapa,'Presente'));
+    const s2 = g.filter(d=>esInscripto(d) && alcanzo(d,'Confirmado'));
+    const s3 = g.filter(d=>esInscripto(d) && alcanzo(d,'Presente'));
     const st = [s0,s1,s2,s3].map(s=>({n:s.length, esc:escuelasUnicas(s), al:alumnosUnicos(s)}));
     const conv = [
       st[0].n>0 ? st[1].n/st[0].n*100 : null,
@@ -441,8 +456,36 @@ function compute(){
     invitado: base.filter(r=>r.evento===ev && r.etapa==='Invitado').length
   }));
 
+  // Presentes — quienes efectivamente asistieron (sin filtro de perfil: cuenta acompañantes también)
+  const presentes = base.filter(r=>r.etapa==='Presente');
+  const presNiv = {}; NIV_ORDER.forEach(n=>presNiv[n]=0);
+  presentes.forEach(r=>{ if(r.niveles) r.niveles.split('\u03A9').forEach(p=>{ const k=p.trim(); if(k in presNiv) presNiv[k]++; }); });
+  const presCargoMap = {};
+  presentes.forEach(r=>{ const k=r.cargo||'(sin cargo)'; presCargoMap[k]=(presCargoMap[k]||0)+1; });
+  const presCargoDet = Object.entries(presCargoMap).sort((a,b)=>b[1]-a[1]);
+  const presCat = {Decisor:0,Influyente:0,'Técnico':0};
+  presentes.forEach(r=>{
+    if(CARGO_DEC.includes(r.cargo)) presCat.Decisor++;
+    else if(CARGO_INF.includes(r.cargo)) presCat.Influyente++;
+    else presCat['Técnico']++;
+  });
+  const presPorEvento = EVTS.map(ev=>presentes.filter(r=>r.evento===ev).length);
+  const presCanalMap = {};
+  presentes.forEach(r=>{ const cn=canalDe(r.etiqueta); if(cn!==null) presCanalMap[cn]=(presCanalMap[cn]||0)+1; });
+  const presCanalDet = Object.entries(presCanalMap).sort((a,b)=>b[1]-a[1]);
+  const confirmadosCount = base.filter(d=>esInscripto(d) && alcanzo(d,'Confirmado')).length;
+  const tasaAsistencia = confirmadosCount>0 ? presentes.length/confirmadosCount*100 : null;
+  const calificadosPresentes = presentes.filter(esRegistrado).length;
+  const presentesData = {
+    total: presentes.length, esc: escuelasUnicas(presentes), alum: alumnosUnicos(presentes),
+    tasa: tasaAsistencia, confirmados: confirmadosCount,
+    niv: presNiv, cargoDet: presCargoDet, cat: presCat,
+    porEvento: presPorEvento, porCanal: presCanalDet,
+    perfilPct: presentes.length>0 ? calificadosPresentes/presentes.length*100 : null
+  };
+
   return {totReg, porEvento, total, porCanal, canalEv, niv, cal:calMap, cargoDet, cat,
-          tam:{peq,med,gra}, funnel, sdr:{cont,invi,sdrEv}, noCalif};
+          tam:{peq,med,gra}, funnel, sdr:{cont,invi,sdrEv}, noCalif, presentes:presentesData};
 }
 
 /* ---------- Charts helpers ---------- */
@@ -631,6 +674,62 @@ function renderTab1(D){
   barV(1,'c1_niv', NIV_ORDER, [{data:NIV_ORDER.map(n=>D.niv[n]),backgroundColor:C.purple,borderRadius:4}], false);
 }
 
+function renderTab3(D){
+  const p=document.querySelector('.panel[data-p="3"]');
+  const P = D.presentes;
+  const cargoTop = P.cargoDet.slice(0,8);
+  const tasaTxt = P.tasa==null ? '—' : pctLabel(P.tasa);
+  const perfilTxt = P.perfilPct==null ? '—' : pctLabel(P.perfilPct);
+
+  p.innerHTML = `
+    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Esta pestaña considera a todos los que llegaron a la etapa <b>Presente</b> (${fmt(P.total)}), sin filtrar por perfil — incluye acompañantes no calificados.</div>
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Presentes · total</div><div class="v">${fmt(P.total)}</div></div>
+      <div class="stat"><div class="k">Escuelas presentes</div><div class="v">${fmt(P.esc)}</div></div>
+      <div class="stat"><div class="k">Alumnos representados</div><div class="v">${fmt(P.alum)}</div></div>
+    </div>
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Tasa de asistencia</div><div class="v">${tasaTxt}</div><div class="ncsub">${fmt(P.total)} de ${fmt(P.confirmados)} confirmados</div></div>
+      <div class="stat"><div class="k">Bogotá</div><div class="v" style="color:${C.purple}">${fmt(P.porEvento[0])}</div></div>
+      <div class="stat"><div class="k">Medellín</div><div class="v" style="color:${C.orange}">${fmt(P.porEvento[1])}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:0.8fr 1.2fr;margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Cargo · 3 categorías</div>
+        ${legendHTML([{c:C.purple,label:'Decisor',n:P.cat.Decisor},{c:C.blue,label:'Influyente',n:P.cat.Influyente},{c:C.gray,label:'Técnico',n:P.cat['Técnico']}])}
+        <div class="chartbox" style="height:185px"><canvas id="c3_cat"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Cargo · detalle</div>
+        <div class="chartbox" style="height:${Math.max(220, cargoTop.length*34+40)}px"><canvas id="c3_cargo"></canvas></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Niveles educativos</div>
+        <div class="chartbox" style="height:185px"><canvas id="c3_niv"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Canal de origen</div>
+        ${legendHTML(P.porCanal.map(([cn,n],i)=>({c:[C.purple,C.orange,C.blue,C.yellow,C.purpleD,C.gray][i%6],label:cn,n})))}
+        <div class="chartbox" style="height:185px"><canvas id="c3_canal"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="secttl">Bogotá vs Medellín</div>
+      <div class="chartbox" style="height:170px"><canvas id="c3_ev"></canvas></div>
+    </div>
+    <div class="note">Perfil calificado (nivel Preescolar/Primaria + cargo directivo) entre los presentes: <b>${perfilTxt}</b> — el resto son acompañantes u otros perfiles que igual asistieron. Tasa de asistencia = Presente ÷ Confirmado.</div>
+  `;
+
+  pie(3,'c3_cat',['Decisor','Influyente','Técnico'],[P.cat.Decisor,P.cat.Influyente,P.cat['Técnico']],[C.purple,C.blue,C.gray]);
+  barH(3,'c3_cargo', cargoTop.map(c=>c[0]), cargoTop.map(c=>c[1]));
+  barV(3,'c3_niv', NIV_ORDER, [{data:NIV_ORDER.map(n=>P.niv[n]),backgroundColor:C.purple,borderRadius:4}], false);
+  const canalColors=[C.purple,C.orange,C.blue,C.yellow,C.purpleD,C.gray];
+  pie(3,'c3_canal', P.porCanal.map(c=>c[0]), P.porCanal.map(c=>c[1]), P.porCanal.map((c,i)=>canalColors[i%6]));
+  pie(3,'c3_ev', ['Bogotá','Medellín'], P.porEvento, [C.purple,C.orange]);
+}
+
 function renderTab2(D){
   const p=document.querySelector('.panel[data-p="2"]');
   p.innerHTML = `
@@ -655,7 +754,8 @@ function renderActive(){
   destroyTab(activeTab);
   if(activeTab===0) renderTab0(D);
   else if(activeTab===1) renderTab1(D);
-  else renderTab2(D);
+  else if(activeTab===2) renderTab2(D);
+  else renderTab3(D);
 }
 
 /* ---------- Eventos UI ---------- */
