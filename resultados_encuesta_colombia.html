@@ -282,7 +282,7 @@ function render(){
   }
 
   const total = rows.length;
-  const conviccionAlta = rows.filter(r => r.conviccion === 'Totalmente' || r.conviccion === 'En gran parte').length;
+  const conviccionAlta = rows.filter(r => r.conviccion === 'Sí, totalmente' || r.conviccion === 'Sí, en gran parte').length;
   const intencionConversar = rows.filter(r => r.intencion === 'Me gustaría conversar con el equipo de LIV').length;
   const notas = rows.map(r => r.notaOrg).filter(n => n !== null);
   const notaProm = notas.length ? (notas.reduce((a,b)=>a+b,0)/notas.length).toFixed(1) : '–';
