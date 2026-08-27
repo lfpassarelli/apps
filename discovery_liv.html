@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía de Reunión Discovery — LIV Latam</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F7F6FD;
+    --accent: #4B3E98;
+    --accent-hover: #3A2F7A;
+    --accent-yellow: #FEC238;
+    --accent-orange: #F47432;
+    --accent-blue: #9FC2E6;
+    --text: #1A1530;
+    --text-muted: #6B6490;
+    --border: #DDD9F5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    min-width: 900px;
+  }
+  .page { max-width: 980px; margin: 0 auto; padding: 0 0 60px; }
+
+  /* Header / Cover */
+  .cover {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    padding: 28px 56px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 28px;
+  }
+  .cover-text h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .cover-text p {
+    color: #DDD9F5;
+    font-size: 14.5px;
+    font-weight: 500;
+    max-width: 560px;
+  }
+  .cover-logo img {
+    height: 100px;
+    flex-shrink: 0;
+  }
+  .cover-tag {
+    display: inline-block;
+    margin-top: 12px;
+    background: rgba(254,194,56,0.18);
+    border: 1px solid rgba(254,194,56,0.45);
+    color: var(--accent-yellow);
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 11px;
+    border-radius: 20px;
+  }
+
+  /* Section generic */
+  .section { padding: 40px 56px 0; }
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .section-sub {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin: 6px 0 20px 38px;
+  }
+
+  /* Intro box */
+  .intro-box {
+    margin: 24px 56px 0;
+    background: var(--surface);
+    border-left: 4px solid var(--accent-yellow);
+    border-radius: 10px;
+    padding: 22px 26px;
+  }
+  .intro-box p { font-size: 14.5px; color: var(--text); }
+  .intro-box p + p { margin-top: 10px; }
+
+  /* Block cards for template sections */
+  .block-card {
+    margin: 0 38px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .block-card-head {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .block-card-head h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .block-card-head .crm-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+    background: rgba(244,116,50,0.12);
+    border: 1px solid rgba(244,116,50,0.3);
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .block-card-body { padding: 18px 22px 20px; }
+  .field-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 24px;
+    margin-bottom: 14px;
+  }
+  .field-list li {
+    font-size: 13px;
+    color: var(--text);
+    padding-left: 16px;
+    position: relative;
+  }
+  .field-list li::before {
+    content: "•";
+    color: var(--accent-yellow);
+    font-weight: 800;
+    position: absolute;
+    left: 0;
+  }
+  .prompt-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 14px 0 6px;
+  }
+  .prompt-box {
+    background: #1A1530;
+    color: #E8E4FA;
+    font-family: 'DM Sans', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 14px 16px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+  }
+  .prompt-box .kw { color: var(--accent-yellow); }
+
+  /* Meeting context box */
+  .context-box {
+    margin: 0 38px 22px;
+    background: #1A1530;
+    color: #E8E4FA;
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: 'DM Sans', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .context-box-label {
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    margin-bottom: 10px;
+  }
+
+  /* Roadmap / conversation script */
+  .script-card {
+    margin: 0 38px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .script-head {
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .script-body { padding: 18px 22px; background: #FFFFFF; }
+  .script-body p.covers {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+  .quote {
+    background: var(--surface);
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 16.5px;
+    color: var(--text);
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+  .quote-note {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .alt-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent-orange);
+    margin: 12px 0 6px;
+  }
+  .warning-box {
+    margin-top: 4px;
+    background: rgba(244,116,50,0.08);
+    border: 1px solid rgba(244,116,50,0.28);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .warning-box b { color: var(--accent-orange); }
+
+  /* Rules footer list */
+  .rules-box {
+    margin: 0 38px 10px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 22px 26px;
+  }
+  .rules-box h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .rules-box ul { list-style: none; }
+  .rules-box li {
+    font-size: 16px;
+    padding: 8px 0 8px 24px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-box li:last-child { border-bottom: none; }
+  .rules-box li::before {
+    content: "✓";
+    color: var(--accent);
+    font-weight: 800;
+    position: absolute;
+    left: 0;
+  }
+  .rules-box b { color: var(--accent-hover); }
+
+  footer {
+    margin-top: 30px;
+    padding: 22px 56px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  @media print {
+    .page { max-width: 100%; }
+    .block-card, .script-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="cover">
+    <div class="cover-logo">
+      <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV">
+    </div>
+    <div class="cover-text">
+      <h1>Guion de Conversación — Discovery</h1>
+      <p>Guía de referencia para el equipo comercial: cómo conducir la conversación de discovery de forma natural, cubriendo la mayor cantidad de información posible.</p>
+      <span class="cover-tag">Uso interno · Equipo Comercial LIV Latam</span>
+    </div>
+  </div>
+
+  <!-- SCRIPT SECTION -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span>Guion de Conversación</div>
+    <div class="section-sub">Guía de referencia — no es un checklist. El objetivo es una conversación fluida que igual cubra la mayoría de los campos.</div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Apertura — Rapport + Contexto</div>
+    <div class="script-body">
+      <p class="covers">Cubre: Contexto de la Cuenta</p>
+      <p class="quote-note">Si ya se cuenta con información previa (investigación, referido, registro anterior), la orientación es <b>confirmar, no preguntar desde cero</b>:</p>
+      <div class="quote">"Por lo que vi, ustedes atienden preescolar y primaria, con [X] alumnos en total — ¿esto sigue siendo así, o cambió desde la última vez que conversamos?"</div>
+      <p class="quote-note">Si no hay información previa, entonces sí con pregunta abierta:</p>
+      <div class="quote">"Cuéntame un poco sobre el colegio — ¿cuántos alumnos tienen hoy, qué niveles atienden?"</div>
+      <p class="quote-note">Ciudad — confirmar:</p>
+      <div class="quote">"Ustedes están en [ciudad], ¿verdad?"</div>
+      <p class="quote-note">Calendario — confirmar o preguntar:</p>
+      <div class="quote">"¿Y el calendario de ustedes sigue siendo [A/B/A-B], o eso cambió?"</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Situación Actual</div>
+    <div class="script-body">
+      <p class="covers">Cubre: Situación Actual</p>
+      <div class="quote">"Hoy, ¿cómo trabajan la parte socioemocional con los alumnos? ¿Existe algo estructurado, un horario dedicado en el currículo, o es más orgánico entre los docentes?"</div>
+      <p class="quote-note">Si la respuesta es vaga, profundizar:</p>
+      <div class="quote">"¿Esto es algo desarrollado internamente por el equipo pedagógico, o usan algún material o solución de terceros para esto?"</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Dolores y Motivadores</div>
+    <div class="script-body">
+      <div class="quote">"¿Y qué los llevó a buscar algo diferente ahora? ¿Hubo algún gatillo específico — una situación con los alumnos, presión de las familias, una nueva directriz?"</div>
+      <p class="quote-note">Si la respuesta es genérica, profundizar en el impacto:</p>
+      <div class="quote">"¿Esto ha generado sobrecarga para el equipo, o es más una preocupación de largo plazo?"</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Proceso de Decisión</div>
+    <div class="script-body">
+      <div class="quote">"Además de ti, ¿quién más suele participar en este tipo de decisión en el colegio — hay consejo, sostenedor, o es más una decisión de la dirección pedagógica?"</div>
+      <p class="quote-note">El presupuesto <b>no se pregunta de forma directa</b> — el foco es el período/timing de decisión:</p>
+      <div class="quote">"¿Suelen tener un período específico del año para este tipo de decisión — como inicio de ciclo lectivo o planificación anual? Esto nos ayuda a proponer algo en el momento correcto para ustedes."</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Competencia / Alternativas</div>
+    <div class="script-body">
+      <div class="warning-box"><b>No se pregunta de forma activa.</b> Solo se registra si surge espontáneamente en otra respuesta (por ejemplo, al hablar de la situación actual). En ese caso, dejar que la persona hable libremente, sin profundizar de forma comparativa, para no direccionar al colegio a buscar otras opciones.</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="script-head">Cierre — Próximos Pasos</div>
+    <div class="script-body">
+      <p class="quote-note">La discovery no cierra la decisión sola — abre camino a dos posibles próximos pasos:</p>
+      <div class="quote">"Con base en lo que conversamos, creo que tiene sentido dar dos pasos de aquí en adelante: uno es conversar con [otros decisores, si fueron identificados] para alinear la decisión institucional; el otro es agendar una reunión de Profundización Pedagógica, donde el equipo técnico de ustedes puede evaluar el programa, los materiales y resolver dudas pedagógicas más específicas. ¿Tiene sentido para ti?"</div>
+      <p class="alt-label">Si no hay otros decisores identificados</p>
+      <div class="quote">"Creo que el próximo paso ideal es agendar la Profundización Pedagógica, para que el equipo técnico de ustedes evalúe de cerca el programa y los materiales. ¿Tiene sentido?"</div>
+    </div>
+  </div>
+
+  <!-- RULES -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span>Reglas Generales del Guion</div>
+  </div>
+  <div class="rules-box">
+    <ul>
+      <li><b>Confirmar &gt; preguntar desde cero</b> cuando ya exista información previa — muestra preparación y evita redundancia.</li>
+      <li><b>Una pregunta abierta trae 2-3 respuestas</b> — siempre preferible a una secuencia de preguntas cerradas.</li>
+      <li><b>El presupuesto nunca se pregunta de forma directa</b> — solo el timing/período de decisión.</li>
+      <li><b>La competencia nunca se pregunta de forma activa</b> — solo se registra si es mencionada espontáneamente.</li>
+      <li><b>El cierre siempre propone los dos posibles próximos pasos:</b> reunión con otros decisores (si aplica) y Profundización Pedagógica.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <span>LIV Latam · Equipo Comercial</span>
+    <span>Guía de Reunión Discovery — Uso Interno</span>
+  </footer>
+
+</div>
+</body>
+</html>
