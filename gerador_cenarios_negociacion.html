@@ -107,6 +107,21 @@
   .badge-purple{background:var(--purple-bg); color:var(--purple-text);}
   .avg-line{font-size:16px; font-weight:600; margin:4px 0;}
   .avg-ref{font-size:11px; color:var(--muted); font-weight:400;}
+  .year1-callout{
+    display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+    background:var(--purple-bg); border-radius:8px; padding:8px 12px; margin-bottom:10px;
+  }
+  .year1-label{font-size:11px; color:var(--purple-text); font-weight:600; text-transform:uppercase; letter-spacing:.03em;}
+  .year1-price{font-size:18px; font-weight:600; color:var(--purple-text);}
+  .year1-unit{font-size:11px; font-weight:400; color:var(--purple-text); margin-left:4px;}
+  .avg-compare{
+    display:flex; justify-content:space-between; gap:10px; margin:8px 0 6px;
+    padding-top:6px;
+  }
+  .avg-compare > div{display:flex; flex-direction:column;}
+  .avg-compare-label{font-size:10.5px; color:var(--muted); margin-bottom:2px;}
+  .avg-compare-value{font-size:15px; font-weight:600; color:var(--text);}
+  .avg-compare-value.muted{color:var(--muted); font-weight:500;}
   details.script-box{margin-top:10px; border-top:1px solid var(--border); padding-top:8px;}
   details.script-box summary{cursor:pointer; font-size:12px; color:var(--purple); font-weight:500;}
   details.script-box p{font-size:12.5px; color:var(--text); margin:8px 0 0; line-height:1.6;}
@@ -548,9 +563,9 @@ function calcScenario(cfg, g){
     }
   }
 
-  let zopaStatus, overlapCategory;
+  let zopaStatus, overlapCategory, zopaUndefined = false;
   if (g.tetoLocal <= 0){
-    zopaStatus = 'Sin techo definido'; overlapCategory = 'ajustado';
+    zopaStatus = 'Sin techo definido — completa el dato'; overlapCategory = 'ajustado'; zopaUndefined = true;
   } else if (achievedAvg > g.tetoLocal){
     zopaStatus = 'Fuera de ZOPA (sobre el techo)'; overlapCategory = 'sin';
   } else if (achievedAvg < g.floorLocal - 0.5){
@@ -573,7 +588,7 @@ function calcScenario(cfg, g){
     achievedAvg: achievedAvg, notReachingTicket: notReachingTicket, belowFloor: belowFloor,
     cappedAlert: cappedAlert, noRecoveryPossible: noRecoveryPossible,
     recoveryYearLabel: recoveryYearLabel, zopaStatus: zopaStatus, overlapCategory: overlapCategory,
-    riskScore: score, riskLevel: riskLevel
+    zopaUndefined: zopaUndefined, riskScore: score, riskLevel: riskLevel
   };
 }
 
@@ -613,7 +628,9 @@ function renderScenario(card, key, cfg, r, g){
       '</td><td>' + r.yearStudents[i] + '</td><td>' + fmtMoney(r.yearRevenue[i], g.country) + '</td></tr>';
   }
   let badges = '';
-  if (r.overlapCategory === 'sin'){
+  if (r.zopaUndefined){
+    badges += '<span class="badge badge-amber">' + r.zopaStatus + '</span>';
+  } else if (r.overlapCategory === 'sin'){
     badges += '<span class="badge badge-red">' + r.zopaStatus + '</span>';
   } else {
     badges += '<span class="badge badge-green">' + r.zopaStatus + '</span>';
@@ -637,12 +654,25 @@ function renderScenario(card, key, cfg, r, g){
     badges += '<span class="badge badge-red">Bajo el piso mínimo</span>';
   }
 
+  const diff = r.achievedAvg - g.metaLocal;
+  const diffPct = g.metaLocal > 0 ? (diff / g.metaLocal * 100) : 0;
+  let comparisonBadge;
+  if (r.notReachingTicket){
+    comparisonBadge = '<span class="badge badge-amber">' + Math.abs(Math.round(diffPct)) + '% por debajo de la meta</span>';
+  } else {
+    comparisonBadge = '<span class="badge badge-green">En la meta o por encima</span>';
+  }
+
   box.innerHTML =
+    '<div class="year1-callout"><span class="year1-label">Año 1</span><span class="year1-price">' +
+    fmtMoney(r.yearPrices[0], g.country) + '<span class="year1-unit">/alumno</span></span></div>' +
     '<table class="year-table"><thead><tr><th>Año</th><th>Precio/alumno</th><th>Alumnos</th><th>Ingreso</th></tr></thead><tbody>' +
     tableRows + '</tbody></table>' +
-    '<div class="avg-line">' + fmtMoney(r.achievedAvg, g.country) +
-    '<span class="avg-ref"> /alumno/año promedio · ' + (g.fx ? fmtUsd(r.achievedAvg / g.fx) : '—') + ' ref.</span></div>' +
-    '<div class="badges">' + badges + '</div>';
+    '<div class="avg-compare">' +
+      '<div><span class="avg-compare-label">Promedio real</span><span class="avg-compare-value">' + fmtMoney(r.achievedAvg, g.country) + '</span></div>' +
+      '<div><span class="avg-compare-label">Meta (US$' + TICKET_TARGET_USD + ' ref.)</span><span class="avg-compare-value muted">' + fmtMoney(g.metaLocal, g.country) + '</span></div>' +
+    '</div>' +
+    '<div class="badges">' + comparisonBadge + badges + '</div>';
 
   const scriptP = card.querySelector('.script-box p');
   scriptP.textContent = buildScript(key, cfg, r, g);
