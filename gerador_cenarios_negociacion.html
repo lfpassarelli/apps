@@ -79,9 +79,7 @@
   .scenario-card{
     border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--surface);
   }
-  .scenario-card.destacado{border:2px solid var(--purple); background:var(--white);}
   .scenario-card h3{font-size:14px; margin-bottom:10px; color:var(--purple-text);}
-  .scenario-card.destacado h3{color:var(--purple);}
   .sc-field{margin-bottom:8px;}
   .years-checks{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;}
   .years-checks label{
@@ -138,7 +136,11 @@
   .weights-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:10px;}
   @media (max-width:900px){ .weights-grid{grid-template-columns:repeat(2,1fr);} }
   .weights-grid .field label{font-size:11px;}
-  .top-actions{display:flex; justify-content:flex-end; margin-bottom:10px;}
+  .top-actions{display:flex; justify-content:flex-end; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .client-include-row{
+    margin-top:10px; padding-top:8px; border-top:1px solid var(--border); margin-bottom:0;
+  }
+  .avg-compare-usd{font-size:11px; color:var(--muted); font-weight:400; margin-left:4px;}
   .footer-note{font-size:11px; color:var(--muted); margin-top:16px; text-align:center;}
 </style>
 </head>
@@ -189,11 +191,6 @@
         </div>
         <div class="hint" id="floor-usd-ref">US$30/alumno · referencia</div>
       </div>
-      <div class="field">
-        <label for="f-techo">Techo estimado del cliente</label>
-        <input type="number" id="f-techo" placeholder="0">
-        <div class="hint" id="techo-usd-ref">≈ US$ — /alumno</div>
-      </div>
     </div>
 
     <div class="growth-box grid grid-2">
@@ -221,12 +218,13 @@
     <div class="bloque-title"><span class="n">2</span>Escenarios</div>
     <div class="top-actions">
       <button id="btn-defaults" type="button">Restaurar valores sugeridos</button>
+      <button id="btn-client-view" type="button" class="primary">Generar propuesta para el cliente ↗</button>
     </div>
 
     <div class="scenarios-grid" id="scenarios-grid">
-      <!-- Conservador -->
-      <div class="scenario-card" data-key="conservador">
-        <h3>Conservador</h3>
+      <!-- Escenario 1 -->
+      <div class="scenario-card" data-key="escenario1">
+        <h3>Escenario 1</h3>
         <div class="sc-field">
           <label>Duración del contrato</label>
           <select class="sc-duration">
@@ -249,11 +247,15 @@
         </div>
         <div class="results"></div>
         <details class="script-box"><summary>Guion sugerido</summary><p></p></details>
+        <div class="sc-toggle client-include-row">
+          <input type="checkbox" class="sc-include-client" checked>
+          <label>Incluir en propuesta al cliente</label>
+        </div>
       </div>
 
-      <!-- Equilibrado -->
-      <div class="scenario-card destacado" data-key="equilibrado">
-        <h3>Equilibrado</h3>
+      <!-- Escenario 2 -->
+      <div class="scenario-card" data-key="escenario2">
+        <h3>Escenario 2</h3>
         <div class="sc-field">
           <label>Duración del contrato</label>
           <select class="sc-duration">
@@ -276,11 +278,15 @@
         </div>
         <div class="results"></div>
         <details class="script-box"><summary>Guion sugerido</summary><p></p></details>
+        <div class="sc-toggle client-include-row">
+          <input type="checkbox" class="sc-include-client" checked>
+          <label>Incluir en propuesta al cliente</label>
+        </div>
       </div>
 
-      <!-- Agresivo -->
-      <div class="scenario-card" data-key="agresivo">
-        <h3>Agresivo</h3>
+      <!-- Escenario 3 -->
+      <div class="scenario-card" data-key="escenario3">
+        <h3>Escenario 3</h3>
         <div class="sc-field">
           <label>Duración del contrato</label>
           <select class="sc-duration">
@@ -303,20 +309,19 @@
         </div>
         <div class="results"></div>
         <details class="script-box"><summary>Guion sugerido</summary><p></p></details>
+        <div class="sc-toggle client-include-row">
+          <input type="checkbox" class="sc-include-client" checked>
+          <label>Incluir en propuesta al cliente</label>
+        </div>
       </div>
     </div>
 
     <details class="weights-panel">
       <summary>Pesos del score de riesgo (avanzado)</summary>
-      <div class="weights-grid">
+      <div class="weights-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">
         <div class="field"><label>Crecimiento alto</label><input type="number" id="w-alto" value="15"></div>
         <div class="field"><label>Crecimiento medio</label><input type="number" id="w-medio" value="5"></div>
         <div class="field"><label>Crecimiento bajo</label><input type="number" id="w-bajo" value="0"></div>
-        <div class="field"><label>ZOPA amplio</label><input type="number" id="w-amplio" value="20"></div>
-        <div class="field"><label>ZOPA ajustado</label><input type="number" id="w-ajustado" value="5"></div>
-      </div>
-      <div class="weights-grid" style="grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:8px;">
-        <div class="field"><label>Sin overlap (fuera de ZOPA)</label><input type="number" id="w-sin" value="-30"></div>
       </div>
     </details>
   </section>
@@ -450,20 +455,18 @@ function collectGlobals(){
   const excedentes = Number(document.getElementById('f-excedentes').value) || 0;
   const potencial = document.getElementById('f-potencial').value;
   const salaElegible = document.getElementById('f-sala-elegible').checked;
-  const tetoLocal = Number(document.getElementById('f-techo').value) || 0;
   const floorLocal = FLOOR_USD * fx;
   const metaLocal = TICKET_TARGET_USD * fx;
   const listPrice = c.listPrice;
 
   document.getElementById('floor-local-display').textContent = fx ? fmtMoney(floorLocal, country) : '—';
   document.getElementById('floor-usd-ref').textContent = 'US$' + FLOOR_USD + '/alumno · referencia';
-  document.getElementById('techo-usd-ref').textContent = fx && tetoLocal ? ('≈ ' + fmtUsd(tetoLocal / fx) + '/alumno') : '≈ US$ —/alumno';
 
   return {
     country: country, currency: currency, symbol: c.symbol, fx: fx,
     totalStudents: totalStudents, preescolarCount: preescolarCount,
     excedentes: excedentes, potencial: potencial, salaElegible: salaElegible,
-    tetoLocal: tetoLocal, floorLocal: floorLocal, metaLocal: metaLocal, listPrice: listPrice
+    floorLocal: floorLocal, metaLocal: metaLocal, listPrice: listPrice
   };
 }
 
@@ -481,10 +484,7 @@ function getWeights(){
   return {
     alto: Number(document.getElementById('w-alto').value) || 0,
     medio: Number(document.getElementById('w-medio').value) || 0,
-    bajo: Number(document.getElementById('w-bajo').value) || 0,
-    amplio: Number(document.getElementById('w-amplio').value) || 0,
-    ajustado: Number(document.getElementById('w-ajustado').value) || 0,
-    sin: Number(document.getElementById('w-sin').value) || 0
+    bajo: Number(document.getElementById('w-bajo').value) || 0
   };
 }
 
@@ -527,56 +527,43 @@ function calcScenario(cfg, g){
     }
   }
 
-  let zopaStatus, overlapCategory, zopaUndefined = false;
-  if (g.tetoLocal <= 0){
-    zopaStatus = 'Sin techo definido — completa el dato'; overlapCategory = 'ajustado'; zopaUndefined = true;
-  } else if (achievedAvg > g.tetoLocal){
-    zopaStatus = 'Fuera de ZOPA (sobre el techo)'; overlapCategory = 'sin';
-  } else if (achievedAvg < g.floorLocal - 0.5){
-    zopaStatus = 'Fuera de ZOPA (bajo el piso)'; overlapCategory = 'sin';
-  } else {
-    const range = Math.max(1, g.tetoLocal - g.floorLocal);
-    const pos = (achievedAvg - g.floorLocal) / range;
-    if (pos >= 0.25 && pos <= 0.75){ zopaStatus = 'Dentro de ZOPA — amplio'; overlapCategory = 'amplio'; }
-    else { zopaStatus = 'Dentro de ZOPA — ajustado'; overlapCategory = 'ajustado'; }
-  }
-
   const w = getWeights();
-  const growthWeight = g.potencial === 'Alto' ? w.alto : (g.potencial === 'Medio' ? w.medio : w.bajo);
-  const overlapWeight = overlapCategory === 'amplio' ? w.amplio : (overlapCategory === 'ajustado' ? w.ajustado : w.sin);
-  const score = growthWeight + overlapWeight;
-  const riskLevel = score >= 20 ? 'Alta' : (score >= 0 ? 'Media' : 'Baja');
+  const score = g.potencial === 'Alto' ? w.alto : (g.potencial === 'Medio' ? w.medio : w.bajo);
+  const riskLevel = score >= 10 ? 'Alta' : (score >= 1 ? 'Media' : 'Baja');
 
   return {
     yearPrices: yearPrices, yearStudents: yearStudents, yearRevenue: yearRevenue,
     achievedAvg: achievedAvg, notReachingTicket: notReachingTicket, belowFloor: belowFloor,
     noRecoveryPossible: noRecoveryPossible,
-    recoveryYearLabel: recoveryYearLabel, zopaStatus: zopaStatus, overlapCategory: overlapCategory,
-    zopaUndefined: zopaUndefined, riskScore: score, riskLevel: riskLevel
+    recoveryYearLabel: recoveryYearLabel,
+    riskScore: score, riskLevel: riskLevel
   };
 }
 
-function buildScript(key, cfg, r, g){
+function buildScript(cfg, r, g){
   const lines = [];
   const lastPrice = r.yearPrices[r.yearPrices.length - 1];
-  if (key === 'conservador'){
-    lines.push('Ancla la conversación en el valor del programa completo antes de hablar de precio. Presenta el ticket de ' + fmtMoney(r.yearPrices[0], g.country) + ' por alumno como punto de partida, sin mencionar descuentos todavía.');
+  const maxDiscount = Math.max.apply(null, cfg.yearDiscounts.slice(0, cfg.duration).concat([0]));
+
+  if (maxDiscount === 0){
+    lines.push('Ancla la conversación en el valor del programa completo antes de hablar de precio. Presenta el ticket de ' + fmtMoney(r.yearPrices[0], g.country) + ' por alumno como punto de partida, sin mencionar descuentos.');
     if (cfg.duration === 1){
       lines.push('Este escenario es de bajo riesgo: no compromete el ticket presupuestario y no requiere concesiones a recuperar después.');
     }
-  } else if (key === 'equilibrado'){
-    lines.push('Presenta el descuento del ' + (cfg.yearDiscounts[0] || 0) + '% en el primer año como una concesión puntual para facilitar el arranque, dejando claro desde el inicio que el ticket se normaliza a ' + fmtMoney(lastPrice, g.country) + ' en los años siguientes.');
+  } else if (maxDiscount <= 15){
+    lines.push('Presenta el descuento de este escenario como una concesión puntual para facilitar el arranque, dejando claro desde el inicio que el precio de referencia es ' + fmtMoney(lastPrice, g.country) + '.');
     if (r.recoveryYearLabel){
       lines.push('La concesión queda cubierta a partir del año ' + r.recoveryYearLabel + ', así que puedes framearla como una inversión de corto plazo, no como una pérdida de margen.');
     }
   } else {
-    lines.push('Este escenario exige concesiones mayores: úsalo solo cuando el cliente muestre señales claras de que el precio es la barrera principal.');
-    if (r.notReachingTicket){
-      lines.push('Aviso interno: este escenario no alcanza el ticket presupuestario de US$' + TICKET_TARGET_USD + ' y requiere aprobación de Dirección Comercial LatAm antes de presentarlo formalmente.');
-    }
+    lines.push('Este escenario incluye concesiones mayores: úsalo solo cuando el cliente muestre señales claras de que el precio es la barrera principal.');
+  }
+
+  if (r.notReachingTicket){
+    lines.push('Aviso interno: este escenario no alcanza el ticket presupuestario de US$' + TICKET_TARGET_USD + ' y requiere aprobación de Dirección Comercial LatAm antes de presentarlo formalmente.');
   }
   if (g.excedentes > 0 && cfg.duration > 1){
-    lines.push('Usa el potencial de crecimiento (hasta ' + g.excedentes + ' alumnos adicionales desde el año 2) como argumento para justificar que el ticket se recupere sin subir demasiado el precio por alumno actual.');
+    lines.push('Usa el potencial de crecimiento (hasta ' + g.excedentes + ' alumnos adicionales desde el año 2) como argumento para justificar el precio de los años siguientes.');
   }
   if (r.belowFloor){
     lines.push('Cuidado: el ticket promedio de este escenario cae por debajo del piso mínimo aceptable. Ajusta el descuento o extiende la duración antes de ofrecerlo.');
@@ -584,7 +571,7 @@ function buildScript(key, cfg, r, g){
   return lines.join(' ');
 }
 
-function renderScenario(card, key, cfg, r, g){
+function renderScenario(card, cfg, r, g){
   const box = card.querySelector('.results');
   let tableRows = '';
   for (let i = 0; i < r.yearPrices.length; i++){
@@ -592,13 +579,6 @@ function renderScenario(card, key, cfg, r, g){
       '</td><td>' + r.yearStudents[i] + '</td><td>' + fmtMoney(r.yearRevenue[i], g.country) + '</td></tr>';
   }
   let badges = '';
-  if (r.zopaUndefined){
-    badges += '<span class="badge badge-amber">' + r.zopaStatus + '</span>';
-  } else if (r.overlapCategory === 'sin'){
-    badges += '<span class="badge badge-red">' + r.zopaStatus + '</span>';
-  } else {
-    badges += '<span class="badge badge-green">' + r.zopaStatus + '</span>';
-  }
   const riskBadgeClass = r.riskLevel === 'Alta' ? 'badge-green' : (r.riskLevel === 'Media' ? 'badge-blue' : 'badge-amber');
   badges += '<span class="badge ' + riskBadgeClass + '">Probabilidad: ' + r.riskLevel + '</span>';
 
@@ -626,19 +606,21 @@ function renderScenario(card, key, cfg, r, g){
     comparisonBadge = '<span class="badge badge-green">En la meta o por encima</span>';
   }
 
+  const avgUsd = g.fx ? ' <span class="avg-compare-usd">(' + fmtUsd(r.achievedAvg / g.fx) + ')</span>' : '';
+
   box.innerHTML =
     '<div class="year1-callout"><span class="year1-label">Año 1</span><span class="year1-price">' +
     fmtMoney(r.yearPrices[0], g.country) + '<span class="year1-unit">/alumno</span></span></div>' +
     '<table class="year-table"><thead><tr><th>Año</th><th>Precio/alumno</th><th>Alumnos</th><th>Ingreso</th></tr></thead><tbody>' +
     tableRows + '</tbody></table>' +
     '<div class="avg-compare">' +
-      '<div><span class="avg-compare-label">Promedio real</span><span class="avg-compare-value">' + fmtMoney(r.achievedAvg, g.country) + '</span></div>' +
+      '<div><span class="avg-compare-label">Promedio real</span><span class="avg-compare-value">' + fmtMoney(r.achievedAvg, g.country) + avgUsd + '</span></div>' +
       '<div><span class="avg-compare-label">Meta (US$' + TICKET_TARGET_USD + ' ref.)</span><span class="avg-compare-value muted">' + fmtMoney(g.metaLocal, g.country) + '</span></div>' +
     '</div>' +
     '<div class="badges">' + comparisonBadge + badges + '</div>';
 
   const scriptP = card.querySelector('.script-box p');
-  scriptP.textContent = buildScript(key, cfg, r, g);
+  scriptP.textContent = buildScript(cfg, r, g);
 }
 
 function recalcAll(){
@@ -654,9 +636,8 @@ function recalcAll(){
     if (!g.salaElegible) salaBox.checked = false;
 
     const cfg = collectScenarioConfig(card);
-    const key = card.dataset.key;
     const r = calcScenario(cfg, g);
-    renderScenario(card, key, cfg, r, g);
+    renderScenario(card, cfg, r, g);
   });
 }
 
@@ -667,9 +648,9 @@ function applyDefaults(){
   const hasPreescolar = g.preescolarCount > 0;
 
   const defaults = {
-    conservador: { duration: 1, yearDiscounts: [0, 0, 0], preescolar: false, sala: false },
-    equilibrado: { duration: 2, yearDiscounts: [discMed, 0, 0], preescolar: false, sala: g.salaElegible },
-    agresivo: { duration: 3, yearDiscounts: [discAgr, 0, 0], preescolar: hasPreescolar, sala: g.salaElegible }
+    escenario1: { duration: 1, yearDiscounts: [0, 0, 0], preescolar: false, sala: false },
+    escenario2: { duration: 2, yearDiscounts: [discMed, 0, 0], preescolar: false, sala: g.salaElegible },
+    escenario3: { duration: 3, yearDiscounts: [discAgr, 0, 0], preescolar: hasPreescolar, sala: g.salaElegible }
   };
 
   document.querySelectorAll('.scenario-card').forEach(function(card){
@@ -683,6 +664,77 @@ function applyDefaults(){
     inputs.forEach(function(inp, idx){ inp.value = d.yearDiscounts[idx] || 0; });
   });
   recalcAll();
+}
+
+const CLIENT_CSS = "*{box-sizing:border-box;}" +
+  "body{margin:0;background:#F7F6FD;color:#1A1530;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;padding-bottom:60px;}" +
+  "h1,h2{font-family:'Outfit',sans-serif;font-weight:600;margin:0;}" +
+  "header{background:#4B3E98;color:#fff;padding:20px 28px;display:flex;align-items:center;gap:14px;}" +
+  "header img{height:34px;}" +
+  "header h1{font-size:18px;font-weight:500;}" +
+  "main{max-width:900px;margin:0 auto;padding:28px 20px;}" +
+  ".colegio-name{font-size:22px;margin-bottom:4px;}" +
+  ".proposal-date{font-size:12px;color:#6B6490;margin-bottom:24px;}" +
+  ".client-scenario{background:#fff;border:1px solid #DDD9F5;border-radius:14px;padding:20px 22px;margin-bottom:18px;}" +
+  ".client-scenario h2{font-size:16px;color:#4B3E98;margin-bottom:14px;}" +
+  "table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;}" +
+  "th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #DDD9F5;}" +
+  "th{color:#6B6490;font-weight:500;font-size:12px;}" +
+  ".client-extras{margin:8px 0 0;padding-left:18px;font-size:13px;color:#1A1530;}" +
+  ".client-extras li{margin-bottom:4px;}" +
+  ".footer-note{font-size:11px;color:#6B6490;margin-top:24px;text-align:center;}";
+
+function buildClientHTML(selected, g){
+  let sectionsHtml = '';
+  selected.forEach(function(s){
+    let rows = '';
+    for (let i = 0; i < s.r.yearPrices.length; i++){
+      rows += '<tr><td>Año ' + (i+1) + '</td><td>' + fmtMoney(s.r.yearPrices[i], g.country) +
+        '</td><td>' + s.r.yearStudents[i] + '</td><td>' + fmtMoney(s.r.yearRevenue[i], g.country) + '</td></tr>';
+    }
+    const extras = [];
+    if (s.cfg.preescolarExento) extras.push('Exención total para Preescolar en el primer año');
+    if (s.cfg.salaLIV) extras.push('Incluye Sala LIV');
+    sectionsHtml += '<div class="client-scenario"><h2>' + s.label + ' · ' + s.cfg.duration + (s.cfg.duration === 1 ? ' año' : ' años') + '</h2>' +
+      '<table><thead><tr><th>Año</th><th>Precio/alumno</th><th>Alumnos</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      (extras.length ? '<ul class="client-extras">' + extras.map(function(e){ return '<li>' + e + '</li>'; }).join('') + '</ul>' : '') +
+      '</div>';
+  });
+
+  const colegio = document.getElementById('f-colegio').value || 'Propuesta comercial';
+  const fecha = new Date().toLocaleDateString('es-419', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<title>Propuesta comercial — LIV</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">' +
+    '<style>' + CLIENT_CSS + '</style></head><body>' +
+    '<header><img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"><h1>Propuesta comercial</h1></header>' +
+    '<main><div class="colegio-name">' + colegio + '</div><div class="proposal-date">' + fecha + '</div>' +
+    sectionsHtml +
+    '<div class="footer-note">LIV Latam</div></main></body></html>';
+}
+
+function openClientView(){
+  const g = collectGlobals();
+  const selected = [];
+  document.querySelectorAll('.scenario-card').forEach(function(card){
+    const includeBox = card.querySelector('.sc-include-client');
+    if (includeBox && includeBox.checked){
+      const cfg = collectScenarioConfig(card);
+      const r = calcScenario(cfg, g);
+      const label = card.querySelector('h3').textContent;
+      selected.push({ label: label, cfg: cfg, r: r });
+    }
+  });
+  if (selected.length === 0){
+    alert('Selecciona al menos un escenario para generar la propuesta.');
+    return;
+  }
+  const html = buildClientHTML(selected, g);
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
 }
 
 document.getElementById('f-pais').addEventListener('change', function(){
@@ -700,11 +752,11 @@ document.getElementById('f-fx').addEventListener('input', function(){
 });
 document.getElementById('btn-fx-refresh').addEventListener('click', fetchFX);
 document.getElementById('btn-defaults').addEventListener('click', applyDefaults);
-document.getElementById('f-techo').addEventListener('input', recalcAll);
+document.getElementById('btn-client-view').addEventListener('click', openClientView);
 document.getElementById('f-excedentes').addEventListener('input', recalcAll);
 document.getElementById('f-potencial').addEventListener('change', recalcAll);
 document.getElementById('f-sala-elegible').addEventListener('change', recalcAll);
-['w-alto','w-medio','w-bajo','w-amplio','w-ajustado','w-sin'].forEach(function(id){
+['w-alto','w-medio','w-bajo'].forEach(function(id){
   document.getElementById(id).addEventListener('input', recalcAll);
 });
 document.querySelectorAll('.scenario-card').forEach(function(card){
