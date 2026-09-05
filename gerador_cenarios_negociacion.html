@@ -104,6 +104,7 @@
   table.year-table{width:100%; border-collapse:collapse; font-size:12px; margin-bottom:8px;}
   table.year-table th, table.year-table td{padding:4px 2px; text-align:left; border-bottom:1px solid var(--border);}
   table.year-table th{color:var(--muted); font-weight:500; font-size:11px;}
+  .exempt-note{font-size:10px; color:var(--muted);}
   .badges{display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;}
   .badge{font-size:11px; border-radius:6px; padding:2px 8px; font-weight:500;}
   .badge-green{background:var(--green-bg); color:var(--green-text);}
@@ -532,7 +533,7 @@ function calcScenario(cfg, g){
   const riskLevel = score >= 10 ? 'Alta' : (score >= 1 ? 'Media' : 'Baja');
 
   return {
-    yearPrices: yearPrices, yearStudents: yearStudents, yearRevenue: yearRevenue,
+    yearPrices: yearPrices, yearStudents: yearStudents, yearEnrolled: yearEnrolled, yearRevenue: yearRevenue,
     achievedAvg: achievedAvg, notReachingTicket: notReachingTicket, belowFloor: belowFloor,
     noRecoveryPossible: noRecoveryPossible,
     recoveryYearLabel: recoveryYearLabel,
@@ -575,8 +576,12 @@ function renderScenario(card, cfg, r, g){
   const box = card.querySelector('.results');
   let tableRows = '';
   for (let i = 0; i < r.yearPrices.length; i++){
+    const exempt = r.yearEnrolled[i] - r.yearStudents[i];
+    const alumnosCell = exempt > 0
+      ? r.yearEnrolled[i] + ' <span class="exempt-note">(' + exempt + ' becados)</span>'
+      : r.yearEnrolled[i];
     tableRows += '<tr><td>Año ' + (i+1) + '</td><td>' + fmtMoney(r.yearPrices[i], g.country) +
-      '</td><td>' + r.yearStudents[i] + '</td><td>' + fmtMoney(r.yearRevenue[i], g.country) + '</td></tr>';
+      '</td><td>' + alumnosCell + '</td><td>' + fmtMoney(r.yearRevenue[i], g.country) + '</td></tr>';
   }
   let badges = '';
   const riskBadgeClass = r.riskLevel === 'Alta' ? 'badge-green' : (r.riskLevel === 'Media' ? 'badge-blue' : 'badge-amber');
@@ -675,28 +680,61 @@ const CLIENT_CSS = "*{box-sizing:border-box;}" +
   "main{max-width:900px;margin:0 auto;padding:28px 20px;}" +
   ".colegio-name{font-size:22px;margin-bottom:4px;}" +
   ".proposal-date{font-size:12px;color:#6B6490;margin-bottom:24px;}" +
-  ".client-scenario{background:#fff;border:1px solid #DDD9F5;border-radius:14px;padding:20px 22px;margin-bottom:18px;}" +
-  ".client-scenario h2{font-size:16px;color:#4B3E98;margin-bottom:14px;}" +
-  "table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;}" +
-  "th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #DDD9F5;}" +
-  "th{color:#6B6490;font-weight:500;font-size:12px;}" +
-  ".client-extras{margin:8px 0 0;padding-left:18px;font-size:13px;color:#1A1530;}" +
+  ".client-scenario{background:#fff;border:1px solid #DDD9F5;border-radius:14px;padding:22px 24px;margin-bottom:18px;}" +
+  ".client-scenario-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}" +
+  ".client-scenario-head h2{font-size:17px;color:#26215C;}" +
+  ".client-duration-badge{font-size:12px;background:#EEEDFE;color:#26215C;border-radius:6px;padding:4px 10px;font-weight:500;}" +
+  ".client-year-hero{display:flex;align-items:center;gap:12px;background:#EEEDFE;border-radius:10px;padding:14px 18px;margin-bottom:14px;flex-wrap:wrap;}" +
+  ".client-year-hero-label{font-size:11px;color:#4B3E98;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}" +
+  ".client-year-hero-price{font-size:26px;font-weight:600;color:#26215C;}" +
+  ".client-year-hero-price .unit{font-size:13px;font-weight:400;color:#4B3E98;margin-left:4px;}" +
+  ".client-discount-badge{font-size:12px;background:#FEC238;color:#4A3200;border-radius:6px;padding:4px 10px;font-weight:600;}" +
+  ".client-year-hero-students{font-size:12px;color:#6B6490;width:100%;margin-top:2px;}" +
+  ".client-year-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}" +
+  ".client-year-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #DDD9F5;border-radius:8px;flex-wrap:wrap;}" +
+  ".client-year-row-label{font-size:12px;color:#6B6490;min-width:48px;}" +
+  ".client-year-row-price{font-size:15px;font-weight:600;color:#1A1530;}" +
+  ".client-year-row-price .unit{font-size:11px;font-weight:400;color:#6B6490;margin-left:3px;}" +
+  ".client-year-row-students{font-size:11px;color:#6B6490;margin-left:auto;}" +
+  ".client-year-row .client-discount-badge{padding:2px 8px;font-size:11px;}" +
+  ".client-extras{margin:4px 0 0;padding-left:18px;font-size:13px;color:#1A1530;}" +
   ".client-extras li{margin-bottom:4px;}" +
   ".footer-note{font-size:11px;color:#6B6490;margin-top:24px;text-align:center;}";
 
 function buildClientHTML(selected, g){
   let sectionsHtml = '';
   selected.forEach(function(s){
-    let rows = '';
-    for (let i = 0; i < s.r.yearPrices.length; i++){
-      rows += '<tr><td>Año ' + (i+1) + '</td><td>' + fmtMoney(s.r.yearPrices[i], g.country) +
-        '</td><td>' + s.r.yearStudents[i] + '</td><td>' + fmtMoney(s.r.yearRevenue[i], g.country) + '</td></tr>';
+    const cfg = s.cfg, r = s.r;
+    const heroDiscount = cfg.yearDiscounts[0] || 0;
+    const heroBadge = heroDiscount > 0
+      ? '<span class="client-discount-badge">-' + heroDiscount + '%</span>' : '';
+
+    let yearRows = '';
+    for (let i = 1; i < r.yearPrices.length; i++){
+      const disc = cfg.yearDiscounts[i] || 0;
+      const discBadge = disc > 0 ? '<span class="client-discount-badge">-' + disc + '%</span>' : '';
+      yearRows += '<div class="client-year-row">' +
+        '<span class="client-year-row-label">Año ' + (i+1) + '</span>' +
+        '<span class="client-year-row-price">' + fmtMoney(r.yearPrices[i], g.country) + '<span class="unit">/alumno</span></span>' +
+        discBadge +
+        '<span class="client-year-row-students">' + r.yearEnrolled[i] + ' alumnos</span>' +
+        '</div>';
     }
+
     const extras = [];
-    if (s.cfg.preescolarExento) extras.push('Exención total para Preescolar en el primer año');
-    if (s.cfg.salaLIV) extras.push('Incluye Sala LIV');
-    sectionsHtml += '<div class="client-scenario"><h2>' + s.label + ' · ' + s.cfg.duration + (s.cfg.duration === 1 ? ' año' : ' años') + '</h2>' +
-      '<table><thead><tr><th>Año</th><th>Precio/alumno</th><th>Alumnos</th><th>Total</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    if (cfg.preescolarExento) extras.push('Exención total para Preescolar en el primer año');
+    if (cfg.salaLIV) extras.push('Incluye Sala LIV');
+
+    sectionsHtml += '<div class="client-scenario">' +
+      '<div class="client-scenario-head"><h2>' + s.label + '</h2>' +
+      '<span class="client-duration-badge">' + cfg.duration + (cfg.duration === 1 ? ' año' : ' años') + '</span></div>' +
+      '<div class="client-year-hero">' +
+        '<span class="client-year-hero-label">Año 1</span>' +
+        '<span class="client-year-hero-price">' + fmtMoney(r.yearPrices[0], g.country) + '<span class="unit">/alumno</span></span>' +
+        heroBadge +
+        '<span class="client-year-hero-students">' + r.yearEnrolled[0] + ' alumnos atendidos</span>' +
+      '</div>' +
+      (yearRows ? '<div class="client-year-list">' + yearRows + '</div>' : '') +
       (extras.length ? '<ul class="client-extras">' + extras.map(function(e){ return '<li>' + e + '</li>'; }).join('') + '</ul>' : '') +
       '</div>';
   });
