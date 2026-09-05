@@ -89,6 +89,14 @@
     border-radius:6px; padding:3px 8px; font-size:12px; color:var(--text); margin:0;
   }
   .years-checks input{width:auto;}
+  .year-discounts{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;}
+  .year-discount-field{
+    display:flex; flex-direction:column; gap:2px; background:var(--white); border:1px solid var(--border);
+    border-radius:8px; padding:6px 8px; flex:1; min-width:70px;
+  }
+  .year-discount-field label{font-size:10.5px; color:var(--muted); margin:0;}
+  .year-discount-field input{width:100%; padding:4px 6px; font-size:13px; border:none; text-align:center;}
+  .year-discount-field input:focus{outline:none;}
   .sc-toggle{display:flex; align-items:center; gap:6px; margin-bottom:8px;}
   .sc-toggle label{margin:0; font-size:12px; color:var(--text);}
   .sc-toggle input{width:auto;}
@@ -228,12 +236,8 @@
           </select>
         </div>
         <div class="sc-field">
-          <label>Descuento directo (%)</label>
-          <input type="number" class="sc-discount" value="0" min="0" max="100">
-        </div>
-        <div class="sc-field">
-          <label>Años en que se aplica el descuento</label>
-          <div class="years-checks sc-years"></div>
+          <label>Descuento por año (%)</label>
+          <div class="year-discounts sc-year-discounts"></div>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
@@ -259,12 +263,8 @@
           </select>
         </div>
         <div class="sc-field">
-          <label>Descuento directo (%)</label>
-          <input type="number" class="sc-discount" value="10" min="0" max="100">
-        </div>
-        <div class="sc-field">
-          <label>Años en que se aplica el descuento</label>
-          <div class="years-checks sc-years"></div>
+          <label>Descuento por año (%)</label>
+          <div class="year-discounts sc-year-discounts"></div>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
@@ -290,12 +290,8 @@
           </select>
         </div>
         <div class="sc-field">
-          <label>Descuento directo (%)</label>
-          <input type="number" class="sc-discount" value="15" min="0" max="100">
-        </div>
-        <div class="sc-field">
-          <label>Años en que se aplica el descuento</label>
-          <div class="years-checks sc-years"></div>
+          <label>Descuento por año (%)</label>
+          <div class="year-discounts sc-year-discounts"></div>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
@@ -424,21 +420,23 @@ function syncFxInput(){
   }
 }
 
-function buildYearsCheckboxes(card){
+function buildYearDiscountFields(card){
   const duration = Number(card.querySelector('.sc-duration').value);
-  const box = card.querySelector('.sc-years');
-  const previouslyChecked = new Set();
-  box.querySelectorAll('input:checked').forEach(function(cb){ previouslyChecked.add(Number(cb.value)); });
+  const box = card.querySelector('.sc-year-discounts');
+  const previous = [];
+  box.querySelectorAll('input').forEach(function(inp){ previous.push(Number(inp.value) || 0); });
   box.innerHTML = '';
   for (let y = 1; y <= duration; y++){
+    const wrap = document.createElement('div');
+    wrap.className = 'year-discount-field';
     const lbl = document.createElement('label');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox'; cb.value = y;
-    cb.checked = previouslyChecked.has(y);
-    cb.addEventListener('change', recalcAll);
-    lbl.appendChild(cb);
-    lbl.appendChild(document.createTextNode('Año ' + y));
-    box.appendChild(lbl);
+    lbl.textContent = 'Año ' + y;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.min = '0'; inp.max = '100';
+    inp.value = previous[y - 1] || 0;
+    inp.addEventListener('input', recalcAll);
+    wrap.appendChild(lbl); wrap.appendChild(inp);
+    box.appendChild(wrap);
   }
 }
 
@@ -471,12 +469,11 @@ function collectGlobals(){
 
 function collectScenarioConfig(card){
   const duration = Number(card.querySelector('.sc-duration').value);
-  const discountPct = Number(card.querySelector('.sc-discount').value) || 0;
-  const discountYears = new Set();
-  card.querySelectorAll('.sc-years input:checked').forEach(function(cb){ discountYears.add(Number(cb.value)); });
+  const yearDiscounts = [];
+  card.querySelectorAll('.sc-year-discounts input').forEach(function(inp){ yearDiscounts.push(Number(inp.value) || 0); });
   const preescolarExento = card.querySelector('.sc-preescolar').checked;
   const salaLIV = card.querySelector('.sc-sala').checked;
-  return { duration: duration, discountPct: discountPct, discountYears: discountYears,
+  return { duration: duration, yearDiscounts: yearDiscounts,
            preescolarExento: preescolarExento, salaLIV: salaLIV };
 }
 
@@ -502,48 +499,14 @@ function calcScenario(cfg, g){
   const yearEnrolled = [];
   const yearRevenue = [];
 
-  const price1 = cfg.discountYears.has(1) ? listPrice * (1 - cfg.discountPct / 100) : listPrice;
+  const price1 = listPrice * (1 - (cfg.yearDiscounts[0] || 0) / 100);
   const payingY1 = cfg.preescolarExento ? Math.max(0, N - g.preescolarCount) : N;
   const revenueY1 = payingY1 * price1;
   yearPrices.push(price1); yearStudents.push(payingY1); yearEnrolled.push(N); yearRevenue.push(revenueY1);
 
-  let cappedAlert = false;
-  let noRecoveryPossible = (T === 1);
-
-  if (T > 1){
-    const totalAlumnoAnos = N + M * (T - 1);
-    const totalTarget = g.metaLocal * totalAlumnoAnos;
-
-    let discountedContribution = 0;
-    let discountedYearsCount = 0;
-    for (let y = 2; y <= T; y++){
-      if (cfg.discountYears.has(y)){
-        discountedContribution += M * listPrice * (1 - cfg.discountPct / 100);
-        discountedYearsCount++;
-      }
-    }
-    const recoveryYearsCount = (T - 1) - discountedYearsCount;
-    let recoveryPrice = listPrice;
-    if (recoveryYearsCount > 0){
-      const neededFromRecovery = totalTarget - revenueY1 - discountedContribution;
-      let X = neededFromRecovery / (M * recoveryYearsCount);
-      if (X > listPrice){ X = listPrice; cappedAlert = true; }
-      if (X < g.floorLocal){ X = g.floorLocal; }
-      if (X < 0){ X = 0; }
-      recoveryPrice = X;
-    } else {
-      cappedAlert = true;
-    }
-
-    for (let y = 2; y <= T; y++){
-      let price;
-      if (cfg.discountYears.has(y)){
-        price = listPrice * (1 - cfg.discountPct / 100);
-      } else {
-        price = recoveryPrice;
-      }
-      yearPrices.push(price); yearStudents.push(M); yearEnrolled.push(M); yearRevenue.push(M * price);
-    }
+  for (let y = 2; y <= T; y++){
+    const price = listPrice * (1 - (cfg.yearDiscounts[y - 1] || 0) / 100);
+    yearPrices.push(price); yearStudents.push(M); yearEnrolled.push(M); yearRevenue.push(M * price);
   }
 
   const totalAlumnoAnosFinal = yearEnrolled.reduce(function(a,b){ return a+b; }, 0);
@@ -551,6 +514,7 @@ function calcScenario(cfg, g){
   const achievedAvg = totalAlumnoAnosFinal > 0 ? totalRevenue / totalAlumnoAnosFinal : 0;
   const notReachingTicket = achievedAvg < g.metaLocal - 0.5;
   const belowFloor = achievedAvg < g.floorLocal - 0.5;
+  const noRecoveryPossible = (T === 1);
 
   let recoveryYearLabel = null;
   if (T > 1){
@@ -586,7 +550,7 @@ function calcScenario(cfg, g){
   return {
     yearPrices: yearPrices, yearStudents: yearStudents, yearRevenue: yearRevenue,
     achievedAvg: achievedAvg, notReachingTicket: notReachingTicket, belowFloor: belowFloor,
-    cappedAlert: cappedAlert, noRecoveryPossible: noRecoveryPossible,
+    noRecoveryPossible: noRecoveryPossible,
     recoveryYearLabel: recoveryYearLabel, zopaStatus: zopaStatus, overlapCategory: overlapCategory,
     zopaUndefined: zopaUndefined, riskScore: score, riskLevel: riskLevel
   };
@@ -601,13 +565,13 @@ function buildScript(key, cfg, r, g){
       lines.push('Este escenario es de bajo riesgo: no compromete el ticket presupuestario y no requiere concesiones a recuperar después.');
     }
   } else if (key === 'equilibrado'){
-    lines.push('Presenta el descuento del ' + cfg.discountPct + '% en el primer año como una concesión puntual para facilitar el arranque, dejando claro desde el inicio que el ticket se normaliza a ' + fmtMoney(lastPrice, g.country) + ' en los años siguientes.');
+    lines.push('Presenta el descuento del ' + (cfg.yearDiscounts[0] || 0) + '% en el primer año como una concesión puntual para facilitar el arranque, dejando claro desde el inicio que el ticket se normaliza a ' + fmtMoney(lastPrice, g.country) + ' en los años siguientes.');
     if (r.recoveryYearLabel){
       lines.push('La concesión queda cubierta a partir del año ' + r.recoveryYearLabel + ', así que puedes framearla como una inversión de corto plazo, no como una pérdida de margen.');
     }
   } else {
     lines.push('Este escenario exige concesiones mayores: úsalo solo cuando el cliente muestre señales claras de que el precio es la barrera principal.');
-    if (r.cappedAlert){
+    if (r.notReachingTicket){
       lines.push('Aviso interno: este escenario no alcanza el ticket presupuestario de US$' + TICKET_TARGET_USD + ' y requiere aprobación de Dirección Comercial LatAm antes de presentarlo formalmente.');
     }
   }
@@ -646,8 +610,7 @@ function renderScenario(card, key, cfg, r, g){
     badges += '<span class="badge badge-amber">No recuperado en este contrato</span>';
   }
 
-  if (r.cappedAlert){
-    badges += '<span class="badge badge-red">No alcanza el ticket de US$' + TICKET_TARGET_USD + '</span>';
+  if (r.notReachingTicket){
     badges += '<span class="badge badge-red">Requiere aprobación Dirección Comercial LatAm</span>';
   }
   if (r.belowFloor){
@@ -682,7 +645,7 @@ function recalcAll(){
   const g = collectGlobals();
   document.querySelectorAll('.scenario-card').forEach(function(card){
     const durationSelect = card.querySelector('.sc-duration');
-    buildYearsCheckboxes(card);
+    buildYearDiscountFields(card);
     const preescolarBox = card.querySelector('.sc-preescolar');
     preescolarBox.disabled = g.preescolarCount <= 0;
     if (g.preescolarCount <= 0) preescolarBox.checked = false;
@@ -704,22 +667,20 @@ function applyDefaults(){
   const hasPreescolar = g.preescolarCount > 0;
 
   const defaults = {
-    conservador: { duration: 1, discount: 0, years: [], preescolar: false, sala: false },
-    equilibrado: { duration: 2, discount: discMed, years: [1], preescolar: false, sala: g.salaElegible },
-    agresivo: { duration: 3, discount: discAgr, years: [1], preescolar: hasPreescolar, sala: g.salaElegible }
+    conservador: { duration: 1, yearDiscounts: [0, 0, 0], preescolar: false, sala: false },
+    equilibrado: { duration: 2, yearDiscounts: [discMed, 0, 0], preescolar: false, sala: g.salaElegible },
+    agresivo: { duration: 3, yearDiscounts: [discAgr, 0, 0], preescolar: hasPreescolar, sala: g.salaElegible }
   };
 
   document.querySelectorAll('.scenario-card').forEach(function(card){
     const key = card.dataset.key;
     const d = defaults[key];
     card.querySelector('.sc-duration').value = d.duration;
-    card.querySelector('.sc-discount').value = d.discount;
     card.querySelector('.sc-preescolar').checked = d.preescolar && hasPreescolar;
     card.querySelector('.sc-sala').checked = d.sala && g.salaElegible;
-    buildYearsCheckboxes(card);
-    card.querySelectorAll('.sc-years input').forEach(function(cb){
-      cb.checked = d.years.indexOf(Number(cb.value)) !== -1;
-    });
+    buildYearDiscountFields(card);
+    const inputs = card.querySelectorAll('.sc-year-discounts input');
+    inputs.forEach(function(inp, idx){ inp.value = d.yearDiscounts[idx] || 0; });
   });
   recalcAll();
 }
@@ -747,14 +708,13 @@ document.getElementById('f-sala-elegible').addEventListener('change', recalcAll)
   document.getElementById(id).addEventListener('input', recalcAll);
 });
 document.querySelectorAll('.scenario-card').forEach(function(card){
-  card.querySelector('.sc-duration').addEventListener('change', function(){ buildYearsCheckboxes(card); recalcAll(); });
-  card.querySelector('.sc-discount').addEventListener('input', recalcAll);
+  card.querySelector('.sc-duration').addEventListener('change', function(){ buildYearDiscountFields(card); recalcAll(); });
   card.querySelector('.sc-preescolar').addEventListener('change', recalcAll);
   card.querySelector('.sc-sala').addEventListener('change', recalcAll);
 });
 
 buildLevelFields();
-document.querySelectorAll('.scenario-card').forEach(function(card){ buildYearsCheckboxes(card); });
+document.querySelectorAll('.scenario-card').forEach(function(card){ buildYearDiscountFields(card); });
 fetchFX();
 applyDefaults();
 </script>
