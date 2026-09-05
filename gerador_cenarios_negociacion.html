@@ -36,7 +36,7 @@
     background:var(--purple); color:#fff; padding:18px 28px;
     display:flex; align-items:center; gap:14px;
   }
-  header img{height:34px;}
+  header img{height:52px;}
   header h1{font-size:18px; font-weight:500;}
   main{max-width:1180px; margin:0 auto; padding:24px 20px;}
   .bloque{background:var(--white); border:1px solid var(--border); border-radius:14px; padding:20px 22px; margin-bottom:20px;}
@@ -675,7 +675,7 @@ const CLIENT_CSS = "*{box-sizing:border-box;}" +
   "body{margin:0;background:#F7F6FD;color:#1A1530;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;padding-bottom:60px;}" +
   "h1,h2{font-family:'Outfit',sans-serif;font-weight:600;margin:0;}" +
   "header{background:#4B3E98;color:#fff;padding:20px 28px;display:flex;align-items:center;gap:14px;}" +
-  "header img{height:34px;}" +
+  "header img{height:52px;}" +
   "header h1{font-size:18px;font-weight:500;}" +
   "main{max-width:900px;margin:0 auto;padding:28px 20px;}" +
   ".colegio-name{font-size:22px;margin-bottom:4px;}" +
@@ -712,7 +712,7 @@ function buildClientHTML(selected, g){
     const heroBlended = r.yearEnrolled[0] > 0 ? r.yearRevenue[0] / r.yearEnrolled[0] : r.yearPrices[0];
     const heroShowRef = Math.abs(heroBlended - r.yearPrices[0]) > 0.5;
     const heroRef = heroShowRef
-      ? '<span class="client-year-hero-ref">(' + fmtMoney(r.yearPrices[0], g.country) + ' por alumno pagante)</span>' : '';
+      ? '<span class="client-year-hero-ref">(' + fmtMoney(r.yearPrices[0], g.country) + ' por alumno cobrado)</span>' : '';
 
     const benefitBadges = [];
     if (cfg.preescolarExento) benefitBadges.push('<span class="client-benefit-badge">Preescolar sin costo el primer año</span>');
@@ -725,7 +725,7 @@ function buildClientHTML(selected, g){
       const blended = r.yearEnrolled[i] > 0 ? r.yearRevenue[i] / r.yearEnrolled[i] : r.yearPrices[i];
       const showRef = Math.abs(blended - r.yearPrices[i]) > 0.5;
       const refSpan = showRef
-        ? '<span class="client-year-row-ref">(' + fmtMoney(r.yearPrices[i], g.country) + ' por alumno pagante)</span>' : '';
+        ? '<span class="client-year-row-ref">(' + fmtMoney(r.yearPrices[i], g.country) + ' por alumno cobrado)</span>' : '';
       yearRows += '<div class="client-year-row">' +
         '<span class="client-year-row-label">Año ' + (i+1) + '</span>' +
         '<span class="client-year-row-price">' + fmtMoney(blended, g.country) + '<span class="unit">/alumno</span></span>' +
@@ -747,16 +747,17 @@ function buildClientHTML(selected, g){
       '</div>';
   });
 
-  const colegio = document.getElementById('f-colegio').value || 'Propuesta comercial';
+  const colegio = document.getElementById('f-colegio').value.trim();
   const fecha = new Date().toLocaleDateString('es-419', { year: 'numeric', month: 'long', day: 'numeric' });
+  const pageTitle = colegio ? ('Escenarios pre-propuesta — ' + colegio) : 'Escenarios pre-propuesta';
 
   return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '<title>Propuesta comercial — LIV</title>' +
+    '<title>' + pageTitle + ' — LIV</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">' +
     '<style>' + CLIENT_CSS + '</style></head><body>' +
-    '<header><img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"><h1>Propuesta comercial</h1></header>' +
-    '<main><div class="colegio-name">' + colegio + '</div><div class="proposal-date">' + fecha + '</div>' +
+    '<header><img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"><h1>Escenarios pre-propuesta</h1></header>' +
+    '<main><div class="colegio-name">' + pageTitle + '</div><div class="proposal-date">' + fecha + '</div>' +
     sectionsHtml +
     '<div class="footer-note">LIV Latam</div></main></body></html>';
 }
