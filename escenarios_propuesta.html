@@ -134,8 +134,8 @@
   .growth-opportunity-title{font-size:11px; color:var(--muted); font-weight:500; margin-bottom:6px; border-top:1px solid var(--border); padding-top:8px;}
   .growth-opportunity-rows{display:flex; flex-direction:column; gap:4px;}
   .growth-opportunity-row{
-    display:flex; justify-content:space-between; align-items:center; background:var(--purple-bg);
-    border-radius:6px; padding:5px 10px; font-size:12px; color:var(--purple-text);
+    display:flex; justify-content:space-between; align-items:center; background:var(--green-bg);
+    border-radius:6px; padding:5px 10px; font-size:12px; color:var(--green-text);
   }
   .growth-opportunity-row strong{font-weight:600;}
   .weights-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:10px;}
@@ -643,6 +643,8 @@ const CLIENT_CSS = "*{box-sizing:border-box;}" +
   ".client-scenario{background:#fff;border:1px solid #DDD9F5;border-radius:12px;padding:16px 20px;margin-bottom:12px;}" +
   ".client-scenario-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}" +
   ".client-scenario-head h2{font-size:15px;color:#26215C;}" +
+  ".client-duration-wrap{display:flex;align-items:center;gap:8px;}" +
+  ".client-duration-label{font-size:12px;color:#6B6490;}" +
   ".client-duration-badge{font-size:13px;background:#EEEDFE;color:#26215C;border-radius:7px;padding:5px 12px;font-weight:600;}" +
   ".client-year-hero{display:flex;align-items:center;gap:10px;background:#EEEDFE;border-radius:9px;padding:11px 16px;flex-wrap:wrap;}" +
   ".client-year-hero-label{font-size:10px;color:#4B3E98;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}" +
@@ -704,7 +706,8 @@ function buildClientHTML(selected, g){
 
     sectionsHtml += '<div class="client-scenario">' +
       '<div class="client-scenario-head"><h2>' + s.label + '</h2>' +
-      '<span class="client-duration-badge">' + cfg.duration + (cfg.duration === 1 ? ' año' : ' años') + '</span></div>' +
+      '<span class="client-duration-wrap"><span class="client-duration-label">Tiempo de contrato</span>' +
+      '<span class="client-duration-badge">' + cfg.duration + (cfg.duration === 1 ? ' año' : ' años') + '</span></span></div>' +
       '<div class="client-year-hero">' +
         '<span class="client-year-hero-label">Año 1</span>' +
         '<span class="client-year-hero-price">' + fmtMoney(heroBlended, g.country) + '<span class="unit">/alumno</span></span>' +
