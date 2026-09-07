@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Eventos Colombia · LIV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root{
+    --liv-purple:#4B3E98; --liv-purple-d:#26215C; --liv-purple-l:#EEEDFE; --liv-purple-m:#7F77DD;
+    --liv-yellow:#FEC238; --liv-orange:#F47432; --liv-blue:#9FC2E6; --liv-gray:#B4B2A9;
+    --bg:#F6F5FB; --card:#FFFFFF; --ink:#2C2C2A; --ink-2:#5F5E5A; --ink-3:#9A988F;
+    --border:#E7E5F0; --radius:14px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;line-height:1.5}
+  h1,h2,h3,.disp{font-family:'Outfit','DM Sans',sans-serif}
+
+  header.top{background:var(--liv-purple);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:18px}
+  header.top img{height:46px;width:auto;display:block}
+  header.top .tt{display:flex;flex-direction:column;gap:2px}
+  header.top .tt h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.12em}
+  header.top .tt span{font-size:13px;color:#CECBF6;letter-spacing:.04em}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 28px 60px}
+
+  /* upload */
+  #drop{background:var(--card);border:2px dashed var(--liv-blue);border-radius:var(--radius);padding:48px 28px;text-align:center;margin-top:32px}
+  #drop.drag{border-color:var(--liv-purple);background:var(--liv-purple-l)}
+  #drop i{font-size:13px;color:var(--ink-2)}
+  #drop h2{margin:0 0 6px;font-size:20px;font-weight:600;color:var(--liv-purple)}
+  #drop p{margin:0 0 20px;color:var(--ink-2);font-size:14px}
+  .btn{font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;border:none;border-radius:var(--radius-sm);padding:11px 22px;cursor:pointer;background:var(--liv-purple);color:#fff;transition:filter .15s}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--liv-purple);border:1px solid var(--border)}
+  .err{color:#A32D2D;font-size:13px;margin-top:14px}
+
+  /* toolbar */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .src{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:22px}
+  .tab{font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;background:none;border:none;border-bottom:3px solid transparent;color:var(--ink-2);padding:11px 18px;cursor:pointer}
+  .tab.on{color:var(--liv-purple);border-bottom-color:var(--liv-purple)}
+
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+  .stat .k{font-size:13px;color:var(--ink-2)}
+  .stat .v{font-family:'Outfit',sans-serif;font-size:26px;font-weight:600;color:var(--ink);margin-top:2px}
+
+  .citecard{border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px}
+  .citecard.total{border-color:var(--liv-purple);background:var(--liv-purple-l)}
+  .citecard .nm{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;margin-bottom:10px}
+  .citecard .pct{font-weight:400;color:var(--ink-3);font-size:13px}
+  .row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);margin:4px 0}
+  .row b{color:var(--ink);font-weight:600}
+  .row.calrow{padding:3px 8px;margin:4px -8px;background:rgba(254,194,56,.16);border-radius:6px;font-weight:500}
+
+  .secttl{font-size:13px;color:var(--ink-2);margin:0 0 8px;font-weight:500}
+  .chartbox{position:relative;width:100%}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink-2);margin-bottom:8px}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  .funnel{border:1px dashed var(--liv-blue);border-radius:var(--radius);padding:14px 16px}
+  .funnel .ft{font-size:13px;color:var(--ink-2);margin-bottom:4px;font-weight:500}
+  .funnel .fh{font-size:11px;color:var(--ink-3);margin-bottom:12px}
+  .stages{display:flex;align-items:stretch;flex-wrap:wrap}
+  .stg{flex:1 1 0;min-width:118px;border-radius:var(--radius-sm);padding:9px 11px}
+  .conn{display:flex;align-items:center;justify-content:center;padding:0 6px}
+  .conn .cv{font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--liv-purple-d);background:var(--liv-purple-l);border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .conn .cv.off{color:var(--ink-3);background:#F1EFE8}
+  .stg .sk{font-size:11px}
+  .stg .sv{font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;margin-top:1px}
+  .stg.fill{background:var(--liv-purple)} .stg.fill .sk{color:#CECBF6} .stg.fill .sv{color:#fff}
+  .stg.fillcal{background:var(--liv-orange)} .stg.fillcal .sk{color:#FFE3D2} .stg.fillcal .sv{color:#fff}
+  .stg.filldone{background:#6F63C4} .stg.filldone .sk{color:#E2DEF7} .stg.filldone .sv{color:#fff}
+  .stg .sea{font-size:11px;margin-top:3px;padding-top:4px;border-top:1px solid rgba(0,0,0,.05)}
+  .stg.fill .sea{color:#CECBF6;border-top-color:rgba(255,255,255,.18)}
+  .stg.fillcal .sea{color:#FFE3D2;border-top-color:rgba(255,255,255,.25)}
+  .stg.filldone .sea{color:#E2DEF7;border-top-color:rgba(255,255,255,.2)}
+  .stg.empty .sea{color:#B4B2A9}
+  .fgroup .gpct{font-weight:400;font-size:13px;color:var(--ink-3)}
+  .fgroup.ftotal{border:1px solid #C9C4F0;border-radius:12px;padding:10px 12px;background:rgba(75,62,152,.04);margin-top:6px;margin-bottom:14px}
+  .stg.empty{background:#F1EFE8} .stg.empty .sk{color:var(--ink-2)} .stg.empty .sv{color:var(--ink-3)}
+
+  .chanblk{background:#F1EFE8;border-radius:var(--radius-sm);padding:11px 13px}
+  .chanblk .cn{font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;margin-bottom:5px}
+  .chanblk .ce{font-size:12px;color:var(--ink-2)}
+  .chanblk .ce .rt{color:var(--ink-3)}
+  .chanblk .ca{font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;margin-top:2px}
+  .note{font-size:11px;color:var(--ink-3);margin-top:10px}
+  .ncbox{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--liv-gray);border-radius:var(--radius);padding:14px 16px}
+  .ncbox .nck{font-size:14px;color:var(--ink);font-family:'Outfit',sans-serif}
+  .ncbox .ncsub{font-size:11px;color:var(--ink-3);margin:2px 0 8px}
+  .ncbox .ncn{font-family:'Outfit',sans-serif;font-size:28px;font-weight:600;color:var(--ink);line-height:1}
+  .ncbox .nca{font-size:12px;color:var(--liv-orange);font-weight:500;margin-top:4px}
+  .hide{display:none!important}
+  .printonly{display:none}
+
+  /* Durante la exportación: revelar abas 1 y 2 apiladas para que se rendericen */
+  body.exporting .panel[data-p="0"],
+  body.exporting .panel[data-p="1"]{display:block!important;margin-bottom:26px}
+  body.exporting .panel[data-p="2"]{display:none!important}
+
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{margin:12mm}
+    body{background:#fff}
+    header.top{padding:14px 0}
+    .toolbar,.tabs,#drop{display:none!important}
+    .printonly{display:block;font-size:13px;color:var(--ink-2);margin:6px 0 14px}
+    .wrap{padding:0}
+    .panel[data-p="0"],.panel[data-p="1"]{display:block!important}
+    .panel[data-p="2"]{display:none!important}
+    .panel[data-p="1"]{page-break-before:always}
+    .panel[data-p]::before{display:block;font-family:'Outfit',sans-serif;font-size:17px;font-weight:600;color:var(--liv-purple);margin:0 0 14px}
+    .panel[data-p="0"]::before{content:"Embudo y Canales"}
+    .panel[data-p="1"]::before{content:"Perfiles"}
+    .card,.stat,.citecard,.funnel,.chanblk,.fgroup{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"/>
+  <div class="tt">
+    <h1>EVENTOS COLOMBIA</h1>
+    <span>Dashboard de registros · campaña 2026</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Conexión -->
+  <div id="drop">
+    <h2>Conectar con Bitrix24</h2>
+    <p>Pegá tu <b>token</b> del webhook de entrada (no la URL completa). El token queda solo en la memoria de esta pestaña — no se guarda en ningún lado.</p>
+    <input id="token" type="password" placeholder="Ej: 76tghfh882wz5grv" autocomplete="off"
+      style="font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);width:280px;margin-right:8px"/>
+    <button class="btn" id="pick">Conectar</button>
+    <div style="margin-top:14px"><span id="loadmsg" style="font-size:13px;color:var(--ink-2)"></span></div>
+    <div class="err hide" id="err"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dash" class="hide">
+    <div class="toolbar">
+      <div class="src"><i class="ti"></i><span id="srcname"></span> · <button class="btn ghost" id="reimport" style="padding:5px 12px;font-size:12px">Actualizar datos</button> <button class="btn" id="export" style="padding:5px 12px;font-size:12px">Exportar PDF</button></div>
+    </div>
+
+    <div id="printinfo" class="printonly"></div>
+    <div class="tabs">
+      <button class="tab on" data-t="0">Embudo y Canales</button>
+      <button class="tab" data-t="1">Perfiles</button>
+      <button class="tab" data-t="2">Presentes</button>
+    </div>
+
+    <div class="panel" data-p="0"></div>
+    <div class="panel hide" data-p="1"></div>
+    <div class="panel hide" data-p="2"></div>
+  </div>
+
+</div>
+
+<script>
+const C = {purple:'#4B3E98',purpleD:'#26215C',yellow:'#FEC238',orange:'#F47432',blue:'#9FC2E6',gray:'#B4B2A9'};
+const NIV_ORDER = ['Preescolar','Primaria','Secundaria','Media'];
+// Registrado = nivel (Preescolar y/o Primaria) Y cargo en esta lista
+const NIV_CALIF = ['Preescolar','Primaria'];
+const CARGO_CALIF = ['Propietario(a) / Socio(a)','Rector(a)','Vice Rector(a)','Director(a) General',
+  'Director(a) Académico','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria',
+  'Director(a) Media','Coordinador(a) / Subdirector(a)','Psicólogo(a) / Psicopedagogo(a)','Administrador(a)'];
+const CARGO_DEC = ['Propietario(a) / Socio(a)','Director(a) General','Director(a) Académico','Director(a) Académico(a)','Rector(a)','Vice Rector(a)','Director(a) Preescolar','Director(a) Primaria','Director(a) Secundaria','Director(a) Media'];
+const CARGO_INF = ['Otro rol directivo','Coordinador(a) / Subdirector(a)','Psicólogo(a) / Psicopedagogo(a)','Administrador(a)'];
+
+// ranking de progreso: cuenta el punto más avanzado que la persona alcanzó en el pipeline.
+// 'No show' y 'Desistencia' son desenlaces laterales — el punto real que alcanzaron antes de caer ahí
+// se calcula a partir de PREVIOUS_STAGE_ID (la etapa inmediatamente anterior en Bitrix), con Registrado
+// como piso mínimo (todo No show / Desistencia al menos llegó a Registrado, si califica por perfil).
+const LATERAL_STAGES = ['No show','Desistencia'];
+const STAGE_RANK = {'Estado Probatório':1,'Registrado':2,'A confirmar':3,'Confirmado':4,'Presente':5};
+function rankOf(r){
+  if(LATERAL_STAGES.includes(r.etapa)){
+    const prevRank = STAGE_RANK[r.prevEtapa];
+    return Math.max(STAGE_RANK['Registrado'], prevRank!==undefined ? prevRank : 0);
+  }
+  return STAGE_RANK[r.etapa];
+}
+function alcanzo(r, stage){ const rk=rankOf(r); return rk!==undefined && rk>=STAGE_RANK[stage]; }
+function esInscripto(r){ return rankOf(r)!==undefined; }
+function nivelCalifOk(r){
+  const niveles = r.niveles ? r.niveles.split('\u03A9').map(s=>s.trim()) : [];
+  return NIV_CALIF.some(n=>niveles.includes(n));
+}
+function cargoCalifOk(r){ return CARGO_CALIF.includes(r.cargo); }
+function esRegistrado(r){ return esInscripto(r) && alcanzo(r,'Registrado') && nivelCalifOk(r) && cargoCalifOk(r); }
+
+let RECORDS = [];           // todas las filas válidas (sin test)
+let activeTab = 0;
+let charts = {};
+
+const fmt = n => Math.round(n).toLocaleString('es-CO');
+const pct = (n,t) => t? (n/t*100).toFixed(1).replace('.',',') : '0,0';
+const rat = (a,b) => b? (a/b).toFixed(2).replace('.',',') : '0,00';
+const pctLabel = v => (Math.round(v*10)/10).toLocaleString('es-CO')+'%';
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Integración en vivo con Bitrix24 REST API ---------- */
+const B24_DOMAIN = 'livlatam.bitrix24.com.br';   // dominio fijo — solo el token se pide al usuario
+const B24_USER = '1';
+const CATEGORY_ID = 27;                          // pipeline "1. [COL] Eventos"
+
+// campos personalizados mapeados desde crm.deal.fields / crm.contact.fields
+const F_TAGFUENTE = 'UF_CRM_1771422860';          // "Tag fuente" — filtra el pipeline
+const TAGFUENTE_WEBINAR_ID = '10083';             // item "Webinar LIV - MKT"
+const F_NIVELES    = 'UF_CRM_1771426916';
+const F_CALENDARIO = 'UF_CRM_1781635944';
+const F_ALUMNOS    = 'UF_CRM_1771160586';
+const F_CAMPANHA   = 'UF_CRM_1764679913';         // texto libre — determina el canal
+const F_CARGO      = 'UF_CRM_1759237550';         // en Contacto
+
+const CARGO_ITEMS = {"93":"Propietario(a) / Socio(a)","95":"Director(a) General","563":"Director(a) Académico","255":"Rector(a)","253":"Vice Rector(a)","10245":"Director(a) Preescolar","10247":"Director(a) Primaria ","10249":"Director(a) Secundaria","10251":"Director(a) Media","565":"Otro rol directivo","101":"Coordinador(a) / Subdirector(a)","561":"Psicólogo(a) / Psicopedagogo(a)","103":"Docente","105":"Representante Legal","99":"Administrador(a)","97":"Directivo","249":"Funcionario","251":"Secretaria","259":"Presidente","257":"Socio","261":"Contador","263":"IT","567":"Alumno(a)","107":"Otro","569":"Responsable por Marketing/Comunicación","571":"Responsable por niños(as) y/o adolescentes","573":"No tengo relación con escuela"};
+const STAGE_MAP = {
+  'C27:NEW':'Contacto','C27:PREPAYMENT_INVOIC':'Invitado','C27:UC_QRKF5Y':'Estado Probatório',
+  'C27:EXECUTING':'Registrado','C27:FINAL_INVOICE':'A confirmar','C27:UC_R846HP':'Confirmado',
+  'C27:UC_XQ2DCF':'Presente','C27:UC_KK9ZWY':'Desistencia','C27:UC_NPAQ1A':'No show',
+  'C27:WON':'Ganado','C27:LOSE':'Perdido'
+};
+
+function b24url(method){ return `https://${B24_DOMAIN}/rest/${B24_USER}/${TOKEN}/${method}.json`; }
+
+// convierte objeto anidado a pares clave[subclave]=valor, formato que Bitrix24 espera en form-urlencoded
+function toFormPairs(obj, prefix, out){
+  out = out || [];
+  if(Array.isArray(obj)){
+    obj.forEach((v,i)=> toFormPairs(v, `${prefix}[${i}]`, out));
+  } else if(obj !== null && typeof obj === 'object'){
+    Object.keys(obj).forEach(k=> toFormPairs(obj[k], prefix ? `${prefix}[${k}]` : k, out));
+  } else if(obj !== undefined && obj !== null){
+    out.push([prefix, String(obj)]);
+  }
+  return out;
+}
+
+async function b24call(method, params){
+  const pairs = toFormPairs(params||{}, '');
+  const body = new URLSearchParams(pairs);
+  let res;
+  try{
+    // sin header explícito de Content-Type: el navegador usa application/x-www-form-urlencoded
+    // y esto evita el preflight CORS (OPTIONS) que bloquea la llamada JSON desde file://
+    res = await fetch(b24url(method), { method:'POST', body });
+  }catch(networkErr){
+    throw new Error('No se pudo conectar a Bitrix24 (red/CORS). Verificá el token y tu conexión. Detalle: '+networkErr.message);
+  }
+  const data = await res.json();
+  if(data.error) throw new Error(data.error_description || data.error);
+  return data;
+}
+
+async function fetchAllDeals(){
+  let all = [], start = 0;
+  while(true){
+    const data = await b24call('crm.deal.list', {
+      filter: { CATEGORY_ID, [F_TAGFUENTE]: TAGFUENTE_WEBINAR_ID },
+      select: ['ID','TITLE','STAGE_ID','PREVIOUS_STAGE_ID',F_NIVELES,F_CALENDARIO,F_ALUMNOS,F_CAMPANHA,'COMPANY_ID','CONTACT_ID'],
+      start
+    });
+    all = all.concat(data.result);
+    if(data.next==null) break;
+    start = data.next;
+  }
+  return all;
+}
+
+async function fetchCargoByContact(contactIds){
+  const uniq = Array.from(new Set(contactIds.filter(Boolean)));
+  const map = {};
+  const CHUNK = 50;
+  for(let i=0;i<uniq.length;i+=CHUNK){
+    const slice = uniq.slice(i,i+CHUNK);
+    const data = await b24call('crm.contact.list', {
+      filter: { ID: slice }, select: ['ID', F_CARGO]
+    });
+    data.result.forEach(c=>{ map[c.ID] = (CARGO_ITEMS[c[F_CARGO]] || '').trim(); });
+  }
+  return map;
+}
+
+async function loadFromBitrix(){
+  const deals = await fetchAllDeals();
+  const negocio = t => (t||'');
+  const filtered = deals.filter(d=>{
+    const t = negocio(d.TITLE);
+    return !t.includes('2Colegio Test') && !t.includes('1Colegio Test');
+  });
+  const contactIds = filtered.map(d=> d.CONTACT_ID || null);
+  const cargoMap = await fetchCargoByContact(contactIds);
+  return filtered.map(d=>{
+    const cid = d.CONTACT_ID || null;
+    const alumRaw = String(d[F_ALUMNOS]||'').replace(/[^0-9-]/g,'');
+    return {
+      id: d.ID,
+      etapa: STAGE_MAP[d.STAGE_ID] || d.STAGE_ID,
+      prevEtapa: STAGE_MAP[d.PREVIOUS_STAGE_ID] || null,
+      cargo: cid ? (cargoMap[cid]||'') : '',
+      campanha: d[F_CAMPANHA] || '',
+      niveles: d[F_NIVELES] || '',
+      calendario: d[F_CALENDARIO] || '',
+      alumnos: alumRaw ? parseInt(alumRaw,10) : 0,
+      empresa: d.COMPANY_ID || ('__r'+d.ID)
+    };
+  });
+}
+
+// canal = a partir de cf_campanha: termina en "-rs" → Inbound; cualquier otro valor (incl. vacío) → Relación directa
+function canalDe(campanha){
+  const v = (campanha||'').trim();
+  return /-rs$/i.test(v) ? 'Inbound' : 'Relación directa';
+}
+const CANAL_LIST = ['Inbound','Relación directa'];
+const CANAL_COLORS = {'Inbound':C.purple, 'Relación directa':C.orange};
+
+// alumnos por escuela única (1 valor por empresa = máximo)
+function alumnosUnicos(rows){
+  const m = new Map();
+  rows.forEach(r=>{ const v=m.get(r.empresa)||0; if(r.alumnos>v) m.set(r.empresa,r.alumnos); });
+  let s=0; m.forEach(v=>s+=v); return s;
+}
+function escuelasUnicas(rows){ return new Set(rows.map(r=>r.empresa)).size; }
+
+/* ---------- Cálculo ---------- */
+function compute(){
+  const base = RECORDS;
+  const reg  = base.filter(esInscripto);          // alcanzó el registro/inscripción (todos)
+  const calif= reg.filter(esRegistrado);           // subconjunto Registrado (nivel + cargo) — base del embudo
+  const totReg = reg.length;
+
+  const total = {reg:totReg, calif:calif.length, esc:escuelasUnicas(calif), alum:alumnosUnicos(calif)};
+
+  // canales — fijos (Inbound / Relación directa), todo sobre Registrado
+  const porCanal = CANAL_LIST.map(cn=>{
+    const cc = calif.filter(r=>canalDe(r.campanha)===cn);
+    return {cn, reg:cc.length, esc:escuelasUnicas(cc), alum:alumnosUnicos(cc)};
+  });
+
+  // perfil — todo sobre Registrado
+  const niv = {}; NIV_ORDER.forEach(n=>niv[n]=0);
+  calif.forEach(r=>{ if(r.niveles) r.niveles.split('\u03A9').forEach(p=>{ const k=p.trim(); if(k in niv) niv[k]++; }); });
+
+  const calMap = {};
+  calif.forEach(r=>{ const k=r.calendario? r.calendario : 'No informado'; calMap[k]=(calMap[k]||0)+1; });
+
+  const cargoMap = {};
+  calif.forEach(r=>{ const k=r.cargo||'(sin cargo)'; cargoMap[k]=(cargoMap[k]||0)+1; });
+  const cargoDet = Object.entries(cargoMap).sort((a,b)=>b[1]-a[1]);
+
+  const cat = {Decisor:0,Influyente:0,'Técnico':0};
+  calif.forEach(r=>{
+    if(CARGO_DEC.includes(r.cargo)) cat.Decisor++;
+    else if(CARGO_INF.includes(r.cargo)) cat.Influyente++;
+    else cat['Técnico']++;
+  });
+
+  // tamaño de colegios — escuelas únicas Registrado
+  const sizes = new Map();
+  calif.forEach(r=>{ const v=sizes.get(r.empresa)||0; if(r.alumnos>v) sizes.set(r.empresa,r.alumnos); });
+  let peq=0,med=0,gra=0;
+  sizes.forEach(v=>{ if(v<=150) peq++; else if(v<=500) med++; else gra++; });
+
+  // embudo — Registrado es la base; Presente y No show son desenlaces PARALELOS (no secuenciales),
+  // cada uno expresado como % del total Registrado.
+  const presenteSub = calif.filter(r=>r.etapa==='Presente');
+  const noshowSub = calif.filter(r=>r.etapa==='No show');
+  const funnel = {
+    registrado: {n:calif.length, esc:escuelasUnicas(calif), al:alumnosUnicos(calif)},
+    presente: {n:presenteSub.length, esc:escuelasUnicas(presenteSub), al:alumnosUnicos(presenteSub),
+               pct: calif.length>0 ? presenteSub.length/calif.length*100 : null},
+    noshow: {n:noshowSub.length, esc:escuelasUnicas(noshowSub), al:alumnosUnicos(noshowSub),
+             pct: calif.length>0 ? noshowSub.length/calif.length*100 : null}
+  };
+
+  // no calificados — motivos mutuamente excluyentes (sobre los inscriptos)
+  const noCal = reg.filter(r=>!esRegistrado(r));
+  const soloNiv = noCal.filter(r=>cargoCalifOk(r) && !nivelCalifOk(r));
+  const soloCar = noCal.filter(r=>nivelCalifOk(r) && !cargoCalifOk(r));
+  const ambos   = noCal.filter(r=>!nivelCalifOk(r) && !cargoCalifOk(r));
+  const noCalif = {
+    soloNiv:{n:soloNiv.length, alum:alumnosUnicos(soloNiv)},
+    soloCar:{n:soloCar.length, alum:alumnosUnicos(soloCar)},
+    ambos:{n:ambos.length, alum:alumnosUnicos(ambos)},
+    total:noCal.length
+  };
+
+  // Presentes — quienes efectivamente asistieron (sin filtro de perfil: cuenta acompañantes también)
+  const presentes = base.filter(r=>r.etapa==='Presente');
+  const presNiv = {}; NIV_ORDER.forEach(n=>presNiv[n]=0);
+  presentes.forEach(r=>{ if(r.niveles) r.niveles.split('\u03A9').forEach(p=>{ const k=p.trim(); if(k in presNiv) presNiv[k]++; }); });
+  const presCargoMap = {};
+  presentes.forEach(r=>{ const k=r.cargo||'(sin cargo)'; presCargoMap[k]=(presCargoMap[k]||0)+1; });
+  const presCargoDet = Object.entries(presCargoMap).sort((a,b)=>b[1]-a[1]);
+  const presCat = {Decisor:0,Influyente:0,'Técnico':0};
+  presentes.forEach(r=>{
+    if(CARGO_DEC.includes(r.cargo)) presCat.Decisor++;
+    else if(CARGO_INF.includes(r.cargo)) presCat.Influyente++;
+    else presCat['Técnico']++;
+  });
+  const presCanalMap = {};
+  presentes.forEach(r=>{ const cn=canalDe(r.campanha); presCanalMap[cn]=(presCanalMap[cn]||0)+1; });
+  const presCanalDet = CANAL_LIST.map(cn=>[cn, presCanalMap[cn]||0]);
+  const tasaAsistencia = calif.length>0 ? presentes.length/calif.length*100 : null;
+  const calificadosPresentes = presentes.filter(esRegistrado).length;
+  const presentesData = {
+    total: presentes.length, esc: escuelasUnicas(presentes), alum: alumnosUnicos(presentes),
+    tasa: tasaAsistencia, registrados: calif.length,
+    niv: presNiv, cargoDet: presCargoDet, cat: presCat, porCanal: presCanalDet,
+    perfilPct: presentes.length>0 ? calificadosPresentes/presentes.length*100 : null
+  };
+
+  return {totReg, total, porCanal, niv, cal:calMap, cargoDet, cat,
+          tam:{peq,med,gra}, funnel, noCalif, presentes:presentesData};
+}
+
+/* ---------- Charts helpers ---------- */
+const gridc='rgba(0,0,0,.06)', tickc='#5F5E5A';
+Chart.defaults.font.family="Outfit, 'DM Sans', sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.animation=false;   // garante captura completa na impressão/PDF
+function destroyTab(t){ (charts[t]||[]).forEach(c=>c.destroy()); charts[t]=[]; }
+function reg(t,c){ (charts[t]=charts[t]||[]).push(c); }
+
+const dlPie = {color:'#fff',font:{size:11,weight:'600'},formatter:(v,c)=>{
+  const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); const p=t?v/t*100:0;
+  return p<3?'':Math.round(p)+'%';
+}};
+function pie(t,id,labels,data,colors){
+  const el=document.getElementById(id); if(!el)return;
+  reg(t,new Chart(el,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},datalabels:dlPie}},
+    plugins:[ChartDataLabels]}));
+}
+function barV(t,id,labels,datasets,stacked){
+  const el=document.getElementById(id); if(!el)return;
+  const dl = stacked
+    ? {color:'#fff',anchor:'center',align:'center',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''}
+    : {color:'#3C3489',anchor:'end',align:'top',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''};
+  reg(t,new Chart(el,{type:'bar',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:stacked?4:20}},
+      plugins:{legend:{display:false},datalabels:dl},
+      scales:{x:{stacked:!!stacked,grid:{display:false},ticks:{color:tickc}},y:{stacked:!!stacked,grid:{color:gridc},ticks:{color:tickc}}}},
+    plugins:[ChartDataLabels]}));
+}
+function barH(t,id,labels,data){
+  const el=document.getElementById(id); if(!el)return;
+  reg(t,new Chart(el,{type:'bar',data:{labels,datasets:[{data,backgroundColor:C.purple,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:30}},
+      plugins:{legend:{display:false},datalabels:{color:'#3C3489',anchor:'end',align:'right',font:{size:11,weight:'600'},formatter:v=>v>0?fmt(v):''}},
+      scales:{x:{grid:{color:gridc},ticks:{color:tickc}},y:{grid:{display:false},ticks:{color:tickc}}}},
+    plugins:[ChartDataLabels]}));
+}
+function legendHTML(items){ // [{c,label,n}]
+  return '<div class="legend">'+items.map(i=>`<span><span class="dot" style="background:${i.c}"></span>${esc(i.label)} ${fmt(i.n)}</span>`).join('')+'</div>';
+}
+
+/* ---------- Render de cada pestaña ---------- */
+function renderTab0(D){
+  const p=document.querySelector('.panel[data-p="0"]');
+  const F = D.funnel;
+  const pctTxt = v => v==null ? '—' : Math.round(v)+'%';
+
+  const funnelHTML = `
+    <div class="stages" style="gap:12px">
+      <div class="stg fill">
+        <div class="sk">Registrado</div>
+        <div class="sv">${fmt(F.registrado.n)}</div>
+        <div class="sea">${fmt(F.registrado.esc)} esc · ${fmt(F.registrado.al)} al</div>
+      </div>
+      <div class="stg filldone">
+        <div class="sk">Presente <span style="opacity:.75">· ${pctTxt(F.presente.pct)}</span></div>
+        <div class="sv">${fmt(F.presente.n)}</div>
+        <div class="sea">${fmt(F.presente.esc)} esc · ${fmt(F.presente.al)} al</div>
+      </div>
+      <div class="stg fillcal">
+        <div class="sk">No show <span style="opacity:.75">· ${pctTxt(F.noshow.pct)}</span></div>
+        <div class="sv">${fmt(F.noshow.n)}</div>
+        <div class="sea">${fmt(F.noshow.esc)} esc · ${fmt(F.noshow.al)} al</div>
+      </div>
+    </div>
+  `;
+
+  const canalDetail = D.porCanal.map(c=>{
+    return `<div class="chanblk">
+      <div class="cn" style="color:${CANAL_COLORS[c.cn]}">${c.cn}</div>
+      <div class="ce">${fmt(c.reg)} reg · ${fmt(c.esc)} esc <span class="rt">(${rat(c.reg,c.esc)})</span></div>
+      <div class="ca">${fmt(c.alum)} al.</div>
+    </div>`;
+  }).join('');
+
+  p.innerHTML = `
+    <div class="funnel" style="margin-bottom:18px">
+      <div class="ft">Embudo post-registro</div>
+      <div class="fh">'Registrado' exige perfil calificado (nivel Preescolar/Primaria + cargo). 'Presente' y 'No show' son desenlaces paralelos a partir de Registrado — cada porcentaje es sobre el total Registrado, no una conversión en cadena.</div>
+      ${funnelHTML}
+    </div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="secttl">Registrado por canal</div>
+      ${legendHTML(D.porCanal.map(c=>({c:CANAL_COLORS[c.cn],label:c.cn,n:c.reg})))}
+      <div class="chartbox" style="height:170px"><canvas id="c0_canal"></canvas></div>
+    </div>
+    <div class="secttl">Detalle por canal · sólo Registrado (registrados · escuelas · alumnos · ratio contacto/escuela)</div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">${canalDetail}</div>
+  `;
+
+  pie(0,'c0_canal', D.porCanal.map(c=>c.cn), D.porCanal.map(c=>c.reg),
+      D.porCanal.map(c=>CANAL_COLORS[c.cn]));
+}
+
+function renderTab1(D){
+  const p=document.querySelector('.panel[data-p="1"]');
+  const calItems = Object.entries(D.cal).sort((a,b)=>b[1]-a[1]);
+  const calColor = k => k==='No informado'?C.gray : k==='A'?C.purple : k==='B'?C.orange : k==='A-B'?C.yellow : C.blue;
+  const cargoTop = D.cargoDet.slice(0,8);
+
+  p.innerHTML = `
+    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Todos los indicadores de esta pestaña consideran únicamente la cohorte <b>Registrado</b> (${fmt(D.total.calif)} de ${fmt(D.total.reg)} inscriptos).</div>
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Alumnos · total</div><div class="v">${fmt(D.total.alum)}</div></div>
+      <div class="stat"><div class="k">Escuelas · total</div><div class="v">${fmt(D.total.esc)}</div></div>
+      <div class="stat"><div class="k">Registrados · total</div><div class="v">${fmt(D.total.calif)}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:0.8fr 1.2fr;margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Cargo · 3 categorías</div>
+        ${legendHTML([{c:C.purple,label:'Decisor',n:D.cat.Decisor},{c:C.blue,label:'Influyente',n:D.cat.Influyente},{c:C.gray,label:'Técnico',n:D.cat['Técnico']}])}
+        <div class="chartbox" style="height:185px"><canvas id="c1_cat"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Cargo · detalle</div>
+        <div class="chartbox" style="height:${Math.max(220, cargoTop.length*34+40)}px"><canvas id="c1_cargo"></canvas></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Calendario</div>
+        ${legendHTML(calItems.map(([k,n])=>({c:calColor(k),label:k,n})))}
+        <div class="chartbox" style="height:185px"><canvas id="c1_cal"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Tamaño de colegios</div>
+        ${legendHTML([{c:C.blue,label:'Pequeños',n:D.tam.peq},{c:C.orange,label:'Medianos',n:D.tam.med},{c:C.purple,label:'Grandes',n:D.tam.gra}])}
+        <div class="chartbox" style="height:185px"><canvas id="c1_tam"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="secttl">Niveles educativos</div>
+      <div class="chartbox" style="height:185px"><canvas id="c1_niv"></canvas></div>
+    </div>
+    <div class="note">Tamaño: Pequeños ≤150 · Medianos 151–500 · Grandes &gt;500 alumnos. Niveles y tamaño calculados por escuela única.</div>
+
+    <div class="secttl" style="margin-top:22px">No calificados · motivo (${fmt(D.noCalif.total)} de ${fmt(D.total.reg)} inscriptos)</div>
+    <div class="grid g3">
+      <div class="ncbox">
+        <div class="nck">Solo por <b>Nivel</b></div>
+        <div class="ncsub">cargo válido · sin Preescolar/Primaria</div>
+        <div class="ncn">${fmt(D.noCalif.soloNiv.n)}</div>
+        <div class="nca">${fmt(D.noCalif.soloNiv.alum)} alumnos de potencial</div>
+      </div>
+      <div class="ncbox">
+        <div class="nck">Solo por <b>Cargo</b></div>
+        <div class="ncsub">nivel válido · cargo fuera de la lista</div>
+        <div class="ncn">${fmt(D.noCalif.soloCar.n)}</div>
+        <div class="nca">${fmt(D.noCalif.soloCar.alum)} alumnos de potencial</div>
+      </div>
+      <div class="ncbox">
+        <div class="nck">Por <b>ambos</b></div>
+        <div class="ncsub">falla nivel y cargo</div>
+        <div class="ncn">${fmt(D.noCalif.ambos.n)}</div>
+        <div class="nca">${fmt(D.noCalif.ambos.alum)} alumnos de potencial</div>
+      </div>
+    </div>
+    <div class="note">Categorías mutuamente excluyentes: suman el total de no calificados. Potencial de alumnos por escuela única dentro de cada grupo.</div>
+  `;
+
+  pie(1,'c1_cat',['Decisor','Influyente','Técnico'],[D.cat.Decisor,D.cat.Influyente,D.cat['Técnico']],[C.purple,C.blue,C.gray]);
+  barH(1,'c1_cargo', cargoTop.map(c=>c[0]), cargoTop.map(c=>c[1]));
+  pie(1,'c1_cal', calItems.map(c=>c[0]), calItems.map(c=>c[1]), calItems.map(c=>calColor(c[0])));
+  pie(1,'c1_tam',['Pequeños','Medianos','Grandes'],[D.tam.peq,D.tam.med,D.tam.gra],[C.blue,C.orange,C.purple]);
+  barV(1,'c1_niv', NIV_ORDER, [{data:NIV_ORDER.map(n=>D.niv[n]),backgroundColor:C.purple,borderRadius:4}], false);
+}
+
+function renderTab2(D){
+  const p=document.querySelector('.panel[data-p="2"]');
+  const P = D.presentes;
+  const cargoTop = P.cargoDet.slice(0,8);
+  const tasaTxt = P.tasa==null ? '—' : pctLabel(P.tasa);
+  const perfilTxt = P.perfilPct==null ? '—' : pctLabel(P.perfilPct);
+
+  p.innerHTML = `
+    <div class="note" style="margin:0 0 14px;font-size:12px;color:var(--liv-purple)">Esta pestaña considera a todos los que llegaron a la etapa <b>Presente</b> (${fmt(P.total)}), sin filtrar por perfil — incluye acompañantes no calificados.</div>
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Presentes · total</div><div class="v">${fmt(P.total)}</div></div>
+      <div class="stat"><div class="k">Escuelas presentes</div><div class="v">${fmt(P.esc)}</div></div>
+      <div class="stat"><div class="k">Alumnos representados</div><div class="v">${fmt(P.alum)}</div></div>
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="stat"><div class="k">Tasa de asistencia</div><div class="v">${tasaTxt}</div><div class="ncsub">${fmt(P.total)} de ${fmt(P.registrados)} registrados</div></div>
+      <div class="stat"><div class="k">Perfil calificado entre presentes</div><div class="v">${perfilTxt}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:0.8fr 1.2fr;margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Cargo · 3 categorías</div>
+        ${legendHTML([{c:C.purple,label:'Decisor',n:P.cat.Decisor},{c:C.blue,label:'Influyente',n:P.cat.Influyente},{c:C.gray,label:'Técnico',n:P.cat['Técnico']}])}
+        <div class="chartbox" style="height:185px"><canvas id="c2_cat"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Cargo · detalle</div>
+        <div class="chartbox" style="height:${Math.max(220, cargoTop.length*34+40)}px"><canvas id="c2_cargo"></canvas></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="secttl">Niveles educativos</div>
+        <div class="chartbox" style="height:185px"><canvas id="c2_niv"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="secttl">Canal de origen</div>
+        ${legendHTML(P.porCanal.map(([cn,n])=>({c:CANAL_COLORS[cn],label:cn,n})))}
+        <div class="chartbox" style="height:185px"><canvas id="c2_canal"></canvas></div>
+      </div>
+    </div>
+    <div class="note">Perfil calificado (nivel Preescolar/Primaria + cargo directivo) entre los presentes: <b>${perfilTxt}</b> — el resto son acompañantes u otros perfiles que igual asistieron. Tasa de asistencia = Presente ÷ Registrado.</div>
+  `;
+
+  pie(2,'c2_cat',['Decisor','Influyente','Técnico'],[P.cat.Decisor,P.cat.Influyente,P.cat['Técnico']],[C.purple,C.blue,C.gray]);
+  barH(2,'c2_cargo', cargoTop.map(c=>c[0]), cargoTop.map(c=>c[1]));
+  barV(2,'c2_niv', NIV_ORDER, [{data:NIV_ORDER.map(n=>P.niv[n]),backgroundColor:C.purple,borderRadius:4}], false);
+  pie(2,'c2_canal', P.porCanal.map(c=>c[0]), P.porCanal.map(c=>c[1]), P.porCanal.map(c=>CANAL_COLORS[c[0]]));
+}
+
+function renderActive(){
+  const D = compute();
+  destroyTab(activeTab);
+  if(activeTab===0) renderTab0(D);
+  else if(activeTab===1) renderTab1(D);
+  else renderTab2(D);
+}
+
+/* ---------- Eventos UI ---------- */
+let TOKEN = '';
+function showDash(name){
+  document.getElementById('drop').classList.add('hide');
+  document.getElementById('dash').classList.remove('hide');
+  document.getElementById('srcname').textContent = name;
+  renderActive();
+}
+async function connectAndLoad(){
+  const err=document.getElementById('err'); err.classList.add('hide');
+  const msg=document.getElementById('loadmsg');
+  const tok = document.getElementById('token').value.trim();
+  if(!tok){ err.textContent='Pegá el token del webhook.'; err.classList.remove('hide'); return; }
+  TOKEN = tok;
+  msg.textContent = 'Cargando datos de Bitrix24...';
+  document.getElementById('pick').disabled = true;
+  try{
+    RECORDS = await loadFromBitrix();
+    if(!RECORDS.length) throw new Error('No se encontraron negocios en el pipeline de Eventos.');
+    activeTab=0;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t==='0'));
+    document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!=='0'));
+    const now = new Date().toLocaleString('es-CO');
+    showDash('Bitrix24 en vivo · actualizado '+now);
+  }catch(e){
+    err.textContent='No se pudo conectar: '+e.message; err.classList.remove('hide');
+  }finally{
+    msg.textContent=''; document.getElementById('pick').disabled=false;
+  }
+}
+async function refreshData(){
+  const btn=document.getElementById('reimport'); const orig=btn.textContent;
+  btn.textContent='Actualizando...'; btn.disabled=true;
+  try{
+    RECORDS = await loadFromBitrix();
+    const now = new Date().toLocaleString('es-CO');
+    document.getElementById('srcname').textContent = 'Bitrix24 en vivo · actualizado '+now;
+    renderActive();
+  }catch(e){
+    alert('No se pudo actualizar: '+e.message);
+  }finally{
+    btn.textContent=orig; btn.disabled=false;
+  }
+}
+
+document.getElementById('pick').addEventListener('click',connectAndLoad);
+document.getElementById('reimport').addEventListener('click',refreshData);
+document.getElementById('token').addEventListener('keydown',e=>{ if(e.key==='Enter') connectAndLoad(); });
+
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); activeTab=parseInt(b.dataset.t,10);
+  document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!==String(activeTab)));
+  renderActive();
+}));
+
+/* ---------- Exportar PDF (abas 1 y 2) ---------- */
+function exportPDF(){
+  const D = compute();
+  document.body.classList.add('exporting');
+  destroyTab(0); renderTab0(D);
+  destroyTab(1); renderTab1(D);
+  document.getElementById('printinfo').textContent =
+    'Generado el ' + new Date().toLocaleDateString('es-CO');
+  setTimeout(()=>window.print(), 80);   // deja pintar los gráficos antes de imprimir
+}
+window.addEventListener('afterprint',()=>{
+  document.body.classList.remove('exporting');
+  document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!==String(activeTab)));
+  renderActive();
+});
+document.getElementById('export').addEventListener('click',exportPDF);
+</script>
+</body>
+</html>
