@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard LIV Latam 2026</title>
+<title>Dashboard LIV Latam México 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ── CORES-LIV THEME TOKENS ── */
 :root{
@@ -54,6 +53,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 .nav-tab:hover{color:rgba(255,255,255,.85);}
 .nav-tab.on{color:#fff;border-bottom-color:var(--yellow);}
 .nav-sp{flex:1;}
+.nav-upd{color:rgba(255,255,255,.55);font-size:10px;font-family:var(--fh);margin-right:12px;display:none;white-space:nowrap;}
 .btn-up{
   display:flex;align-items:center;gap:7px;
   background:var(--yellow);color:var(--accent2);
@@ -63,6 +63,9 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
   transition:all .18s;
 }
 .btn-up:hover{background:#ffd060;}
+.btn-up:disabled{opacity:.7;cursor:default;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin .8s linear infinite;}
 .btn-pr{
   display:flex;align-items:center;gap:7px;
   background:rgba(255,255,255,.12);color:#fff;
@@ -76,22 +79,29 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 /* ── PAGES ── */
 .pg{display:none;padding:24px 28px;max-width:1200px;margin:0 auto;}.pg.on{display:block;}
 
-/* ── UPLOAD ── */
+/* ── CONNECT ── */
 .uz{
   border:2px dashed var(--border2);border-radius:var(--r);
   padding:64px 24px;text-align:center;background:var(--surface);
-  cursor:pointer;transition:all .18s;
 }
-.uz:hover{border-color:var(--accent);background:#F0EEFF;}
 .uz h3{font-family:var(--fh);font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;}
 .uz p{font-size:13px;color:var(--muted);}
 .uz-icon{font-size:40px;margin-bottom:16px;}
+.tokinp{flex:1;padding:9px 12px;font-family:var(--f);font-size:13px;border:1px solid var(--border2);border-radius:var(--rs);background:#fff;color:var(--text);outline:none;}
+.tokinp:focus{border-color:var(--accent);}
 .fi{
   display:flex;align-items:center;gap:8px;
   background:#EAF6EF;border:1px solid #B7DFCA;
   border-radius:var(--rs);padding:10px 16px;
   font-size:12px;color:var(--success);font-weight:600;
   margin-bottom:16px;font-family:var(--fh);
+}
+.fierr{
+  display:flex;align-items:center;gap:8px;
+  background:#FDECEA;border:1px solid #F5C2BC;
+  border-radius:var(--rs);padding:10px 16px;
+  font-size:12px;color:var(--danger);font-weight:600;
+  margin-top:14px;font-family:var(--fh);
 }
 
 /* ── DASH TABS ── */
@@ -267,7 +277,10 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 
 /* ── TEMPERATURA ── */
 .tgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
-.tcard{border-radius:var(--rs);padding:12px 14px;border:1px solid;}
+.tcard{border-radius:var(--rs);padding:12px 14px;border:1px solid;transition:all .15s;}
+.tcard.tclick{cursor:pointer;}
+.tcard.tclick:hover{filter:brightness(.97);}
+.tcard.tcard-open{outline:2px solid var(--accent);outline-offset:-2px;}
 .tlbl{font-family:var(--fh);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:5px;}
 .tdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .trow{display:flex;justify-content:space-between;align-items:baseline;}
@@ -319,6 +332,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 .epill{display:inline-block;font-family:var(--fh);font-size:10px;font-weight:600;border-radius:4px;padding:2px 8px;}
 .ep-g{background:#EAF6EF;color:#1B6B3A;}
 .ep-af{background:#FFF7ED;color:#854F0B;}
+.ep-av{background:#FDF0E5;color:#9C4A16;}
 
 /* ── PARAMS ── */
 .pg2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -335,7 +349,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 /* ══ PRINT ══════════════════════════════════════════════════════════ */
 @media print {
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-  .nav,#ua,#fib,#params-pg,.dtabs{display:none!important;}
+  .nav,#ua,#params-pg,.dtabs{display:none!important;}
   body{background:#fff!important;font-size:11px!important;}
   .pg{display:block!important;padding:8px 20px!important;}
   .dpg{display:block!important;}
@@ -343,6 +357,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
   .dpg#d2{break-before:page;}
   .dpg#d3{break-before:page;}
   .dpg#d4{break-before:page;}
+  .dpg#d5{break-before:page;}
   .card{break-inside:avoid!important;box-shadow:none!important;margin-bottom:8px!important;padding:12px 14px!important;}
   .sb{break-inside:avoid!important;margin-bottom:16px!important;}
   .g2,.g3{display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
@@ -398,6 +413,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
   .fch{padding:12px 8px 8px!important;}
   .fcb{font-size:36px!important;}
   .fcsv{font-size:16px!important;}
+  #temp-list-general,#temp-list-ka{display:none!important;}
 }
 
 @media (max-width:800px){
@@ -428,16 +444,17 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 <div class="nav">
   <div class="nav-brand">
     <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" style="height:40px;width:auto;display:block">
-    LIV Latam
+    <span>LIV Latam &middot; México</span>
+    <img src="https://flagcdn.com/mx.svg" alt="México" style="height:30px;width:auto;display:block;border-radius:3px;">
   </div>
   <div class="nav-tab on" onclick="showNav('dash',this)">Dashboard</div>
   <div class="nav-tab" onclick="showNav('params',this)">&#9881; Par&#225;metros</div>
   <div class="nav-sp"></div>
-  <label class="btn-up" for="fi">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Importar XLS / CSV
-  </label>
-  <input type="file" id="fi" accept=".xls,.xlsx,.csv" style="display:none" onchange="loadFile(this)">
+  <span class="nav-upd" id="lastUpdate"></span>
+  <button class="btn-up" id="btn-refresh" style="display:none" onclick="refreshData(false)">
+    <svg id="refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <span id="refresh-label">Actualizar datos</span>
+  </button>
   <button class="btn-pr" onclick="window.print()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     Exportar PDF
@@ -447,14 +464,18 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 <!-- DASHBOARD PAGE -->
 <div id="dash-pg" class="pg on">
   <div id="ua">
-    <div class="uz" onclick="document.getElementById('fi').click()">
-      <div class="uz-icon">&#128202;</div>
-      <h3>Importar planilha do Bitrix24</h3>
-      <p>Clique ou arraste um arquivo XLS, XLSX ou CSV</p>
-      <p style="margin-top:8px;font-size:11px;color:var(--muted);">O Bitrix24 exporta XLS que s&#227;o HTML &#8212; este dashboard detecta automaticamente.</p>
+    <div class="uz">
+      <div class="uz-icon">&#128268;</div>
+      <h3>Conectar ao Bitrix24</h3>
+      <p>Ingrese el token del webhook para cargar el pipeline "1. [MEX] Ventas"</p>
+      <div style="max-width:380px;margin:20px auto 0;display:flex;gap:8px;">
+        <input type="password" id="token-input" class="tokinp" placeholder="Token del webhook" onkeydown="if(event.key==='Enter')connectAndLoad()">
+        <button class="bapply" style="width:auto;margin-top:0;padding:9px 18px;white-space:nowrap;" onclick="connectAndLoad()">Conectar</button>
+      </div>
+      <p style="margin-top:14px;font-size:11px;color:var(--muted);">El token permanece solo en la memoria de esta pesta&#241;a &#8212; no se guarda en ning&uacute;n lugar.</p>
+      <div id="conn-status" style="margin-top:16px;"></div>
     </div>
   </div>
-  <div id="fib" style="display:none"></div>
   <div id="dc">
     <div class="dtabs" id="dtabs-bar">
       <div class="dtab on" onclick="showDash('d1',this)">Pipeline &amp; Metas</div>
@@ -500,8 +521,9 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
     </div>
     <div class="psec"><h3>Metodologia</h3>
       <p style="font-size:12px;color:var(--text);line-height:1.8;">
-        <strong>Taxa por etapa:</strong> hist&#243;rico via Tempo em cada etapa.<br><br>
-        <strong>Taxa global:</strong> ganados &#247; total que passou por Prof. Pedag&#243;gica.<br><br>
+        <strong>Fuente de datos:</strong> API REST Bitrix24 &mdash; pipeline "1. [MEX] Ventas" (CATEGORY_ID 3).<br><br>
+        <strong>Taxa por etapa:</strong> hist&#243;rico via campo "Tempo em cada etapa".<br><br>
+        <strong>Taxa global:</strong> ganados &#247; total que passou por Profundizaci&#243;n Pedag&#243;gica.<br><br>
         <strong>Exclu&#237;dos:</strong> Dev Academia CRM.<br><br>
         <strong>Export PDF:</strong> todas as abas aparecem em sequ&#234;ncia no arquivo.
       </p>
@@ -511,19 +533,52 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 </div>
 
 <script>
+// ══ CONFIG BITRIX24 ═══════════════════════════════════════════════
+const B24_DOMAIN='livlatam.bitrix24.com.br';
+const B24_USER='1';
+let B24_TOKEN='';
+const CATEGORY_ID=3; // "1. [MEX] Ventas"
+
+// Campos custom (crm.deal.fields / crm.company.fields)
+const F={ALUMNOS:'UF_CRM_1771160586',TAG:'UF_CRM_1771422860',TEMP:'UF_CRM_1772191377',MOTIVO:'UF_CRM_1771183656',TEMPO_ETAPA:'UF_CRM_1772451422'};
+const CF={ESTADO:'UF_CRM_1782012617',CIUDAD:'UF_CRM_1782122486',CLAS:'UF_CRM_1766064361'};
+
+// STAGE_ID (DEAL_STAGE_3) → nome normalizado usado no resto do dashboard
+const STAGE_MAP={
+  'C3:NEW':'Contacto',
+  'C3:PREPAYMENT_INVOICE':'Reunión Agendada',
+  'C3:EXECUTING':'Diagnóstico [Virtual]',
+  'C3:UC_OS0PHI':'Profundización Pedagógica',
+  'C3:FINAL_INVOICE':'Propuesta',
+  'C3:UC_29TR2U':'Aceptación Verbal',
+  'C3:UC_05S53L':'A firmar',
+  'C3:WON':'Ganado',
+  'C3:LOSE':'Perdido'
+};
+
+// Aliases de rótulos históricos gravados no campo "Tempo em cada etapa" → nome canônico
+// NOTA: o alias de "Aceptación Verbal" é uma suposição (o rótulo gravado pela automação do
+// Bitrix para essa etapa não pôde ser confirmado nos dados de exemplo). Se após o primeiro
+// carregamento real "Aceptación Verbal" não aparecer em "Tiempo promedio por etapa" nem em
+// "Tasa de conversión", verifique o texto real do campo para um deal nessa etapa e ajuste aqui.
+const STAGE_ALIASES={
+  'Contactado':'Contacto',
+  'Diagnostico':'Reunión Agendada',
+  'Proyecto Comercial':'Diagnóstico [Virtual]',
+  'Profundización Pedagogica':'Profundización Pedagógica',
+  'Profundización Pedagógica':'Profundización Pedagógica',
+  'Propuesta':'Propuesta',
+  'Aceptación Verbal':'Aceptación Verbal',
+  'Aceptacion Verbal':'Aceptación Verbal',
+  'A firmar':'A firmar'
+};
+function normStageKey(k){return STAGE_ALIASES[k]||k;}
+
 // ── STATE ──────────────────────────────────────────────────────────
 let RAW=null;
 let P={metaAl:12000,metaFact:540000,cicloMeta:45,ticketMeta:45,
   probs:{'0. Contacto':0,'1. Reunión Agendada':.05,'2. Diagnóstico [Virtual]':.25,'3. Profundización Pedagógica':.30,'4. Propuesta':.50,'5. Aceptación Verbal':.75,'6. A firmar':.90},
   faixaPq:150,faixaMd:600};
-
-const CM={'Ciudad de México':'Ciudad de México','Ciudad de Mexico':'Ciudad de México','CDMX':'Ciudad de México','Ciudad De México':'Ciudad de México',
-  'Santiago de Querétaro':'Querétaro','Vista Hermosa, Querétaro':'Querétaro','Querétaro':'Querétaro','Queretaro':'Querétaro',
-  'Heroica Puebla de Zaragoza':'Puebla','Puebla':'Puebla',
-  'Cdad. López Mateos':'Estado de México','Ocoyoacac':'Estado de México','Hacienda Ojo de Agua':'Estado de México','Fracc. Constituyentes del Parque':'Estado de México',
-  'Corregidora':'Corregidora','Cortazar':'Cortazar','Cuernavaca':'Cuernavaca',
-  'Córdoba':'Córdoba','Cordoba':'Córdoba','Cárdenas':'Cárdenas','Cardenas':'Cárdenas'};
-function nc(c){if(!c)return'Sin ciudad';return CM[c.trim()]||c.trim();}
 
 function showNav(id,el){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
@@ -539,79 +594,148 @@ function showDash(id,el){
   if(id==='d5'){if(!window._geoFeatures&&typeof initGeoMap==='function')initGeoMap();else if(window._geoFeatures)setTimeout(drawGeoMap,30);}
 }
 
-function loadFile(inp){
-  const f=inp.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const txt=e.target.result;const trimmed=txt.trim();let data;
-      if(trimmed.startsWith('<')||trimmed.includes('<table')){data=parseHTML(txt);}
-      else if(f.name.toLowerCase().endsWith('.csv')){data=parseCSV(txt);}
-      else{loadBin(f);return;}
-      if(!data||!data.length){alert('Nenhum dado encontrado.');return;}
-      setData(f.name,data);
-    }catch(err){alert('Erro: '+err.message);}
-  };
-  r.readAsText(f,'UTF-8');
-}
-function loadBin(f){
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'array',raw:false,cellText:true});
-      const data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null,raw:false});
-      if(!data||!data.length){alert('Nenhum dado encontrado.');return;}
-      setData(f.name,data);
-    }catch(err){alert('Erro binário: '+err.message);}
-  };
-  r.readAsArrayBuffer(f);
-}
-function setData(name,data){
-  RAW=data;
-  document.getElementById('ua').style.display='none';
-  const b=document.getElementById('fib');b.style.display='flex';b.className='fi';
-  b.innerHTML='<span>&#10003;</span> <strong>'+name+'</strong> &#8212; '+data.length+' registros importados';
-  render();
-}
-function parseHTML(html){
-  const doc=new DOMParser().parseFromString(html,'text/html');
-  const rows=doc.querySelectorAll('table tr');if(!rows.length)return[];
-  const hs=Array.from(rows[0].querySelectorAll('th,td')).map(c=>c.textContent.trim());
-  const data=[];
-  for(let i=1;i<rows.length;i++){
-    const cells=Array.from(rows[i].querySelectorAll('td'));
-    if(!cells.length)continue;
-    const obj={};hs.forEach((h,j)=>{obj[h]=cells[j]?cells[j].textContent.trim()||null:null;});
-    data.push(obj);
+// ══ BITRIX24 API ═══════════════════════════════════════════════════
+function toFormPairs(obj,prefix){
+  const pairs=[];
+  function walk(v,p){
+    if(v===null||v===undefined)return;
+    if(Array.isArray(v)){v.forEach((x,i)=>walk(x,p+'['+i+']'));}
+    else if(typeof v==='object'){Object.entries(v).forEach(([k,x])=>walk(x,p?p+'['+k+']':k));}
+    else{pairs.push(encodeURIComponent(p)+'='+encodeURIComponent(v));}
   }
-  return data;
+  walk(obj,prefix||'');
+  return pairs.join('&');
 }
-function parseCSV(txt){
-  const ls=txt.split('\n').filter(l=>l.trim());
-  const hs=ls[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
-  return ls.slice(1).map(l=>{
-    const vs=l.match(/(".*?"|[^,]+)(?=,|$)/g)||[];
-    const o={};hs.forEach((h,i)=>{o[h]=(vs[i]||'').replace(/^"|"$/g,'').trim()||null;});return o;
-  });
+async function b24call(method,params){
+  const url='https://'+B24_DOMAIN+'/rest/'+B24_USER+'/'+B24_TOKEN+'/'+method+'.json';
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:toFormPairs(params||{})});
+  const json=await res.json();
+  if(json.error)throw new Error((json.error_description||json.error)+' ('+method+')');
+  return json;
+}
+async function fetchAllDeals(){
+  let start=0,all=[];
+  const select=['ID','TITLE','OPPORTUNITY','ASSIGNED_BY_ID','BEGINDATE','CLOSEDATE','COMPANY_ID','STAGE_ID',
+    F.ALUMNOS,F.TAG,F.TEMP,F.MOTIVO,F.TEMPO_ETAPA];
+  while(true){
+    const r=await b24call('crm.deal.list',{filter:{CATEGORY_ID:CATEGORY_ID},select,start});
+    all=all.concat(r.result);
+    if(r.next===undefined||r.next===null)break;
+    start=r.next;
+  }
+  return all;
+}
+function itemsOf(fields,code){const f=fields&&fields[code];const m={};((f&&f.items)||[]).forEach(it=>{m[it.ID]=it.VALUE;});return m;}
+async function fetchEnumMaps(){
+  const df=(await b24call('crm.deal.fields',{})).result;
+  const cf=(await b24call('crm.company.fields',{})).result;
+  return{tag:itemsOf(df,F.TAG),temp:itemsOf(df,F.TEMP),motivo:itemsOf(df,F.MOTIVO),
+    estado:itemsOf(cf,CF.ESTADO),ciudad:itemsOf(cf,CF.CIUDAD),clas:itemsOf(cf,CF.CLAS)};
+}
+async function fetchByIdChunks(method,ids,select){
+  const uniq=[...new Set(ids.filter(Boolean))];
+  const map={};
+  for(let i=0;i<uniq.length;i+=50){
+    const chunk=uniq.slice(i,i+50);
+    const params={filter:{ID:chunk}};
+    if(select)params.select=select;
+    const r=await b24call(method,params);
+    (r.result||[]).forEach(x=>{map[x.ID]=x;});
+  }
+  return map;
 }
 
-function pe(v){
-  if(v===null||v===undefined||v==='')return 0;
-  let s=String(v).trim().replace(/[R$€£¥\s%]/g,'');if(!s)return 0;
-  const hd=s.includes('.'),hc=s.includes(',');
-  if(hd&&hc){if(s.lastIndexOf('.')<s.lastIndexOf(',')){s=s.replace(/\./g,'').replace(',','.');}else{s=s.replace(/,/g,'');}}
-  else if(hd&&!hc){const p=s.split('.');if(p.length===2&&p[1].length===3)s=s.replace(/\./g,'');}
-  else if(hc&&!hd){const p=s.split(',');if(p.length===2&&p[1].length<=2)s=s.replace(',','.');else s=s.replace(/,/g,'');}
-  return parseFloat(s)||0;
+async function connectAndLoad(){
+  const tok=document.getElementById('token-input').value.trim();
+  const statusEl=document.getElementById('conn-status');
+  if(!tok){statusEl.innerHTML='<div class="fierr">Ingrese el token del webhook.</div>';return;}
+  B24_TOKEN=tok;
+  statusEl.innerHTML='<div style="font-size:12px;color:var(--muted);">Conectando&#8230;</div>';
+  await refreshData(true);
 }
+
+let _lastUpdateText='';
+function setRefreshLoading(on){
+  const btn=document.getElementById('btn-refresh');
+  const icon=document.getElementById('refresh-icon');
+  const label=document.getElementById('refresh-label');
+  const upd=document.getElementById('lastUpdate');
+  if(btn)btn.disabled=on;
+  if(icon)icon.classList.toggle('spin',on);
+  if(label)label.textContent=on?'Actualizando...':'Actualizar datos';
+  if(upd){
+    if(on){upd.style.display='inline';upd.textContent='Actualizando datos\u2026';}
+    else if(_lastUpdateText){upd.style.display='inline';upd.textContent=_lastUpdateText;}
+    else{upd.style.display='none';}
+  }
+}
+
+async function refreshData(isFirst){
+  const statusEl=document.getElementById('conn-status');
+  const btn=document.getElementById('btn-refresh');
+  setRefreshLoading(true);
+  try{
+    if(isFirst&&statusEl)statusEl.innerHTML='<div style="font-size:12px;color:var(--muted);">Cargando negocios del pipeline&#8230;</div>';
+    const [deals,enumMaps]=await Promise.all([fetchAllDeals(),fetchEnumMaps()]);
+    const companyIds=deals.map(d=>d.COMPANY_ID);
+    const assignedIds=deals.map(d=>d.ASSIGNED_BY_ID);
+    const companies=await fetchByIdChunks('crm.company.list',companyIds,['ID','TITLE',CF.ESTADO,CF.CIUDAD,CF.CLAS]);
+    let users={},usersFailed=false;
+    try{
+      users=await fetchByIdChunks('user.get',assignedIds);
+    }catch(e){
+      usersFailed=true;
+      console.warn('No fue posible resolver nombres de usuarios (user.get sin permiso en el webhook):',e.message);
+    }
+    RAW=deals.map(d=>{
+      const comp=companies[d.COMPANY_ID]||{};
+      const u=users[d.ASSIGNED_BY_ID];
+      let rep=u?((u.NAME||'')+' '+(u.LAST_NAME||'')).trim():'';
+      if(!rep)rep=d.ASSIGNED_BY_ID?('Usuario '+d.ASSIGNED_BY_ID):'Sin asignar';
+      if(rep==='Diego')rep='Becker';
+      const tmpRaw=pt(d[F.TEMPO_ETAPA]);
+      const tmp={};Object.entries(tmpRaw).forEach(([k,v])=>{tmp[normStageKey(k)]=v;});
+      return{
+        _al:Number(d[F.ALUMNOS])||0,
+        _tot:Number(d.OPPORTUNITY)||0,
+        _e:STAGE_MAP[d.STAGE_ID]||d.STAGE_ID,
+        _rep:rep,
+        _estado:enumMaps.estado[comp[CF.ESTADO]]||'Sin estado',
+        _ciudad:enumMaps.ciudad[comp[CF.CIUDAD]]||'Sin ciudad',
+        _tag:enumMaps.tag[d[F.TAG]]||'',
+        _tmp:tmp,
+        _ev:new Set(Object.keys(tmp)),
+        _d1:pd(d.BEGINDATE),_d2:pd(d.CLOSEDATE),
+        _mot:enumMaps.motivo[d[F.MOTIVO]]||'',
+        _temp:enumMaps.temp[d[F.TEMP]]||'',
+        _clas:enumMaps.clas[comp[CF.CLAS]]||'',
+        _emp:comp.TITLE||d.TITLE||''
+      };
+    }).filter(r=>r._rep!=='Dev Academia CRM');
+
+    document.getElementById('ua').style.display='none';
+    if(btn)btn.style.display='flex';
+    render();
+    _lastUpdateText='Actualizado '+new Date().toLocaleString('es-MX',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    setRefreshLoading(false);
+    if(usersFailed){
+      alert('Dashboard cargado, pero el webhook no tiene permiso para "user.get": los responsables aparecen como "Usuario {ID}" en vez del nombre. Agregue el permiso "Usuarios" al webhook en Bitrix24 y actualice los datos para corregirlo.');
+    }
+  }catch(err){
+    setRefreshLoading(false);
+    const msg='Error al conectar: '+err.message;
+    if(isFirst&&statusEl){statusEl.innerHTML='<div class="fierr">'+msg+'</div>';}
+    else{alert(msg);}
+  }
+}
+
+// ── PARSERS (dados que ainda vêm como texto) ──────────────────────
 function pd(v){
   if(!v)return null;const s=String(v).trim();
   let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if(m)return new Date(+m[3],+m[2]-1,+m[1]);
   m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m)return new Date(+m[1],+m[2]-1,+m[3]);
-  const n=parseFloat(s);
-  if(!isNaN(n)&&n>10000){const d=new Date(1899,11,30);d.setDate(d.getDate()+Math.round(n));return d;}
   const d=new Date(s);return isNaN(d.getTime())?null:d;
 }
 function pt(t){
@@ -619,7 +743,6 @@ function pt(t){
   String(t).split('|').forEach(p=>{const m=p.trim().match(/^(.+?)\s*:\s*(\d+)\s*dias?/i);if(m)r[m[1].trim()]=+m[2];});
   return r;
 }
-function ev(t){return new Set(Object.keys(pt(t)));}
 function fmt(n,d=0){return new Intl.NumberFormat('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);}
 function fmtK(n){return'$'+fmt(Math.round(n/1000))+'k';}
 function pct(a,b){return b>0?Math.round(a/b*100):0;}
@@ -653,32 +776,50 @@ function applyP(){
   showNav('dash',document.querySelector('.nav-tab'));
 }
 
+// ══ TEMPERATURA — CARDS CLICÁVEIS ══════════════════════════════════
+let _tempOpen=null;
+function tempCardClick(mode,t,d,c,totD,label){
+  const pD=pct(d.d,totD);
+  return`<div class="tcard tclick" style="background:${c.bg};border-color:${c.border};" onclick="toggleTempCard('${mode}','${t}')">
+    <div class="tlbl" style="color:${c.lc};"><div class="tdot" style="background:${c.bc};"></div>${t}</div>
+    <div class="trow"><span class="tkey">${label}</span><span class="tval">${fmt(d.d)}</span></div>
+    <div class="tpct">${pD}% ${mode==='ka'?'de KA':'del pipeline'}</div>
+    <div class="tbarbg"><div class="tbarfill" style="width:${pD}%;background:${c.bc};"></div></div>
+  </div>`;
+}
+function renderTempTable(deals){
+  if(!deals.length)return'<div class="note" style="margin-top:10px;">Ning&uacute;n negocio en esta temperatura.</div>';
+  return'<div style="overflow-x:auto;margin-top:12px;"><table class="dtbl"><thead><tr><th>Empresa</th><th>Etapa</th><th>Temperatura</th><th class="r">Alumnos</th><th class="r">Valor</th><th>Responsable</th></tr></thead><tbody>'+
+    deals.map(d=>'<tr><td>'+d.emp+'</td><td>'+d.etapa+'</td><td>'+d.temp+'</td><td class="r">'+fmt(Math.round(d.al))+'</td><td class="r">US$ '+fmt(Math.round(d.val))+'</td><td>'+d.rep+'</td></tr>').join('')+
+    '</tbody></table></div>';
+}
+function toggleTempCard(mode,t){
+  const key=mode+':'+t;
+  const gWrap=document.getElementById('temp-list-general');
+  const kWrap=document.getElementById('temp-list-ka');
+  if(gWrap){gWrap.style.display='none';gWrap.innerHTML='';}
+  if(kWrap){kWrap.style.display='none';kWrap.innerHTML='';}
+  document.querySelectorAll('#tgrid-general .tcard, #tgrid-ka .tcard').forEach(c=>c.classList.remove('tcard-open'));
+  if(_tempOpen===key){_tempOpen=null;return;}
+  const deals=(window._TEMP_DEALS&&window._TEMP_DEALS[mode]&&window._TEMP_DEALS[mode][t])||[];
+  const wrap=mode==='ka'?kWrap:gWrap;
+  if(wrap){wrap.innerHTML=renderTempTable(deals);wrap.style.display='block';}
+  _tempOpen=key;
+  const idx=['Caliente','Tibio','Frío'].indexOf(t);
+  const grid=document.querySelectorAll('#tgrid-'+(mode==='ka'?'ka':'general')+' .tcard');
+  if(grid[idx])grid[idx].classList.add('tcard-open');
+}
+
 function render(){
   if(!RAW)return;
-  const rows=RAW.map(r=>({
-    _al:pe(r['Nr de Alumnos (primera campaña)']),_tot:pe(r['Total']),
-    _e:(r['Etapa']||'').trim().replace(/^\d+\.\s*/,'').replace(/\s*\[.*?\]\s*$/,''),
-    _rep:((r['Pessoa responsável']||'Sin asignar').trim()==='Diego'?'Becker':(r['Pessoa responsável']||'Sin asignar').trim()),
-    _estado:(r['Empresa: Estado o Departamento [E]']||'').trim()||'Sin estado',
-    _ciudad:(r['Empresa: Ciudad [MX][E]']||'').trim()||'Sin ciudad',
-    _city:(r['Empresa: Estado o Departamento [E]']||'').trim()||'Sin estado',
-    _tag:(r['Tag Fuente']||'').trim(),
-    _ev:ev(r['Tempo em cada etapa']),_tmp:pt(r['Tempo em cada etapa']),
-    _d1:pd(r['Data de início']),_d2:pd(r['Fecha previsión de cierre']),
-    _mot:(r['Motivo de perdida']||'').trim(),
-    _temp:(r['Temperatura']||'').trim(),
-    _clas:(r['Empresa: Clasificación']||'').trim(),
-    _emp:(r['Cliente']||r['Empresa']||r['Empresa: Nombre']||'').trim()
-  })).filter(r=>r._rep!=='Dev Academia CRM');
+  _tempOpen=null;
+  const rows=RAW;
 
   const total=rows.length;
   const G=rows.filter(r=>r._e==='Ganado');
   const PERD=rows.filter(r=>r._e==='Perdido');
   const ACT=rows.filter(r=>!['Ganado','Perdido'].includes(r._e));
 
-  // P.probs usa chaves com os nomes normalizados (sem prefixo numérico)
-  // O _e já foi normalizado na leitura: "6. A firmar" → "A firmar", etc.
-  // Mapeamento de _e normalizado → chave em P.probs
   const PROB_KEY={
     'Contacto':'0. Contacto','Reunión Agendada':'1. Reunión Agendada',
     'Diagnóstico [Virtual]':'2. Diagnóstico [Virtual]','Profundización Pedagógica':'3. Profundización Pedagógica',
@@ -708,25 +849,26 @@ function render(){
   const eCnt={};rows.forEach(r=>{eCnt[r._e]=(eCnt[r._e]||0)+1;});const mxE=Math.max(...Object.values(eCnt));
   const eTot={};rows.forEach(r=>{eTot[r._e]=(eTot[r._e]||0)+r._tot;});
 
-  const TM={'Contactado':'Contacto','Diagnostico':'Reunión Agendada','Proyecto Comercial':'Diagnóstico [Virtual]','Profundización Pedagogica':'Profundización Pedagógica','Propuesta':'Propuesta','A firmar':'A firmar'};
-  const sd={};rows.forEach(r=>{Object.entries(r._tmp).forEach(([k,v])=>{const l=TM[k];if(!l)return;if(!sd[l])sd[l]=[];sd[l].push(v);});});
-  const TO=['Contacto','Reunión Agendada','Diagnóstico [Virtual]','Profundización Pedagógica','Propuesta','A firmar'];
+  // Tiempo promedio por etapa (histórico via _tmp, já com chaves normalizadas)
+  const TO=['Contacto','Reunión Agendada','Diagnóstico [Virtual]','Profundización Pedagógica','Propuesta','Aceptación Verbal','A firmar'];
+  const sd={};rows.forEach(r=>{TO.forEach(e=>{if(r._tmp[e]!==undefined){(sd[e]=sd[e]||[]).push(r._tmp[e]);}});});
   const td=TO.map(e=>({n:e,a:sd[e]?Math.round(sd[e].reduce((a,b)=>a+b,0)/sd[e].length):null})).filter(e=>e.a!==null);
   const mxT=Math.max(...td.map(e=>e.a),1);
   const tc=a=>a<=15?'#2E9D57':a<=22?'#F47432':'#C0392B';
 
-  const FH=['Contactado','Diagnostico','Proyecto Comercial','Profundización Pedagogica','Propuesta','A firmar'];
-  const FL={'Contactado':'Contacto','Diagnostico':'Reunión Agendada','Proyecto Comercial':'Diagnóstico [Virtual]','Profundización Pedagogica':'Prof. Pedagógica','Propuesta':'Propuesta','A firmar':'A firmar'};
+  // Tasa de conversión por etapa — cadeia expandida incluindo Aceptación Verbal
+  const CHAIN=TO;
+  const CHAIN_L={'Contacto':'Contacto','Reunión Agendada':'Reunión Agendada','Diagnóstico [Virtual]':'Diagnóstico','Profundización Pedagógica':'Prof. Pedagógica','Propuesta':'Propuesta','Aceptación Verbal':'Acep. Verbal','A firmar':'A firmar'};
   const cr=[];
-  for(let i=0;i<FH.length-1;i++){
-    const a=FH[i],b=FH[i+1];
+  for(let i=0;i<CHAIN.length-1;i++){
+    const a=CHAIN[i],b=CHAIN[i+1];
     const pA=rows.filter(r=>r._ev.has(a));const pB=pA.filter(r=>r._ev.has(b));
-    cr.push({f:FL[a],t:FL[b],tx:pct(pB.length,pA.length)});
+    cr.push({f:CHAIN_L[a],t:CHAIN_L[b],tx:pct(pB.length,pA.length)});
   }
   const pAF=rows.filter(r=>r._ev.has('A firmar'));const gAF=pAF.filter(r=>r._e==='Ganado');
   cr.push({f:'A firmar',t:'Ganado',tx:pct(gAF.length,pAF.length)});
 
-  const pPP=rows.filter(r=>r._ev.has('Profundización Pedagogica'));
+  const pPP=rows.filter(r=>r._ev.has('Profundización Pedagógica'));
   const gPP=pPP.filter(r=>r._e==='Ganado');
   const txG=pct(gPP.length,pPP.length);
 
@@ -766,6 +908,13 @@ function render(){
     kaData[t]={d:s.length,a:s.reduce((x,r)=>x+r._al,0),fc:Math.round(s.reduce((x,r)=>x+r._fcAl,0))};
   });
 
+  // Deals por temperatura para as tabelas clicáveis
+  const tempDealsList=list=>list.map(r=>({emp:r._emp||'—',etapa:EL[r._e]||r._e,temp:r._temp||'—',al:r._al,val:r._tot,rep:r._rep}));
+  window._TEMP_DEALS={
+    general:{Caliente:tempDealsList(ACT2.filter(r=>r._temp==='Caliente')),Tibio:tempDealsList(ACT2.filter(r=>r._temp==='Tibio')),'Frío':tempDealsList(ACT2.filter(r=>r._temp==='Frío'))},
+    ka:{Caliente:tempDealsList(KA.filter(r=>r._temp==='Caliente')),Tibio:tempDealsList(KA.filter(r=>r._temp==='Tibio')),'Frío':tempDealsList(KA.filter(r=>r._temp==='Frío'))}
+  };
+
   const tgM={};
   rows.forEach(r=>{const t=r._tag||'_s';if(!tgM[t])tgM[t]={g:0,p:0,a:0,tot:0};tgM[t].tot++;if(r._e==='Ganado')tgM[t].g++;else if(r._e==='Perdido')tgM[t].p++;else tgM[t].a++;});
   const sTag=(tgM['_s']?.tot)||0;delete tgM['_s'];
@@ -778,26 +927,13 @@ function render(){
   // HEADER
   const HDR=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--border);">
     <div>
-      <h1 style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);">Dashboard LIV Latam</h1>
+      <h1 style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);">Dashboard LIV Latam &mdash; M&eacute;xico</h1>
       <p style="font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fh);">${fmt(total)} oportunidades &middot; Campa&ntilde;a 2026</p>
     </div>
-    <div style="font-family:var(--fh);font-size:11px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;text-transform:uppercase;letter-spacing:.05em;">Bitrix24 &middot; Datos reales</div>
+    <div style="font-family:var(--fh);font-size:11px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;text-transform:uppercase;letter-spacing:.05em;">Bitrix24 API &middot; Datos en vivo</div>
   </div>`;
 
   // ── ABA 1 ──────────────────────────────────────────────────────
-  function tempCard(t,mode){
-    const d=mode==='ka'?kaData[t]:tData[t];
-    const c=tColors[t];const totA=mode==='ka'?kaTotA:tTotAl;
-    const pAl=pct(d.a,totA);const pD=pct(d.d,mode==='ka'?kaTotal.d:ACT.length);
-    return`<div class="tcard" style="background:${c.bg};border-color:${c.border};">
-      <div class="tlbl" style="color:${c.lc};"><div class="tdot" style="background:${c.bc};"></div>${t}</div>
-      <div class="trow"><span class="tkey">${mode==='ka'?'Alumnos KA':'Deals'}</span><span class="tval">${mode==='al'?fmt(d.a):mode==='ka'?fmt(d.a):fmt(d.d)}</span></div>
-      <div class="tpct">${mode==='al'||mode==='ka'?pAl+'% del total':pD+'% del pipeline'}</div>
-      <div class="tbarbg"><div class="tbarfill" style="width:${mode==='al'||mode==='ka'?pAl:pD}%;background:${c.bc};"></div></div>
-      ${mode==='al'||mode==='ka'?`<div class="tpond">Pond. <strong>${fmt(d.fc)}</strong></div>`:''}
-    </div>`;
-  }
-
   const D1=`${HDR}
   <div class="sb">
     <div class="sl"><div class="sdot" style="background:var(--accent);"></div>Metas globales de la campa&ntilde;a</div>
@@ -843,8 +979,8 @@ function render(){
       <div class="card"><div class="ct">Deals por etapa</div>${EO.map(e=>eCnt[e]?barRowEtapa(EL[e],eCnt[e],eTot[e]||0,mxE,EC[e]):'').join('')}</div>
       <div class="card"><div class="ct">Tiempo promedio por etapa</div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Promedio de d&iacute;as via historial del Bitrix.</div>
-        ${td.map(e=>barRow(e.n,e.a,mxT,tc(e.a),e.a+'d')).join('')}
-        ${(()=>{const w=td.reduce((a,b)=>a.a>b.a?a:b,{a:0});return w.a>=20?alb(w.n+' acumula '+w.a+' d&iacute;as &mdash; el mayor tiempo del funil'):''})()}
+        ${td.map(e=>barRow(EL[e.n]||e.n,e.a,mxT,tc(e.a),e.a+'d')).join('')}
+        ${(()=>{const w=td.reduce((a,b)=>a.a>b.a?a:b,{a:0,n:''});return w.a>=20?alb((EL[w.n]||w.n)+' acumula '+w.a+' d&iacute;as &mdash; el mayor tiempo del funil'):''})()}
       </div>
       <div class="card"><div class="ct">Tasa de conversi&oacute;n por etapa</div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Calculada via historial &mdash; deals que avanzaron de A a B sobre todos los que pasaron por A.</div>
@@ -858,12 +994,13 @@ function render(){
   <div class="sb">
     <div class="sl"><div class="sdot" style="background:var(--orange);"></div>Temperatura &amp; Key Accounts &mdash; pipeline activo</div>
     <div class="g2">
-      <div class="card"><div class="ct">Oportunidades por temperatura &mdash; ${fmt(ACT.length)} deals activos</div>
-        <div class="tgrid">${temps.map(t=>{const d=tData[t];const c=tColors[t];const pD=pct(d.d,ACT.length);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey">Deals</span><span class="tval">'+fmt(d.d)+'</span></div><div class="tpct">'+pD+'% del pipeline</div><div class="tbarbg"><div class="tbarfill" style="width:'+pD+'%;background:'+c.bc+';"></div></div></div>';}).join('')}</div>
+      <div class="card"><div class="ct">Oportunidades por temperatura &mdash; ${fmt(ACT.length)} deals activos &middot; clique en un card para ver los negocios</div>
+        <div class="tgrid" id="tgrid-general">${temps.map(t=>tempCardClick('general',t,tData[t],tColors[t],ACT.length,'Deals')).join('')}</div>
         <div class="srow"><div class="slbl">Deals</div><div class="sbar"><div style="width:${pct(tData['Caliente'].d,ACT.length)}%;background:#C0392B;"></div><div style="width:${pct(tData['Tibio'].d,ACT.length)}%;background:#F47432;"></div><div style="width:${pct(tData['Frío'].d,ACT.length)}%;background:#9FC2E6;"></div></div><div class="sval">${fmt(ACT.length)}</div></div>
+        <div id="temp-list-general" style="display:none"></div>
       </div>
       <div class="card"><div class="ct">Alumnos en pipeline por temperatura &mdash; ${fmt(Math.round(tTotAl))} alumnos totales</div>
-        <div class="tgrid">${temps.map(t=>{const d=tData[t];const c=tColors[t];const pAl=pct(d.a,tTotAl);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey">Alumnos</span><span class="tval">'+fmt(Math.round(d.a))+'</span></div><div class="tpct">'+pAl+'% del total</div><div class="tbarbg"><div class="tbarfill" style="width:'+pAl+'%;background:'+c.bc+';"></div></div><div class="tpond">Pond. <strong>'+fmt(d.fc)+'</strong></div></div>';}).join('')}</div>
+        <div class="tgrid">${temps.map(t=>{const d=tData[t];const c=tColors[t];const pAlp=pct(d.a,tTotAl);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey">Alumnos</span><span class="tval">'+fmt(Math.round(d.a))+'</span></div><div class="tpct">'+pAlp+'% del total</div><div class="tbarbg"><div class="tbarfill" style="width:'+pAlp+'%;background:'+c.bc+';"></div></div><div class="tpond">Pond. <strong>'+fmt(d.fc)+'</strong></div></div>';}).join('')}</div>
         <div class="srow"><div class="slbl">Alumnos</div><div class="sbar"><div style="width:${pct(tData['Caliente'].a,tTotAl)}%;background:#C0392B;"></div><div style="width:${pct(tData['Tibio'].a,tTotAl)}%;background:#F47432;"></div><div style="width:${pct(tData['Frío'].a,tTotAl)}%;background:#9FC2E6;"></div></div><div class="sval">${fmt(Math.round(tTotAl))}</div></div>
         <div class="srow"><div class="slbl">Ponderado</div><div class="sbar"><div style="width:${pct(tData['Caliente'].fc,fcAl)}%;background:#C0392B;opacity:.7;"></div><div style="width:${pct(tData['Tibio'].fc,fcAl)}%;background:#F47432;opacity:.7;"></div><div style="width:${pct(tData['Frío'].fc,fcAl)}%;background:#9FC2E6;opacity:.7;"></div></div><div class="sval">${fmt(fcAl)}</div></div>
         <div class="note">Ponderado = alumnos &times; probabilidad de cierre por etapa</div>
@@ -878,12 +1015,13 @@ function render(){
         <div class="kati"><div class="katv" style="color:var(--yellow);">${pct(kaTotal.fc,fcAl)}%</div><div class="katl">del forecast total (${fmt(fcAl)})</div></div>
       </div>
       <div class="g2">
-        <div><div class="ct" style="margin-bottom:10px;">Oportunidades KA por temperatura</div>
-          <div class="tgrid">${temps.map(t=>{const d=kaData[t];const c=tColors[t];const pD=pct(d.d,kaTotal.d);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';font-size:10px;"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey" style="font-size:10px;">Deals</span><span class="tval">'+fmt(d.d)+'</span></div><div class="tpct">'+pD+'% de KA</div><div class="tbarbg"><div class="tbarfill" style="width:'+pD+'%;background:'+c.bc+';"></div></div></div>';}).join('')}</div>
+        <div><div class="ct" style="margin-bottom:10px;">Oportunidades KA por temperatura &mdash; clique en un card para ver los negocios</div>
+          <div class="tgrid" id="tgrid-ka">${temps.map(t=>tempCardClick('ka',t,kaData[t],tColors[t],kaTotal.d,'Deals KA')).join('')}</div>
           <div class="srow"><div class="slbl">KA Deals</div><div class="sbar"><div style="width:${pct(kaData['Caliente'].d,kaTotal.d)}%;background:#C0392B;"></div><div style="width:${pct(kaData['Tibio'].d,kaTotal.d)}%;background:#F47432;"></div><div style="width:${pct(kaData['Frío'].d,kaTotal.d)}%;background:#9FC2E6;"></div></div><div class="sval">${kaTotal.d}</div></div>
+          <div id="temp-list-ka" style="display:none"></div>
         </div>
         <div><div class="ct" style="margin-bottom:10px;">Alumnos KA por temperatura</div>
-          <div class="tgrid">${temps.map(t=>{const d=kaData[t];const c=tColors[t];const pAl=pct(d.a,kaTotA);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';font-size:10px;"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey" style="font-size:10px;">Alumnos</span><span class="tval">'+fmt(Math.round(d.a))+'</span></div><div class="tpct">'+pAl+'% de KA</div><div class="tbarbg"><div class="tbarfill" style="width:'+pAl+'%;background:'+c.bc+';"></div></div><div class="tpond">Pond. <strong>'+fmt(d.fc)+'</strong></div></div>';}).join('')}</div>
+          <div class="tgrid">${temps.map(t=>{const d=kaData[t];const c=tColors[t];const pAlp=pct(d.a,kaTotA);return'<div class="tcard" style="background:'+c.bg+';border-color:'+c.border+';"><div class="tlbl" style="color:'+c.lc+';font-size:10px;"><div class="tdot" style="background:'+c.bc+';"></div>'+t+'</div><div class="trow"><span class="tkey" style="font-size:10px;">Alumnos</span><span class="tval">'+fmt(Math.round(d.a))+'</span></div><div class="tpct">'+pAlp+'% de KA</div><div class="tbarbg"><div class="tbarfill" style="width:'+pAlp+'%;background:'+c.bc+';"></div></div><div class="tpond">Pond. <strong>'+fmt(d.fc)+'</strong></div></div>';}).join('')}</div>
           <div class="srow"><div class="slbl">KA Alumnos</div><div class="sbar"><div style="width:${pct(kaData['Caliente'].a,kaTotA)}%;background:#C0392B;"></div><div style="width:${pct(kaData['Tibio'].a,kaTotA)}%;background:#F47432;"></div><div style="width:${pct(kaData['Frío'].a,kaTotA)}%;background:#9FC2E6;"></div></div><div class="sval">${fmt(Math.round(kaTotal.a))}</div></div>
           <div class="srow"><div class="slbl">KA Pond.</div><div class="sbar"><div style="width:${pct(kaData['Caliente'].fc,kaTotal.fc)}%;background:#C0392B;opacity:.65;"></div><div style="width:${pct(kaData['Tibio'].fc,kaTotal.fc)}%;background:#F47432;opacity:.65;"></div><div style="width:${pct(kaData['Frío'].fc,kaTotal.fc)}%;background:#9FC2E6;opacity:.65;"></div></div><div class="sval">${fmt(kaTotal.fc)}</div></div>
         </div>
@@ -962,22 +1100,27 @@ function render(){
   </div>`;
 
   // ── ABA 4: GANADOS & A FIRMAR ─────────────────────────────────
+  const AV=rows.filter(r=>r._e==='Aceptación Verbal');
   const AF=rows.filter(r=>r._e==='A firmar');
 
   const gTotAl=G.reduce((s,r)=>s+r._al,0);
   const gTotFact=G.reduce((s,r)=>s+r._tot,0);
+  const avTotAl=AV.reduce((s,r)=>s+r._al,0);
+  const avTotFact=AV.reduce((s,r)=>s+r._tot,0);
   const afTotAl=AF.reduce((s,r)=>s+r._al,0);
   const afTotFact=AF.reduce((s,r)=>s+r._tot,0);
-  const grandTotAl=gTotAl+afTotAl;
-  const grandTotFact=gTotFact+afTotFact;
+  const grandTotAl=gTotAl+avTotAl+afTotAl;
+  const grandTotFact=gTotFact+avTotFact+afTotFact;
   const grandTick=grandTotAl>0?grandTotFact/grandTotAl:0;
   const gTick=gTotAl>0?gTotFact/gTotAl:0;
+  const avTick=avTotAl>0?avTotFact/avTotAl:0;
   const afTick=afTotAl>0?afTotFact/afTotAl:0;
 
+  const pillClass=e=>e==='Ganado'?'ep-g':e==='Aceptación Verbal'?'ep-av':'ep-af';
   const tblRow=r=>`<tr>
     <td>${r._emp||'—'}</td>
     <td style="color:var(--muted);">${r._ciudad||'—'}</td>
-    <td><span class="epill ${r._e==='Ganado'?'ep-g':'ep-af'}">${r._e}</span></td>
+    <td><span class="epill ${pillClass(r._e)}">${r._e}</span></td>
     <td class="r">${fmt(Math.round(r._al))}</td>
     <td class="r">US$ ${fmt(Math.round(r._tot))}</td>
     <td class="r">${r._al>0?'$'+fmt(r._tot/r._al,2):'—'}</td>
@@ -985,13 +1128,15 @@ function render(){
 
   const D4=`<div class="sb">
     <div class="sl"><div class="sdot" style="background:var(--success);"></div>Ganados &amp; A firmar &mdash; detalle por cliente</div>
-    <div class="card"><div class="ct">Listado de contratos &mdash; ${G.length} ganados + ${AF.length} a firmar</div>
+    <div class="card"><div class="ct">Listado de contratos &mdash; ${G.length} ganados + ${AV.length} en aceptaci&oacute;n verbal + ${AF.length} a firmar</div>
       <div style="overflow-x:auto;">
       <table class="dtbl">
         <thead><tr><th>Colegio</th><th>Ciudad</th><th>Etapa</th><th class="r">Alumnos</th><th class="r">Valor</th><th class="r">Ticket Prom.</th></tr></thead>
         <tbody>
           ${G.map(tblRow).join('')}
           <tr class="subtot"><td colspan="3">Subtotal Ganado (${G.length} contratos)</td><td class="r">${fmt(Math.round(gTotAl))}</td><td class="r">US$ ${fmt(Math.round(gTotFact))}</td><td class="r">$${fmt(gTick,2)}</td></tr>
+          ${AV.map(tblRow).join('')}
+          ${AV.length>0?`<tr class="subtot"><td colspan="3">Subtotal Aceptaci&oacute;n Verbal (${AV.length} contratos)</td><td class="r">${fmt(Math.round(avTotAl))}</td><td class="r">US$ ${fmt(Math.round(avTotFact))}</td><td class="r">$${fmt(avTick,2)}</td></tr>`:''}
           ${AF.map(tblRow).join('')}
           ${AF.length>0?`<tr class="subtot"><td colspan="3">Subtotal A firmar (${AF.length} contratos)</td><td class="r">${fmt(Math.round(afTotAl))}</td><td class="r">US$ ${fmt(Math.round(afTotFact))}</td><td class="r">$${fmt(afTick,2)}</td></tr>`:''}
           <tr class="grandtot"><td colspan="3">Total general</td><td class="r">${fmt(Math.round(grandTotAl))}</td><td class="r">US$ ${fmt(Math.round(grandTotFact))}</td><td class="r">$${fmt(grandTick,2)}</td></tr>
