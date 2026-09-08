@@ -445,7 +445,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
   <div class="nav-brand">
     <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" style="height:40px;width:auto;display:block">
     <span>LIV Latam &middot; Colombia</span>
-    <img src="https://flagcdn.com/co.svg" alt="Colombia" style="height:30px;width:auto;display:block;border-radius:3px;">
+    <img src="https://flagcdn.com/co.svg" alt="Colombia" style="height:40px;width:auto;display:block;border-radius:3px;">
   </div>
   <div class="nav-tab on" onclick="showNav('dash',this)">Dashboard</div>
   <div class="nav-tab" onclick="showNav('params',this)">&#9881; Par&#225;metros</div>
@@ -556,11 +556,10 @@ const STAGE_MAP={
   'C29:LOSE':'Perdido'
 };
 
-// Aliases de rótulos históricos gravados no campo "Tempo em cada etapa" → nome canônico
-// NOTA: o alias de "Aceptación Verbal" é uma suposição (o rótulo gravado pela automação do
-// Bitrix para essa etapa não pôde ser confirmado nos dados de exemplo). Se após o primeiro
-// carregamento real "Aceptación Verbal" não aparecer em "Tiempo promedio por etapa" nem em
-// "Tasa de conversión", verifique o texto real do campo para um deal nessa etapa e ajuste aqui.
+// El campo "Tempo em cada etapa" graba el STAGE_ID directamente (confirmado via
+// crm.deal.get, ej.: "C29:NEW : 0 dias..."), por eso normStageKey ya resuelve la
+// mayoria de los casos via STAGE_MAP. Este alias queda solo como red de seguridad
+// para eventuales registros antiguos que hayan quedado con etiquetas de texto.
 const STAGE_ALIASES={
   'Contactado':'Contacto',
   'Diagnostico':'Reunión Agendada',
@@ -572,7 +571,13 @@ const STAGE_ALIASES={
   'Aceptacion Verbal':'Aceptación Verbal',
   'A firmar':'A firmar'
 };
-function normStageKey(k){return STAGE_ALIASES[k]||k;}
+function normStageKey(k){
+  // El Bitrix graba el STAGE_ID directamente en la mayoria de los registros
+  // (confirmado via crm.deal.get); STAGE_ALIASES queda como fallback para
+  // eventuales registros antiguos con etiquetas de texto en vez de STAGE_ID.
+  if(STAGE_MAP[k])return STAGE_MAP[k];
+  return STAGE_ALIASES[k]||k;
+}
 
 // ── STATE ──────────────────────────────────────────────────────────
 let RAW=null;
@@ -740,7 +745,10 @@ function pd(v){
 }
 function pt(t){
   if(!t)return{};const r={};
-  String(t).split('|').forEach(p=>{const m=p.trim().match(/^(.+?)\s*:\s*(\d+)\s*dias?/i);if(m)r[m[1].trim()]=+m[2];});
+  // El campo puede volver como string simple o como array de un elemento
+  // (confirmado via API) — normalizamos a string antes de parsear.
+  const s=Array.isArray(t)?t.join(' | '):t;
+  String(s).split('|').forEach(p=>{const m=p.trim().match(/^(.+?)\s*:\s*(\d+)\s*dias?/i);if(m)r[m[1].trim()]=+m[2];});
   return r;
 }
 function fmt(n,d=0){return new Intl.NumberFormat('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);}
