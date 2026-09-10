@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Webinars Colombia · LIV</title>
+<title>Eventos Colombia · LIV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -84,10 +84,12 @@
   .stg .sk{font-size:11px}
   .stg .sv{font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;margin-top:1px}
   .stg.fill{background:var(--liv-purple)} .stg.fill .sk{color:#CECBF6} .stg.fill .sv{color:#fff}
+  .stg.fillconf{background:#3E6FA8} .stg.fillconf .sk{color:#D2E1F0} .stg.fillconf .sv{color:#fff}
   .stg.fillcal{background:var(--liv-orange)} .stg.fillcal .sk{color:#FFE3D2} .stg.fillcal .sv{color:#fff}
   .stg.filldone{background:#6F63C4} .stg.filldone .sk{color:#E2DEF7} .stg.filldone .sv{color:#fff}
   .stg .sea{font-size:11px;margin-top:3px;padding-top:4px;border-top:1px solid rgba(0,0,0,.05)}
   .stg.fill .sea{color:#CECBF6;border-top-color:rgba(255,255,255,.18)}
+  .stg.fillconf .sea{color:#D2E1F0;border-top-color:rgba(255,255,255,.22)}
   .stg.fillcal .sea{color:#FFE3D2;border-top-color:rgba(255,255,255,.25)}
   .stg.filldone .sea{color:#E2DEF7;border-top-color:rgba(255,255,255,.2)}
   .stg.empty .sea{color:#B4B2A9}
@@ -137,7 +139,7 @@
 <header class="top">
   <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV"/>
   <div class="tt">
-    <h1>Webinars COLOMBIA</h1>
+    <h1>EVENTOS COLOMBIA</h1>
     <span>Dashboard de registros · campaña 2026</span>
   </div>
 </header>
@@ -387,10 +389,13 @@ function compute(){
   // muestra además cuántos de ellos son perfil calificado.
   const presenteSub = registrados.filter(r=>r.etapa==='Presente');
   const noshowSub = registrados.filter(r=>r.etapa==='No show');
+  const confirmadoSub = registrados.filter(r=>alcanzo(r,'Confirmado'));
   const funnel = {
     registrado: {n:registrados.length, esc:escuelasUnicas(registrados), al:alumnosUnicos(registrados),
                  qual:qualified.length,
                  qualPct: registrados.length>0 ? qualified.length/registrados.length*100 : null},
+    confirmado: {n:confirmadoSub.length, esc:escuelasUnicas(confirmadoSub), al:alumnosUnicos(confirmadoSub),
+                 pct: registrados.length>0 ? confirmadoSub.length/registrados.length*100 : null},
     presente: {n:presenteSub.length, esc:escuelasUnicas(presenteSub), al:alumnosUnicos(presenteSub),
                pct: registrados.length>0 ? presenteSub.length/registrados.length*100 : null},
     noshow: {n:noshowSub.length, esc:escuelasUnicas(noshowSub), al:alumnosUnicos(noshowSub),
@@ -494,6 +499,11 @@ function renderTab0(D){
         <div class="sea">${fmt(F.registrado.esc)} esc · ${fmt(F.registrado.al)} al</div>
         <div class="sea" style="border-top:none;padding-top:0;margin-top:-2px">${fmt(F.registrado.qual)} perfil calificado (${qualTxt})</div>
       </div>
+      <div class="stg fillconf">
+        <div class="sk">Confirmado <span style="opacity:.75">· ${pctTxt(F.confirmado.pct)}</span></div>
+        <div class="sv">${fmt(F.confirmado.n)}</div>
+        <div class="sea">${fmt(F.confirmado.esc)} esc · ${fmt(F.confirmado.al)} al</div>
+      </div>
       <div class="stg filldone">
         <div class="sk">Presente <span style="opacity:.75">· ${pctTxt(F.presente.pct)}</span></div>
         <div class="sv">${fmt(F.presente.n)}</div>
@@ -518,7 +528,7 @@ function renderTab0(D){
   p.innerHTML = `
     <div class="funnel" style="margin-bottom:18px">
       <div class="ft">Embudo post-registro</div>
-      <div class="fh">'Registrado' incluye a todos los que llegaron a esa etapa, califiquen o no por perfil — el card muestra cuántos de ellos sí son perfil calificado (nivel Preescolar/Primaria + cargo). 'Presente' y 'No show' son desenlaces paralelos a partir del total Registrado — cada porcentaje es sobre ese total, no una conversión en cadena.</div>
+      <div class="fh">'Registrado' incluye a todos los que llegaron a esa etapa, califiquen o no por perfil — el card muestra cuántos de ellos sí son perfil calificado (nivel Preescolar/Primaria + cargo). 'Confirmado', 'Presente' y 'No show' son desenlaces paralelos a partir del total Registrado — cada porcentaje es sobre ese total, no una conversión en cadena.</div>
       ${funnelHTML}
     </div>
     <div class="card" style="margin-bottom:18px">
