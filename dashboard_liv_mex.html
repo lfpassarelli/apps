@@ -759,7 +759,7 @@ function ini(n){return(n||'?').split(' ').filter(Boolean).map(w=>w[0]).join('').
 function bdg(t,tp){return'<span class="bdg b'+tp+'">'+t+'</span>';}
 function alb(t,tp='w'){return'<div class="al a'+tp+'"><div class="ald"></div><span>'+t+'</span></div>';}
 function barRow(nm,v,mx,col,vs,nw){nw=nw||'96px';return'<div class="br"><div class="bn" style="width:'+nw+'">'+nm+'</div><div class="bt"><div class="bf" style="width:'+bw(v,mx)+'%;background:'+col+';"></div></div><div class="bv">'+vs+'</div></div>';}
-function barRowEtapa(nm,cnt,tot,mx,col){return'<div class="br"><div class="bn" style="width:116px">'+nm+'</div><div class="bt"><div class="bf" style="width:'+bw(cnt,mx)+'%;background:'+col+';"></div></div><div class="bvals"><span class="bvn">'+fmt(cnt)+'</span><span class="bvamt">('+fmtK(tot)+')</span></div></div>';}
+function barRowEtapa(nm,cnt,al,tot,mx,col){return'<div class="br"><div class="bn" style="width:116px">'+nm+'</div><div class="bt"><div class="bf" style="width:'+bw(cnt,mx)+'%;background:'+col+';"></div></div><div class="bvals"><span class="bvn">'+fmt(cnt)+'</span><span class="bvamt">('+fmt(Math.round(al))+' alumnos / '+fmtK(tot)+')</span></div></div>';}
 function repRow(nm,v,mx,col,vs){return'<div class="rr"><div class="ri">'+ini(nm)+'</div><div class="rn">'+nm+'</div><div style="flex:2;"><div class="bt"><div class="bf" style="width:'+bw(v,mx)+'%;background:'+col+';"></div></div></div><div class="rv">'+vs+'</div></div>';}
 
 function applyP(){
@@ -856,6 +856,7 @@ function render(){
   const EC={'Contacto':'#9FC2E6','Reunión Agendada':'#9FC2E6','Diagnóstico [Virtual]':'#4B3E98','Profundización Pedagógica':'#4B3E98','Propuesta':'#FEC238','Aceptación Verbal':'#F47432','A firmar':'#F47432','Ganado':'#2E9D57','Perdido':'#C0392B'};
   const eCnt={};rows.forEach(r=>{eCnt[r._e]=(eCnt[r._e]||0)+1;});const mxE=Math.max(...Object.values(eCnt));
   const eTot={};rows.forEach(r=>{eTot[r._e]=(eTot[r._e]||0)+r._tot;});
+  const eAl={};rows.forEach(r=>{eAl[r._e]=(eAl[r._e]||0)+r._al;});
 
   // Tiempo promedio por etapa (histórico via _tmp, já com chaves normalizadas)
   const TO=['Contacto','Reunión Agendada','Diagnóstico [Virtual]','Profundización Pedagógica','Propuesta','Aceptación Verbal','A firmar'];
@@ -984,7 +985,7 @@ function render(){
       </div>
     </div>
     <div class="g3">
-      <div class="card"><div class="ct">Deals por etapa</div>${EO.map(e=>eCnt[e]?barRowEtapa(EL[e],eCnt[e],eTot[e]||0,mxE,EC[e]):'').join('')}</div>
+      <div class="card"><div class="ct">Deals por etapa</div>${EO.map(e=>eCnt[e]?barRowEtapa(EL[e],eCnt[e],eAl[e]||0,eTot[e]||0,mxE,EC[e]):'').join('')}</div>
       <div class="card"><div class="ct">Tiempo promedio por etapa</div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Promedio de d&iacute;as via historial del Bitrix.</div>
         ${td.map(e=>barRow(EL[e.n]||e.n,e.a,mxT,tc(e.a),e.a+'d')).join('')}
