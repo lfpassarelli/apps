@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard LIV Latam México 2026</title>
+<title>Dashboard LIV Latam Colombia 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 /* ── CORES-LIV THEME TOKENS ── */
@@ -444,8 +444,8 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 <div class="nav">
   <div class="nav-brand">
     <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" style="height:40px;width:auto;display:block">
-    <span>LIV Latam &middot; México</span>
-    <img src="https://flagcdn.com/mx.svg" alt="México" style="height:40px;width:auto;display:block;border-radius:3px;">
+    <span>LIV Latam &middot; Colombia</span>
+    <img src="https://flagcdn.com/co.svg" alt="Colombia" style="height:40px;width:auto;display:block;border-radius:3px;">
   </div>
   <div class="nav-tab on" onclick="showNav('dash',this)">Dashboard</div>
   <div class="nav-tab" onclick="showNav('params',this)">&#9881; Par&#225;metros</div>
@@ -467,7 +467,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
     <div class="uz">
       <div class="uz-icon">&#128268;</div>
       <h3>Conectar ao Bitrix24</h3>
-      <p>Ingrese el token del webhook para cargar el pipeline "1. [MEX] Ventas"</p>
+      <p>Ingrese el token del webhook para cargar el pipeline "2. [COL] Ventas"</p>
       <div style="max-width:380px;margin:20px auto 0;display:flex;gap:8px;">
         <input type="password" id="token-input" class="tokinp" placeholder="Token del webhook" onkeydown="if(event.key==='Enter')connectAndLoad()">
         <button class="bapply" style="width:auto;margin-top:0;padding:9px 18px;white-space:nowrap;" onclick="connectAndLoad()">Conectar</button>
@@ -521,7 +521,7 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
     </div>
     <div class="psec"><h3>Metodologia</h3>
       <p style="font-size:12px;color:var(--text);line-height:1.8;">
-        <strong>Fuente de datos:</strong> API REST Bitrix24 &mdash; pipeline "1. [MEX] Ventas" (CATEGORY_ID 3).<br><br>
+        <strong>Fuente de datos:</strong> API REST Bitrix24 &mdash; pipeline "2. [COL] Ventas" (CATEGORY_ID 29).<br><br>
         <strong>Taxa por etapa:</strong> hist&#243;rico via campo "Tempo em cada etapa".<br><br>
         <strong>Taxa global:</strong> ganados &#247; total que passou por Profundizaci&#243;n Pedag&#243;gica.<br><br>
         <strong>Exclu&#237;dos:</strong> Dev Academia CRM.<br><br>
@@ -537,23 +537,23 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
 const B24_DOMAIN='livlatam.bitrix24.com.br';
 const B24_USER='1';
 let B24_TOKEN='';
-const CATEGORY_ID=3; // "1. [MEX] Ventas"
+const CATEGORY_ID=29; // "2. [COL] Ventas"
 
 // Campos custom (crm.deal.fields / crm.company.fields)
 const F={ALUMNOS:'UF_CRM_1771160586',TAG:'UF_CRM_1771422860',TEMP:'UF_CRM_1772191377',MOTIVO:'UF_CRM_1771183656',TEMPO_ETAPA:'UF_CRM_1772451422'};
-const CF={ESTADO:'UF_CRM_1782012617',CIUDAD:'UF_CRM_1782122486',CLAS:'UF_CRM_1766064361'};
+const CF={ESTADO:'UF_CRM_1782012617',CIUDAD:'UF_CRM_1782122643',CLAS:'UF_CRM_1766064361'};
 
 // STAGE_ID (DEAL_STAGE_3) → nome normalizado usado no resto do dashboard
 const STAGE_MAP={
-  'C3:NEW':'Contacto',
-  'C3:PREPAYMENT_INVOICE':'Reunión Agendada',
-  'C3:EXECUTING':'Diagnóstico [Virtual]',
-  'C3:UC_OS0PHI':'Profundización Pedagógica',
-  'C3:FINAL_INVOICE':'Propuesta',
-  'C3:UC_29TR2U':'Aceptación Verbal',
-  'C3:UC_05S53L':'A firmar',
-  'C3:WON':'Ganado',
-  'C3:LOSE':'Perdido'
+  'C29:NEW':'Contacto',
+  'C29:PREPARATION':'Reunión Agendada',
+  'C29:PREPAYMENT_INVOIC':'Diagnóstico [Virtual]',
+  'C29:EXECUTING':'Profundización Pedagógica',
+  'C29:FINAL_INVOICE':'Propuesta',
+  'C29:UC_3OYMOV':'Aceptación Verbal',
+  'C29:UC_44E66J':'A firmar',
+  'C29:WON':'Ganado',
+  'C29:LOSE':'Perdido'
 };
 
 // El campo "Tempo em cada etapa" graba el STAGE_ID directamente (confirmado via
@@ -705,7 +705,7 @@ async function refreshData(isFirst){
         _tot:Number(d.OPPORTUNITY)||0,
         _e:STAGE_MAP[d.STAGE_ID]||d.STAGE_ID,
         _rep:rep,
-        _estado:enumMaps.estado[comp[CF.ESTADO]]||'Sin estado',
+        _estado:enumMaps.estado[comp[CF.ESTADO]]||'Sin departamento',
         _ciudad:enumMaps.ciudad[comp[CF.CIUDAD]]||'Sin ciudad',
         _tag:enumMaps.tag[d[F.TAG]]||'',
         _tmp:tmp,
@@ -936,7 +936,7 @@ function render(){
   // HEADER
   const HDR=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--border);">
     <div>
-      <h1 style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);">Dashboard LIV Latam &mdash; M&eacute;xico</h1>
+      <h1 style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--text);">Dashboard LIV Latam &mdash; Colombia</h1>
       <p style="font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--fh);">${fmt(total)} oportunidades &middot; Campa&ntilde;a 2026</p>
     </div>
     <div style="font-family:var(--fh);font-size:11px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;text-transform:uppercase;letter-spacing:.05em;">Bitrix24 API &middot; Datos en vivo</div>
@@ -1058,9 +1058,9 @@ function render(){
       </div>
     </div>
     <div class="g2">
-      <div class="card"><div class="ct">Alumnos por estado &mdash; deals ganados</div>
-        ${ctA.map(([c,a])=>barRow(c,a,mxCt,c==='Sin estado'?'#DDD9F5':'#2E9D57',fmt(Math.round(a)),'114px')).join('')}
-        <div class="note">* Sin estado = deals sin estado registrado en el CRM</div>
+      <div class="card"><div class="ct">Alumnos por departamento &mdash; deals ganados</div>
+        ${ctA.map(([c,a])=>barRow(c,a,mxCt,c==='Sin departamento'?'#DDD9F5':'#2E9D57',fmt(Math.round(a)),'114px')).join('')}
+        <div class="note">* Sin departamento = deals sin departamento registrado en el CRM</div>
       </div>
       <div class="card"><div class="ct">Concentraci&oacute;n por faixa de alumnado &mdash; deals ganados</div>
         <div class="fg">
@@ -1076,7 +1076,7 @@ function render(){
   // ── ABA 3 ──────────────────────────────────────────────────────
   const D3=`<div class="sb">
     <div class="sl"><div class="sdot" style="background:var(--yellow);"></div>Salud de cartera</div>
-    <div class="card"><div class="ct">Origen de leads &mdash; Tag Fuente &middot; distribuci&oacute;n por estado</div>
+    <div class="card"><div class="ct">Origen de leads &mdash; Tag Fuente &middot; distribuci&oacute;n por departamento</div>
       ${tgA.map(([tag,d])=>{const gP=pct(d.g,d.tot),pP=pct(d.p,d.tot),aP=pct(d.a,d.tot),gG=pct(d.g,G.length||1);return'<div class="tfr"><div class="tfn">'+tag+'</div><div class="tfb"><div class="tfs"><div style="width:'+gP+'%;background:#2E9D57;"></div><div style="width:'+pP+'%;background:#C0392B;"></div><div style="width:'+aP+'%;background:#9FC2E6;"></div></div><div class="tfl"><span class="tflb" style="color:#2E9D57;">'+d.g+' ganados ('+gP+'% da tag &middot; <strong>'+gG+'% do total</strong>)</span><span class="tflb" style="color:var(--muted);">&middot;</span><span class="tflb" style="color:#C0392B;">'+d.p+' perdidos ('+pP+'%)</span><span class="tflb" style="color:var(--muted);">&middot;</span><span class="tflb" style="color:#4B3E98;">'+d.a+' activos ('+aP+'%)</span></div></div><div class="tft">'+d.tot+'</div></div>';}).join('')}
       <div class="tfleg"><div class="tfli"><div class="tfld" style="background:#2E9D57;"></div>Ganados</div><div class="tfli"><div class="tfld" style="background:#C0392B;"></div>Perdidos</div><div class="tfli"><div class="tfld" style="background:#9FC2E6;"></div>Activos</div><div style="margin-left:auto;font-size:10px;color:var(--muted);">* ${sTag} deals sin tag no incluidos</div></div>
     </div>
@@ -1158,17 +1158,17 @@ function render(){
   // ── ABA 5: DISPERSIÓN GEOGRÁFICA ──────────────────────────────
   const geoData={};
   G.forEach(r=>{
-    const st=r._estado||'Sin estado';
+    const st=r._estado||'Sin departamento';
     if(!geoData[st])geoData[st]={alumnos:0,schools:[]};
     geoData[st].alumnos+=r._al;
     geoData[st].schools.push({name:r._emp||'—',city:r._ciudad||'—',alumnos:r._al});
   });
   Object.values(geoData).forEach(d=>d.schools.sort((a,b)=>b.alumnos-a.alumnos));
   const D5=`<div class="sb">
-    <div class="sl"><div class="sdot" style="background:var(--accent);"></div>Dispersi&oacute;n geogr&aacute;fica &mdash; ${G.length} contratos ganados &middot; ${Object.keys(geoData).length} estados</div>
+    <div class="sl"><div class="sdot" style="background:var(--accent);"></div>Dispersi&oacute;n geogr&aacute;fica &mdash; ${G.length} contratos ganados &middot; ${Object.keys(geoData).length} departamentos</div>
     <div class="card" style="padding:14px 18px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:12px;color:var(--muted);">Haga clic en un estado para ver los colegios</div>
+        <div style="font-size:12px;color:var(--muted);">Haga clic en un departamento para ver los colegios</div>
         <div style="display:flex;border:1px solid var(--border2);border-radius:var(--rs);overflow:hidden;">
           <button id="gbtn-heat" onclick="geoSetMode('heat')" style="padding:5px 14px;font-family:var(--fh);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border:none;background:var(--accent);color:#fff;">Calor</button>
           <button id="gbtn-pins" onclick="geoSetMode('pins')" style="padding:5px 14px;font-family:var(--fh);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border:none;background:var(--surface);color:var(--muted);border-left:1px solid var(--border2);">Pins</button>
@@ -1182,7 +1182,7 @@ function render(){
       </div>
     </div>
     <div id="geo-detail" style="margin-top:12px;">
-      <div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);">Haga clic en un estado para ver los colegios</div>
+      <div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);">Haga clic en un departamento para ver los colegios</div>
     </div>
   </div>`;
 
@@ -1202,6 +1202,17 @@ let _geoMode='heat';
 let _geoSvg=null;
 let _geoFeatures=null;
 window._GEO={};
+
+// El geojson de departamentos de Colombia puede usar distintos nombres de propiedad
+// según la fuente (NOMBRE_DPT es el más común en shapefiles del DANE convertidos).
+// Probamos varias claves conocidas para no depender de una sola.
+function deptName(f){
+  const p=(f&&f.properties)||{};
+  return p.NOMBRE_DPT||p.DPTO_CNMBR||p.NOMBRE_DEP||p.DEPARTAMEN||p.NOMBRE||p.dpto||p.name||'';
+}
+function normDept(s){
+  return(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+}
 
 function geoSetMode(mode){
   _geoMode=mode;
@@ -1223,7 +1234,7 @@ function geoSelectState(stName){
   if(!el)return;
   if(_geoSvg){
     _geoSvg.selectAll('.state-path').classed('sel',false);
-    _geoSvg.selectAll('.state-path').filter(f=>f.properties.name===stName).classed('sel',true);
+    _geoSvg.selectAll('.state-path').filter(f=>normDept(deptName(f))===normDept(stName)).classed('sel',true);
     _geoSvg.selectAll('.pin-dot').classed('sel',false);
     _geoSvg.selectAll('.pin-dot').filter(f=>f.state===stName).classed('sel',true);
   }
@@ -1260,20 +1271,21 @@ function drawGeoMap(){
   _geoSvg=svg;
   const proj=d3.geoMercator().fitSize([W,H],{type:'FeatureCollection',features:_geoFeatures});
   const path=d3.geoPath().projection(proj);
+  const geoNormIndex={};Object.keys(geo).forEach(k=>{geoNormIndex[normDept(k)]=k;});
   if(_geoMode==='heat'){
     svg.selectAll('.state-path').data(_geoFeatures).enter().append('path')
       .attr('class','state-path')
       .attr('d',path)
-      .attr('fill',f=>{const d=geo[f.properties.name];return d?colorScale(d.alumnos):'#EDEAF8';})
-      .on('click',(_,f)=>geoSelectState(f.properties.name))
-      .append('title').text(f=>{const d=geo[f.properties.name];
-        return d?`${f.properties.name}: ${d.schools.length} colegios, ${fmt(Math.round(d.alumnos))} alumnos`:f.properties.name;});
+      .attr('fill',f=>{const key=geoNormIndex[normDept(deptName(f))];const d=key?geo[key]:null;return d?colorScale(d.alumnos):'#EDEAF8';})
+      .on('click',(_,f)=>{const key=geoNormIndex[normDept(deptName(f))];geoSelectState(key||deptName(f));})
+      .append('title').text(f=>{const key=geoNormIndex[normDept(deptName(f))];const d=key?geo[key]:null;const label=key||deptName(f);
+        return d?`${label}: ${d.schools.length} colegios, ${fmt(Math.round(d.alumnos))} alumnos`:label;});
   } else {
     svg.selectAll('.state-base').data(_geoFeatures).enter().append('path')
       .attr('class','state-path').attr('d',path).attr('fill','#EDEAF8')
-      .on('click',(_,f)=>geoSelectState(f.properties.name));
+      .on('click',(_,f)=>{const key=geoNormIndex[normDept(deptName(f))];geoSelectState(key||deptName(f));});
     const pinData=Object.entries(geo).map(([st,d])=>{
-      const feat=_geoFeatures.find(f=>f.properties.name===st);
+      const feat=_geoFeatures.find(f=>normDept(deptName(f))===normDept(st));
       if(!feat)return null;
       const c=proj(d3.geoCentroid(feat));
       return{state:st,x:c[0],y:c[1],alumnos:d.alumnos,count:d.schools.length};
@@ -1298,8 +1310,8 @@ function initGeoMap(){
   if(typeof d3==='undefined'){setTimeout(initGeoMap,200);return;}
   if(_geoFeatures){drawGeoMap();return;}
   const URLS=[
-    'https://cdn.jsdelivr.net/gh/angelnmara/geojson@master/mexicoHigh.json',
-    'https://raw.githubusercontent.com/angelnmara/geojson/master/mexicoHigh.json'
+    'https://cdn.jsdelivr.net/gh/santiblanko/colombia.geojson@master/depto.json',
+    'https://raw.githubusercontent.com/santiblanko/colombia.geojson/master/depto.json'
   ];
   function tryFetch(i){
     if(i>=URLS.length){
