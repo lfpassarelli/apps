@@ -58,6 +58,7 @@
   .btn-secundario { height: 32px; padding: 0 12px; background: #fff; color: var(--muted); border: 1px solid var(--border); font-size: 12px; }
   .categoria { margin-bottom: 20px; }
   .categoria-titulo { font-size: 12px; font-weight: 500; color: var(--purple); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .subcategoria-titulo { font-size: 12px; font-weight: 500; color: var(--muted); margin: 12px 0 8px; }
   .categoria-lista { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
   .archivo-item {
     display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer;
@@ -67,18 +68,19 @@
   .archivo-item:hover { background: var(--bg); }
 
   /* Lector */
-  #pantalla-lector { flex-direction: column; padding: 16px; max-width: 720px; margin: 0 auto; width: 100%; }
+  #pantalla-lector { flex-direction: column; padding: 16px; max-width: 1100px; margin: 0 auto; width: 100%; }
   .lector-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 0.5px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; }
   .lector-header .titulo { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lector-header .pagina { font-size: 12px; color: var(--muted); white-space: nowrap; }
   #canvas-wrap {
     background: var(--surface); border: 0.5px solid var(--border); border-top: none;
     border-radius: 0 0 12px 12px; display: flex; align-items: center; justify-content: center;
-    overflow: auto; min-height: 60vh; position: relative;
+    overflow: auto; min-height: 82vh; position: relative;
   }
   #pagina-canvas { max-width: 100%; }
   .lector-nav { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 0 0; }
   #cargando { font-size: 13px; color: var(--muted); text-align: center; padding: 40px; }
+  button:disabled { opacity: 0.4; cursor: default; }
 </style>
 </head>
 <body>
@@ -206,12 +208,22 @@ function irALista() {
       return;
     }
     container.innerHTML = '';
-    res.categorias.forEach(function (cat) {
-      var catEl = document.createElement('div');
-      catEl.className = 'categoria';
-      var titulo = document.createElement('div');
-      titulo.className = 'categoria-titulo';
-      titulo.textContent = cat.nombre;
+    renderizarCategorias(res.categorias, container, 0);
+  });
+}
+
+function renderizarCategorias(categorias, container, nivel) {
+  categorias.forEach(function (cat) {
+    var catEl = document.createElement('div');
+    catEl.className = 'categoria';
+    if (nivel > 0) catEl.style.marginLeft = (nivel * 16) + 'px';
+
+    var titulo = document.createElement('div');
+    titulo.className = nivel === 0 ? 'categoria-titulo' : 'subcategoria-titulo';
+    titulo.textContent = cat.nombre;
+    catEl.appendChild(titulo);
+
+    if (cat.archivos.length > 0) {
       var lista = document.createElement('div');
       lista.className = 'categoria-lista';
       cat.archivos.forEach(function (archivo) {
@@ -221,10 +233,14 @@ function irALista() {
         item.addEventListener('click', function () { abrirPdf(archivo.id, archivo.nombre); });
         lista.appendChild(item);
       });
-      catEl.appendChild(titulo);
       catEl.appendChild(lista);
-      container.appendChild(catEl);
-    });
+    }
+
+    container.appendChild(catEl);
+
+    if (cat.subcategorias.length > 0) {
+      renderizarCategorias(cat.subcategorias, container, nivel + 1);
+    }
   });
 }
 
@@ -260,7 +276,16 @@ function renderizarPagina() {
   estado.pdfDoc.getPage(estado.paginaActual).then(function (page) {
     var canvas = document.getElementById('pagina-canvas');
     var ctx = canvas.getContext('2d');
-    var viewport = page.getViewport({ scale: 1.4 });
+    var wrap = document.getElementById('canvas-wrap');
+
+    // Escala dinámica: usa el ancho y alto disponibles del contenedor
+    var baseViewport = page.getViewport({ scale: 1 });
+    var anchoDisponible = wrap.clientWidth - 48;
+    var altoDisponible = wrap.clientHeight - 48;
+    var escala = Math.min(anchoDisponible / baseViewport.width, altoDisponible / baseViewport.height);
+    escala = Math.max(escala, 0.5);
+    var viewport = page.getViewport({ scale: escala });
+
     canvas.width = viewport.width;
     canvas.height = viewport.height;
 
@@ -269,6 +294,9 @@ function renderizarPagina() {
       document.getElementById('cargando').classList.add('oculto');
       canvas.classList.remove('oculto');
       document.getElementById('lector-pagina').textContent = estado.paginaActual + ' / ' + estado.totalPaginas;
+
+      document.getElementById('btn-anterior').disabled = estado.paginaActual <= 1;
+      document.getElementById('btn-siguiente').disabled = estado.paginaActual >= estado.totalPaginas;
     });
   });
 }
