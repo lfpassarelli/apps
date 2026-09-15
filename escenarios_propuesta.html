@@ -334,6 +334,7 @@ const COUNTRIES = {
 };
 const TICKET_TARGET_USD = 45;
 const FLOOR_USD = 30;
+const SALA_LIV_COST_USD = 700;
 
 let fxRates = { MXN:null, COP:null };
 let fxManual = { MXN:false, COP:false };
@@ -488,7 +489,8 @@ function calcScenario(cfg, g){
 
   const price1 = listPrice * (1 - (cfg.yearDiscounts[0] || 0) / 100);
   const payingY1 = cfg.preescolarExento ? Math.max(0, N - g.preescolarCount) : N;
-  const revenueY1 = payingY1 * price1;
+  const salaLIVCostLocal = cfg.salaLIV ? SALA_LIV_COST_USD * g.fx : 0;
+  const revenueY1 = (payingY1 * price1) - salaLIVCostLocal;
   yearPrices.push(price1); yearStudents.push(payingY1); yearEnrolled.push(N); yearRevenue.push(revenueY1);
 
   for (let y = 2; y <= T; y++){
@@ -525,7 +527,8 @@ function calcScenario(cfg, g){
     yearPrices: yearPrices, yearStudents: yearStudents, yearEnrolled: yearEnrolled, yearRevenue: yearRevenue,
     achievedAvg: achievedAvg, notReachingTicket: notReachingTicket, belowFloor: belowFloor,
     noRecoveryPossible: noRecoveryPossible,
-    recoveryYearLabel: recoveryYearLabel, growthOpportunity: growthOpportunity
+    recoveryYearLabel: recoveryYearLabel, growthOpportunity: growthOpportunity,
+    salaLIVCostLocal: salaLIVCostLocal
   };
 }
 
@@ -555,6 +558,9 @@ function renderScenario(card, cfg, r, g){
   }
   if (r.belowFloor){
     badges += '<span class="badge badge-red">Bajo el piso mínimo</span>';
+  }
+  if (r.salaLIVCostLocal > 0){
+    badges += '<span class="badge badge-amber">Costo Sala LIV: -' + fmtMoney(r.salaLIVCostLocal, g.country) + ' (US$' + SALA_LIV_COST_USD + ') en año 1</span>';
   }
 
   const diff = r.achievedAvg - g.metaLocal;
