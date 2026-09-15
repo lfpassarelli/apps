@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LIV Colombia — Documentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F7F6FD;
+    --purple: #4B3E98;
+    --orange: #F47432;
+    --text: #1A1530;
+    --muted: #6B6490;
+    --border: #DDD9F5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  h1, h2 { font-family: 'Outfit', sans-serif; font-weight: 500; }
+  .pantalla { display: none; min-height: 100vh; }
+  .pantalla.activa { display: flex; }
+  .oculto { display: none !important; }
+
+  /* Login */
+  #pantalla-login { align-items: center; justify-content: center; padding: 24px; }
+  .card-login {
+    width: 100%; max-width: 360px; background: var(--bg);
+    border: 0.5px solid var(--border); border-radius: 16px; padding: 2rem 1.75rem;
+  }
+  .card-login img { display: block; margin: 0 auto 1.5rem; height: 36px; background: var(--purple); padding: 8px 14px; border-radius: 8px; }
+  .card-login h1 { font-size: 18px; text-align: center; margin: 0 0 4px; }
+  .card-login p.sub { font-size: 13px; color: var(--muted); text-align: center; margin: 0 0 24px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input[type=text], input[type=password] {
+    width: 100%; height: 40px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0 12px; font-size: 14px; color: var(--text); margin-bottom: 14px; font-family: inherit;
+  }
+  button {
+    cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 500; border: none; border-radius: 8px;
+  }
+  .btn-primary { width: 100%; height: 42px; background: var(--purple); color: #fff; font-size: 14px; }
+  #error-login { font-size: 13px; color: #A32D2D; text-align: center; margin: -6px 0 14px; }
+
+  /* Lista */
+  #pantalla-lista { flex-direction: column; padding: 24px; max-width: 640px; margin: 0 auto; width: 100%; }
+  .lista-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .lista-header p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .btn-secundario { height: 32px; padding: 0 12px; background: #fff; color: var(--muted); border: 1px solid var(--border); font-size: 12px; }
+  .categoria { margin-bottom: 20px; }
+  .categoria-titulo { font-size: 12px; font-weight: 500; color: var(--purple); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .categoria-lista { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .archivo-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer;
+    border-bottom: 0.5px solid var(--border); font-size: 13px;
+  }
+  .archivo-item:last-child { border-bottom: none; }
+  .archivo-item:hover { background: var(--bg); }
+
+  /* Lector */
+  #pantalla-lector { flex-direction: column; padding: 16px; max-width: 720px; margin: 0 auto; width: 100%; }
+  .lector-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 0.5px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; }
+  .lector-header .titulo { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lector-header .pagina { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  #canvas-wrap {
+    background: var(--surface); border: 0.5px solid var(--border); border-top: none;
+    border-radius: 0 0 12px 12px; display: flex; align-items: center; justify-content: center;
+    overflow: auto; min-height: 60vh; position: relative;
+  }
+  #pagina-canvas { max-width: 100%; }
+  .lector-nav { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 0 0; }
+  #cargando { font-size: 13px; color: var(--muted); text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="pantalla-login" class="pantalla activa">
+  <div class="card-login">
+    <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" />
+    <h1>Documentos pedagógicos</h1>
+    <p class="sub">Acceda con su usuario y contraseña</p>
+    <label for="in-usuario">Usuario</label>
+    <input type="text" id="in-usuario" autocomplete="username" />
+    <label for="in-senha">Contraseña</label>
+    <input type="password" id="in-senha" autocomplete="current-password" />
+    <p id="error-login" class="oculto"></p>
+    <button class="btn-primary" id="btn-login">Entrar</button>
+  </div>
+</div>
+
+<!-- ===== LISTA ===== -->
+<div id="pantalla-lista" class="pantalla">
+  <div class="lista-header">
+    <div>
+      <h1 style="font-size:18px;margin:0;">Documentos pedagógicos</h1>
+      <p>Conectado como <span id="nombre-usuario"></span></p>
+    </div>
+    <button class="btn-secundario" id="btn-logout">Salir</button>
+  </div>
+  <div id="categorias-container"></div>
+</div>
+
+<!-- ===== LECTOR ===== -->
+<div id="pantalla-lector" class="pantalla">
+  <div class="lector-header">
+    <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+      <button id="btn-volver" class="btn-secundario" style="height:28px;">&larr;</button>
+      <span class="titulo" id="lector-titulo"></span>
+    </div>
+    <span class="pagina" id="lector-pagina"></span>
+  </div>
+  <div id="canvas-wrap">
+    <div id="cargando">Cargando documento…</div>
+    <canvas id="pagina-canvas" class="oculto"></canvas>
+  </div>
+  <div class="lector-nav">
+    <button class="btn-secundario" id="btn-anterior">&larr; Anterior</button>
+    <button class="btn-primary" id="btn-siguiente" style="width:auto; padding:0 14px;">Siguiente &rarr;</button>
+  </div>
+</div>
+
+<script>
+// ===== CONFIGURACIÓN =====
+var API_URL = 'ttps://script.google.com/macros/s/AKfycbwoFRYMAAOfEKt03zsC9iRaPn-zLa-Hz9LyIPOwuTCiFKPf-jyp8-j7HMtSuvRdztJi/exec';
+
+// ===== ESTADO =====
+var estado = {
+  token: sessionStorage.getItem('liv_token') || null,
+  nombre: sessionStorage.getItem('liv_nombre') || null,
+  pdfDoc: null,
+  paginaActual: 1,
+  totalPaginas: 0
+};
+
+function mostrarPantalla(id) {
+  document.querySelectorAll('.pantalla').forEach(function (p) { p.classList.remove('activa'); });
+  document.getElementById(id).classList.add('activa');
+}
+
+function llamarApi(params) {
+  return fetch(API_URL, {
+    method: 'POST',
+    body: new URLSearchParams(params)
+  }).then(function (r) { return r.json(); });
+}
+
+// ===== LOGIN =====
+document.getElementById('btn-login').addEventListener('click', function () {
+  var usuario = document.getElementById('in-usuario').value.trim();
+  var senha = document.getElementById('in-senha').value;
+  var errorEl = document.getElementById('error-login');
+  errorEl.classList.add('oculto');
+
+  if (!usuario || !senha) {
+    errorEl.textContent = 'Complete usuario y contraseña.';
+    errorEl.classList.remove('oculto');
+    return;
+  }
+
+  llamarApi({ action: 'login', usuario: usuario, senha: senha }).then(function (res) {
+    if (res.success) {
+      estado.token = res.token;
+      estado.nombre = res.nombre;
+      sessionStorage.setItem('liv_token', res.token);
+      sessionStorage.setItem('liv_nombre', res.nombre);
+      irALista();
+    } else {
+      errorEl.textContent = res.error || 'No fue posible iniciar sesión.';
+      errorEl.classList.remove('oculto');
+    }
+  }).catch(function () {
+    errorEl.textContent = 'Error de conexión. Intente nuevamente.';
+    errorEl.classList.remove('oculto');
+  });
+});
+
+document.getElementById('btn-logout').addEventListener('click', function () {
+  llamarApi({ action: 'logout', token: estado.token });
+  sessionStorage.clear();
+  estado.token = null;
+  estado.nombre = null;
+  document.getElementById('in-senha').value = '';
+  mostrarPantalla('pantalla-login');
+});
+
+// ===== LISTA =====
+function irALista() {
+  document.getElementById('nombre-usuario').textContent = estado.nombre;
+  mostrarPantalla('pantalla-lista');
+  var container = document.getElementById('categorias-container');
+  container.innerHTML = '<p style="font-size:13px; color:var(--muted);">Cargando…</p>';
+
+  llamarApi({ action: 'listar', token: estado.token }).then(function (res) {
+    if (!res.success) {
+      container.innerHTML = '<p style="font-size:13px; color:#A32D2D;">' + (res.error || 'Error al cargar documentos.') + '</p>';
+      return;
+    }
+    container.innerHTML = '';
+    res.categorias.forEach(function (cat) {
+      var catEl = document.createElement('div');
+      catEl.className = 'categoria';
+      var titulo = document.createElement('div');
+      titulo.className = 'categoria-titulo';
+      titulo.textContent = cat.nombre;
+      var lista = document.createElement('div');
+      lista.className = 'categoria-lista';
+      cat.archivos.forEach(function (archivo) {
+        var item = document.createElement('div');
+        item.className = 'archivo-item';
+        item.textContent = archivo.nombre;
+        item.addEventListener('click', function () { abrirPdf(archivo.id, archivo.nombre); });
+        lista.appendChild(item);
+      });
+      catEl.appendChild(titulo);
+      catEl.appendChild(lista);
+      container.appendChild(catEl);
+    });
+  });
+}
+
+// ===== LECTOR =====
+document.getElementById('btn-volver').addEventListener('click', irALista);
+
+function abrirPdf(fileId, nombre) {
+  mostrarPantalla('pantalla-lector');
+  document.getElementById('lector-titulo').textContent = nombre;
+  document.getElementById('cargando').classList.remove('oculto');
+  document.getElementById('pagina-canvas').classList.add('oculto');
+
+  llamarApi({ action: 'obtenerPdf', token: estado.token, fileId: fileId }).then(function (res) {
+    if (!res.success) {
+      document.getElementById('cargando').textContent = res.error || 'Error al cargar el documento.';
+      return;
+    }
+    var raw = atob(res.base64);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.getDocument({ data: bytes }).promise.then(function (pdf) {
+      estado.pdfDoc = pdf;
+      estado.totalPaginas = pdf.numPages;
+      estado.paginaActual = 1;
+      renderizarPagina();
+    });
+  });
+}
+
+function renderizarPagina() {
+  estado.pdfDoc.getPage(estado.paginaActual).then(function (page) {
+    var canvas = document.getElementById('pagina-canvas');
+    var ctx = canvas.getContext('2d');
+    var viewport = page.getViewport({ scale: 1.4 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
+      dibujarMarcaDeAgua(ctx, canvas.width, canvas.height);
+      document.getElementById('cargando').classList.add('oculto');
+      canvas.classList.remove('oculto');
+      document.getElementById('lector-pagina').textContent = estado.paginaActual + ' / ' + estado.totalPaginas;
+    });
+  });
+}
+
+function dibujarMarcaDeAgua(ctx, w, h) {
+  var texto = estado.nombre + '  ·  ' + new Date().toLocaleDateString('es-CO');
+  ctx.save();
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = '#4B3E98';
+  ctx.font = '16px sans-serif';
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(-Math.PI / 6);
+  var espacioY = 90;
+  for (var y = -h; y < h; y += espacioY) {
+    ctx.fillText(texto + '     ' + texto, -w, y);
+  }
+  ctx.restore();
+}
+
+document.getElementById('btn-anterior').addEventListener('click', function () {
+  if (estado.paginaActual > 1) {
+    estado.paginaActual--;
+    renderizarPagina();
+  }
+});
+document.getElementById('btn-siguiente').addEventListener('click', function () {
+  if (estado.paginaActual < estado.totalPaginas) {
+    estado.paginaActual++;
+    renderizarPagina();
+  }
+});
+
+// ===== PROTECCIONES BÁSICAS =====
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+document.addEventListener('keydown', function (e) {
+  var bloquear = (e.ctrlKey || e.metaKey) && ['s', 'p', 'u'].indexOf(e.key.toLowerCase()) !== -1;
+  if (bloquear || e.key === 'F12') e.preventDefault();
+});
+document.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+// ===== INICIO =====
+if (estado.token && estado.nombre) {
+  irALista();
+}
+</script>
+</body>
+</html>
