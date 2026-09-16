@@ -87,6 +87,12 @@
   .lector-nav { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 0 0; }
   #cargando { font-size: 13px; color: var(--muted); text-align: center; padding: 40px; }
   button:disabled { opacity: 0.4; cursor: default; }
+  .avisos-box {
+    background: #FDF4E7; border: 1px solid #F0D9B0; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 16px; font-size: 12px; color: #7A5A1E;
+  }
+  .avisos-box p { margin: 0 0 4px; }
+  .avisos-box p:last-child { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -218,8 +224,23 @@ function irALista() {
     }
     var arbol = construirArbol(res.documentos);
     container.innerHTML = '';
+
+    if (res.avisos && res.avisos.length > 0) {
+      var avisosBox = document.createElement('div');
+      avisosBox.className = 'avisos-box';
+      res.avisos.forEach(function (aviso) {
+        var p = document.createElement('p');
+        p.textContent = '⚠ ' + aviso;
+        avisosBox.appendChild(p);
+      });
+      container.appendChild(avisosBox);
+    }
+
     if (arbol.length === 0) {
-      container.innerHTML = '<p style="font-size:13px; color:var(--muted);">Todavía no hay documentos cargados.</p>';
+      var vacio = document.createElement('p');
+      vacio.style.cssText = 'font-size:13px; color:var(--muted);';
+      vacio.textContent = 'Todavía no hay documentos cargados.';
+      container.appendChild(vacio);
       return;
     }
     renderizarCategorias(arbol, container, 0);
@@ -303,6 +324,10 @@ function abrirPdf(fileId, nombre) {
       document.getElementById('cargando').textContent = res.error || 'Error al cargar el documento.';
       return;
     }
+    if (typeof pdfjsLib === 'undefined') {
+      document.getElementById('cargando').textContent = 'No se pudo cargar la librería de lectura de PDF (verifique conexión / bloqueo de red).';
+      return;
+    }
     var raw = atob(res.base64);
     var bytes = new Uint8Array(raw.length);
     for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
@@ -313,11 +338,11 @@ function abrirPdf(fileId, nombre) {
       estado.totalPaginas = pdf.numPages;
       estado.paginaActual = 1;
       renderizarPagina();
-    }).catch(function () {
-      document.getElementById('cargando').textContent = 'Error al procesar el PDF.';
+    }).catch(function (err) {
+      document.getElementById('cargando').textContent = 'Error al procesar el PDF: ' + (err && err.message ? err.message : err);
     });
-  }).catch(function () {
-    document.getElementById('cargando').textContent = 'Error de conexión al cargar el documento.';
+  }).catch(function (err) {
+    document.getElementById('cargando').textContent = 'Error al cargar el documento: ' + (err && err.message ? err.message : err);
   });
 }
 
