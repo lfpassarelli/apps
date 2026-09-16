@@ -352,19 +352,27 @@ function renderizarPagina() {
     var ctx = canvas.getContext('2d');
     var wrap = document.getElementById('canvas-wrap');
 
-    // Escala dinámica: usa el ancho y alto disponibles del contenedor
+    // Escala de exibición: usa el ancho y alto disponibles del contenedor
     var baseViewport = page.getViewport({ scale: 1 });
     var anchoDisponible = wrap.clientWidth - 48;
     var altoDisponible = wrap.clientHeight - 48;
-    var escala = Math.min(anchoDisponible / baseViewport.width, altoDisponible / baseViewport.height);
-    escala = Math.max(escala, 0.5);
-    var viewport = page.getViewport({ scale: escala });
+    var escalaDisplay = Math.min(anchoDisponible / baseViewport.width, altoDisponible / baseViewport.height);
+    escalaDisplay = Math.max(escalaDisplay, 0.5);
 
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    // Resolución interna del canvas: más alta que la de exhibición para mantener el texto nítido
+    // (Retina/alta densidad), luego se reduce visualmente vía CSS.
+    var pixelRatio = window.devicePixelRatio || 1;
+    var factorNitidez = Math.max(pixelRatio, 2); // mínimo 2x para que el texto siempre quede legible
+    var viewportDisplay = page.getViewport({ scale: escalaDisplay });
+    var viewportRender = page.getViewport({ scale: escalaDisplay * factorNitidez });
 
-    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function () {
-      dibujarMarcaDeAgua(ctx, canvas.width, canvas.height);
+    canvas.width = viewportRender.width;
+    canvas.height = viewportRender.height;
+    canvas.style.width = viewportDisplay.width + 'px';
+    canvas.style.height = viewportDisplay.height + 'px';
+
+    page.render({ canvasContext: ctx, viewport: viewportRender }).promise.then(function () {
+      dibujarMarcaDeAgua(ctx, canvas.width, canvas.height, factorNitidez);
       document.getElementById('cargando').classList.add('oculto');
       canvas.classList.remove('oculto');
       document.getElementById('lector-pagina').textContent = estado.paginaActual + ' / ' + estado.totalPaginas;
@@ -375,15 +383,16 @@ function renderizarPagina() {
   });
 }
 
-function dibujarMarcaDeAgua(ctx, w, h) {
+function dibujarMarcaDeAgua(ctx, w, h, factor) {
+  factor = factor || 1;
   var texto = estado.nombre + '  ·  ' + new Date().toLocaleDateString('es-CO');
   ctx.save();
   ctx.globalAlpha = 0.14;
   ctx.fillStyle = '#4B3E98';
-  ctx.font = '16px sans-serif';
+  ctx.font = (16 * factor) + 'px sans-serif';
   ctx.translate(w / 2, h / 2);
   ctx.rotate(-Math.PI / 6);
-  var espacioY = 90;
+  var espacioY = 90 * factor;
   for (var y = -h; y < h; y += espacioY) {
     ctx.fillText(texto + '     ' + texto, -w, y);
   }
