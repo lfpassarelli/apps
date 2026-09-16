@@ -37,7 +37,13 @@
     width: 100%; max-width: 360px; background: var(--bg);
     border: 0.5px solid var(--border); border-radius: 16px; padding: 2rem 1.75rem;
   }
-  .card-login img { display: block; margin: 0 auto 1.5rem; height: 36px; background: var(--purple); padding: 8px 14px; border-radius: 8px; }
+  .card-login .logo-wrap { display: flex; justify-content: center; margin: 0 0 1.5rem; }
+  .card-login img { display: block; height: 56px; background: var(--purple); padding: 12px 20px; border-radius: 10px; }
+  .logo-fallback {
+    height: 56px; background: var(--purple); color: #fff; padding: 12px 24px; border-radius: 10px;
+    align-items: center; justify-content: center; font-family: 'Outfit', sans-serif; font-weight: 500;
+    font-size: 20px; letter-spacing: 0.04em;
+  }
   .card-login h1 { font-size: 18px; text-align: center; margin: 0 0 4px; }
   .card-login p.sub { font-size: 13px; color: var(--muted); text-align: center; margin: 0 0 24px; }
   label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
@@ -88,7 +94,10 @@
 <!-- ===== LOGIN ===== -->
 <div id="pantalla-login" class="pantalla activa">
   <div class="card-login">
-    <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" />
+    <div class="logo-wrap">
+      <img src="https://lfpassarelli.github.io/apps/images/Logo_V_Corta_Blanco.png" alt="LIV" onerror="this.remove(); document.getElementById('logo-fallback').style.display='flex';" />
+      <div id="logo-fallback" class="logo-fallback" style="display:none;">LIV</div>
+    </div>
     <h1>Documentos pedagógicos</h1>
     <p class="sub">Acceda con su usuario y contraseña</p>
     <label for="in-usuario">Usuario</label>
@@ -133,7 +142,7 @@
 
 <script>
 // ===== CONFIGURACIÓN =====
-var API_URL = 'https://script.google.com/macros/s/AKfycbwoFRYMAAOfEKt03zsC9iRaPn-zLa-Hz9LyIPOwuTCiFKPf-jyp8-j7HMtSuvRdztJi/exec';
+var API_URL = 'PEGAR_AQUI_LA_URL_DEL_APPS_SCRIPT_DEPLOYADO';
 
 // ===== ESTADO =====
 var estado = {
@@ -207,9 +216,45 @@ function irALista() {
       container.innerHTML = '<p style="font-size:13px; color:#A32D2D;">' + (res.error || 'Error al cargar documentos.') + '</p>';
       return;
     }
+    var arbol = construirArbol(res.documentos);
     container.innerHTML = '';
-    renderizarCategorias(res.categorias, container, 0);
+    if (arbol.length === 0) {
+      container.innerHTML = '<p style="font-size:13px; color:var(--muted);">Todavía no hay documentos cargados.</p>';
+      return;
+    }
+    renderizarCategorias(arbol, container, 0);
+  }).catch(function () {
+    container.innerHTML = '<p style="font-size:13px; color:#A32D2D;">Error de conexión al cargar documentos.</p>';
   });
+}
+
+// Convierte la lista plana { categoria, subcategoria, nombre, fileId }
+// en un árbol de categorías, preservando el orden de aparición en la planilla.
+function construirArbol(documentos) {
+  var categorias = [];
+  var indiceCategorias = {};
+
+  documentos.forEach(function (doc) {
+    if (!indiceCategorias[doc.categoria]) {
+      var nuevaCat = { nombre: doc.categoria, archivos: [], subcategorias: [], _indiceSub: {} };
+      indiceCategorias[doc.categoria] = nuevaCat;
+      categorias.push(nuevaCat);
+    }
+    var cat = indiceCategorias[doc.categoria];
+
+    if (doc.subcategoria) {
+      if (!cat._indiceSub[doc.subcategoria]) {
+        var nuevaSub = { nombre: doc.subcategoria, archivos: [], subcategorias: [] };
+        cat._indiceSub[doc.subcategoria] = nuevaSub;
+        cat.subcategorias.push(nuevaSub);
+      }
+      cat._indiceSub[doc.subcategoria].archivos.push({ id: doc.fileId, nombre: doc.nombre });
+    } else {
+      cat.archivos.push({ id: doc.fileId, nombre: doc.nombre });
+    }
+  });
+
+  return categorias;
 }
 
 function renderizarCategorias(categorias, container, nivel) {
@@ -268,7 +313,11 @@ function abrirPdf(fileId, nombre) {
       estado.totalPaginas = pdf.numPages;
       estado.paginaActual = 1;
       renderizarPagina();
+    }).catch(function () {
+      document.getElementById('cargando').textContent = 'Error al procesar el PDF.';
     });
+  }).catch(function () {
+    document.getElementById('cargando').textContent = 'Error de conexión al cargar el documento.';
   });
 }
 
