@@ -604,8 +604,6 @@ function renderScenario(card, cfg, r, g){
 function recalcAll(){
   const g = collectGlobals();
   document.querySelectorAll('.scenario-card').forEach(function(card){
-    const durationSelect = card.querySelector('.sc-duration');
-    buildYearDiscountFields(card);
     const preescolarBox = card.querySelector('.sc-preescolar');
     preescolarBox.disabled = g.preescolarCount <= 0;
     if (g.preescolarCount <= 0) preescolarBox.checked = false;
