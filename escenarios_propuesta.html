@@ -217,7 +217,7 @@
     <div class="bloque-title"><span class="n">2</span>Escenarios</div>
     <div class="top-actions">
       <button id="btn-defaults" type="button">Restaurar valores sugeridos</button>
-      <button id="btn-client-view" type="button" class="primary">Generar propuesta para el cliente ↗</button>
+      <button id="btn-client-view" type="button" class="primary">Generar escenarios para presentar ↗</button>
     </div>
 
     <div class="scenarios-grid" id="scenarios-grid">
@@ -240,7 +240,7 @@
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
-          <label>Exención total Preescolar año 1</label>
+          <label>Bonificación del Preescolar para el año 1</label>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-sala">
@@ -273,7 +273,7 @@
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
-          <label>Exención total Preescolar año 1</label>
+          <label>Bonificación del Preescolar para el año 1</label>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-sala">
@@ -306,7 +306,7 @@
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-preescolar">
-          <label>Exención total Preescolar año 1</label>
+          <label>Bonificación del Preescolar para el año 1</label>
         </div>
         <div class="sc-toggle">
           <input type="checkbox" class="sc-sala">
@@ -434,9 +434,13 @@ function buildYearDiscountFields(card){
     const lbl = document.createElement('label');
     lbl.textContent = 'Año ' + y;
     const inp = document.createElement('input');
-    inp.type = 'number'; inp.min = '0'; inp.max = '100';
+    inp.type = 'text'; inp.inputMode = 'numeric'; inp.pattern = '[0-9]*'; inp.maxLength = 3;
     inp.value = previous[y - 1] || 0;
-    inp.addEventListener('input', recalcAll);
+    inp.addEventListener('input', function(){
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (Number(this.value) > 100) this.value = '100';
+      recalcAll();
+    });
     wrap.appendChild(lbl); wrap.appendChild(inp);
     box.appendChild(wrap);
   }
@@ -688,13 +692,10 @@ function buildClientHTML(selected, g){
   let sectionsHtml = '';
   selected.forEach(function(s){
     const cfg = s.cfg, r = s.r;
+    const heroBlended = r.yearEnrolled[0] > 0 ? r.yearRevenue[0] / r.yearEnrolled[0] : r.yearPrices[0];
     const heroDiscount = cfg.yearDiscounts[0] || 0;
     const heroBadge = heroDiscount > 0
       ? '<span class="client-discount-badge">-' + heroDiscount + '%</span>' : '';
-    const heroBlended = r.yearEnrolled[0] > 0 ? r.yearRevenue[0] / r.yearEnrolled[0] : r.yearPrices[0];
-    const heroShowRef = Math.abs(heroBlended - r.yearPrices[0]) > 0.5;
-    const heroRef = heroShowRef
-      ? '<span class="client-year-hero-ref">(' + fmtMoney(r.yearPrices[0], g.country) + ' por alumno cobrado)</span>' : '';
 
     const benefitBadges = [];
     if (cfg.preescolarExento) benefitBadges.push('<span class="client-benefit-badge">Preescolar sin costo el primer año</span>');
@@ -705,13 +706,10 @@ function buildClientHTML(selected, g){
       const disc = cfg.yearDiscounts[i] || 0;
       const discBadge = disc > 0 ? '<span class="client-discount-badge">-' + disc + '%</span>' : '';
       const blended = r.yearEnrolled[i] > 0 ? r.yearRevenue[i] / r.yearEnrolled[i] : r.yearPrices[i];
-      const showRef = Math.abs(blended - r.yearPrices[i]) > 0.5;
-      const refSpan = showRef
-        ? '<span class="client-year-row-ref">(' + fmtMoney(r.yearPrices[i], g.country) + ' por alumno cobrado)</span>' : '';
       yearRows += '<div class="client-year-row">' +
         '<span class="client-year-row-label">Año ' + (i+1) + '</span>' +
         '<span class="client-year-row-price">' + fmtMoney(blended, g.country) + '<span class="unit">/alumno</span></span>' +
-        refSpan + discBadge +
+        discBadge +
         '<span class="client-year-row-students">' + r.yearEnrolled[i] + ' alumnos</span>' +
         '</div>';
     }
@@ -723,7 +721,7 @@ function buildClientHTML(selected, g){
       '<div class="client-year-hero">' +
         '<span class="client-year-hero-label">Año 1</span>' +
         '<span class="client-year-hero-price">' + fmtMoney(heroBlended, g.country) + '<span class="unit">/alumno</span></span>' +
-        heroRef + heroBadge + benefitBadges.join('') +
+        heroBadge + benefitBadges.join('') +
         '<span class="client-year-hero-students">' + r.yearEnrolled[0] + ' alumnos atendidos</span>' +
       '</div>' +
       (yearRows ? '<div class="client-year-list">' + yearRows + '</div>' : '') +
