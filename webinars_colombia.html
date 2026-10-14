@@ -161,6 +161,12 @@
   <div id="dash" class="hide">
     <div class="toolbar">
       <div class="src"><i class="ti"></i><span id="srcname"></span> · <button class="btn ghost" id="reimport" style="padding:5px 12px;font-size:12px">Actualizar datos</button> <button class="btn" id="export" style="padding:5px 12px;font-size:12px">Exportar PDF</button></div>
+      <div class="src">
+        <label for="eventoSel" style="margin-right:6px;color:var(--ink-2)">Webinar:</label>
+        <select id="eventoSel" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--ink);background:var(--card)">
+          <option value="Todos">Todos</option>
+        </select>
+      </div>
     </div>
 
     <div id="printinfo" class="printonly"></div>
@@ -210,7 +216,9 @@ function nivelCalifOk(r){
 function cargoCalifOk(r){ return CARGO_CALIF.includes(r.cargo); }
 function esRegistrado(r){ return esInscripto(r) && alcanzo(r,'Registrado') && nivelCalifOk(r) && cargoCalifOk(r); }
 
-let RECORDS = [];           // todas las filas válidas (sin test)
+let RECORDS = [];           // todas las filas válidas (sin test) — ya filtradas por Tag fuente
+let EVENTO_ITEMS = {};      // {itemId: label} — solo items de 'Evento' con 'Webinar' o 'Foro' en el nombre
+let eventoSel = 'Todos';    // filtro actual del dropdown de Evento
 let activeTab = 0;
 let charts = {};
 
@@ -226,8 +234,9 @@ const B24_USER = '1';
 const CATEGORY_ID = 27;                          // pipeline "1. [COL] Eventos"
 
 // campos personalizados mapeados desde crm.deal.fields / crm.contact.fields
-const F_TAGFUENTE = 'UF_CRM_1771422860';          // "Tag fuente" — filtra el pipeline
+const F_TAGFUENTE = 'UF_CRM_1771422860';          // "Tag fuente" — filtra el pipeline (tipo de evento, fijo)
 const TAGFUENTE_WEBINAR_ID = '10083';             // item "Webinar LIV - MKT"
+const F_EVENTO     = 'UF_CRM_1760998704';         // "Evento" — distingue CUÁL webinar/foro (dropdown)
 const F_NIVELES    = 'UF_CRM_1771426916';
 const F_CALENDARIO = 'UF_CRM_1781635944';
 const F_ALUMNOS    = 'UF_CRM_1771160586';
@@ -278,7 +287,7 @@ async function fetchAllDeals(){
   while(true){
     const data = await b24call('crm.deal.list', {
       filter: { CATEGORY_ID, [F_TAGFUENTE]: TAGFUENTE_WEBINAR_ID },
-      select: ['ID','TITLE','STAGE_ID','PREVIOUS_STAGE_ID',F_NIVELES,F_CALENDARIO,F_ALUMNOS,F_CAMPANHA,'COMPANY_ID','CONTACT_ID'],
+      select: ['ID','TITLE','STAGE_ID','PREVIOUS_STAGE_ID',F_NIVELES,F_CALENDARIO,F_ALUMNOS,F_CAMPANHA,F_EVENTO,'COMPANY_ID','CONTACT_ID'],
       start
     });
     all = all.concat(data.result);
@@ -286,6 +295,21 @@ async function fetchAllDeals(){
     start = data.next;
   }
   return all;
+}
+
+// trae los items de la enumeración 'Evento' y se queda solo con los que tienen
+// 'Webinar' o 'Foro' en el nombre — así el dropdown se actualiza solo cuando marketing
+// agrega un webinar nuevo a la lista en Bitrix, sin tocar código.
+async function fetchEventoItems(){
+  const data = await b24call('crm.deal.fields', {});
+  const field = (data.result && data.result[F_EVENTO]) || null;
+  const items = (field && field.items) || [];
+  const map = {};
+  items.forEach(it=>{
+    const val = it.VALUE || '';
+    if(/webinar|foro/i.test(val)) map[it.ID] = val;
+  });
+  return map;
 }
 
 async function fetchCargoByContact(contactIds){
@@ -303,6 +327,7 @@ async function fetchCargoByContact(contactIds){
 }
 
 async function loadFromBitrix(){
+  EVENTO_ITEMS = await fetchEventoItems();   // se refresca en cada carga/actualización
   const deals = await fetchAllDeals();
   const negocio = t => (t||'');
   const filtered = deals.filter(d=>{
@@ -323,9 +348,23 @@ async function loadFromBitrix(){
       niveles: d[F_NIVELES] || '',
       calendario: d[F_CALENDARIO] || '',
       alumnos: alumRaw ? parseInt(alumRaw,10) : 0,
+      evento: d[F_EVENTO] || null,
       empresa: d.COMPANY_ID || ('__r'+d.ID)
     };
   });
+}
+
+function populateEventoSelect(){
+  const sel = document.getElementById('eventoSel');
+  const current = eventoSel;
+  const opts = ['<option value="Todos">Todos</option>'];
+  Object.entries(EVENTO_ITEMS).sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([id,label])=>{
+    opts.push(`<option value="${id}">${esc(label)}</option>`);
+  });
+  sel.innerHTML = opts.join('');
+  // si el webinar seleccionado ya no existe en la lista (ej. tras actualizar datos), vuelve a 'Todos'
+  eventoSel = (current==='Todos' || (current in EVENTO_ITEMS)) ? current : 'Todos';
+  sel.value = eventoSel;
 }
 
 // canal = a partir de cf_campanha: termina en "-rs" → Inbound; cualquier otro valor (incl. vacío) → Relación directa
@@ -349,7 +388,7 @@ function escuelasUnicas(rows){ return new Set(rows.map(r=>r.empresa)).size; }
 // El criterio de perfil (nivel Preescolar/Primaria + cargo de la lista) ya NO filtra el universo —
 // solo se usa para mostrar, dentro de cada card, cuántos de esos Registrados son "perfil calificado".
 function compute(){
-  const base = RECORDS;
+  const base = eventoSel==='Todos' ? RECORDS : RECORDS.filter(r=>r.evento===eventoSel);
   const insc = base.filter(esInscripto);                       // alcanzó cualquier etapa trackeada
   const registrados = insc.filter(r=>alcanzo(r,'Registrado'));  // TODOS los que llegaron a Registrado — nueva base
   const qualified = registrados.filter(esRegistrado);           // subconjunto perfil calificado (nivel + cargo)
@@ -685,6 +724,8 @@ async function connectAndLoad(){
   try{
     RECORDS = await loadFromBitrix();
     if(!RECORDS.length) throw new Error('No se encontraron negocios en el pipeline de Eventos.');
+    eventoSel='Todos';
+    populateEventoSelect();
     activeTab=0;
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t==='0'));
     document.querySelectorAll('.panel').forEach(pa=>pa.classList.toggle('hide',pa.dataset.p!=='0'));
@@ -701,6 +742,7 @@ async function refreshData(){
   btn.textContent='Actualizando...'; btn.disabled=true;
   try{
     RECORDS = await loadFromBitrix();
+    populateEventoSelect();
     const now = new Date().toLocaleString('es-CO');
     document.getElementById('srcname').textContent = 'Bitrix24 en vivo · actualizado '+now;
     renderActive();
@@ -714,6 +756,10 @@ async function refreshData(){
 document.getElementById('pick').addEventListener('click',connectAndLoad);
 document.getElementById('reimport').addEventListener('click',refreshData);
 document.getElementById('token').addEventListener('keydown',e=>{ if(e.key==='Enter') connectAndLoad(); });
+document.getElementById('eventoSel').addEventListener('change',e=>{
+  eventoSel = e.target.value;
+  renderActive();
+});
 
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
@@ -728,8 +774,9 @@ function exportPDF(){
   document.body.classList.add('exporting');
   destroyTab(0); renderTab0(D);
   destroyTab(1); renderTab1(D);
+  const eventoTxt = eventoSel==='Todos' ? 'Todos los webinars/foros' : (EVENTO_ITEMS[eventoSel] || eventoSel);
   document.getElementById('printinfo').textContent =
-    'Generado el ' + new Date().toLocaleDateString('es-CO');
+    eventoTxt + ' · Generado el ' + new Date().toLocaleDateString('es-CO');
   setTimeout(()=>window.print(), 80);   // deja pintar los gráficos antes de imprimir
 }
 window.addEventListener('afterprint',()=>{
