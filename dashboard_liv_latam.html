@@ -511,13 +511,13 @@ body{font-family:var(--f);background:var(--bg);color:var(--text);font-size:13px;
   <div id="ua">
     <div class="uz">
       <div class="uz-icon">&#128268;</div>
-      <h3>Conectar ao Bitrix24</h3>
-      <p>Ingrese el token del webhook para cargar el pipeline del pa&iacute;s y la campa&ntilde;a seleccionados</p>
+      <h3>Conectar el CRM</h3>
+      <p>Ingrese la contraseña para cargar el pipeline del pa&iacute;s y la campa&ntilde;a seleccionados</p>
       <div style="max-width:380px;margin:20px auto 0;display:flex;gap:8px;">
-        <input type="password" id="token-input" class="tokinp" placeholder="Token del webhook" onkeydown="if(event.key==='Enter')connectAndLoad()">
+        <input type="password" id="token-input" class="tokinp" placeholder="Contraseña" onkeydown="if(event.key==='Enter')connectAndLoad()">
         <button class="bapply" style="width:auto;margin-top:0;padding:9px 18px;white-space:nowrap;" onclick="connectAndLoad()">Conectar</button>
       </div>
-      <p style="margin-top:14px;font-size:11px;color:var(--muted);">El token permanece solo en la memoria de esta pesta&#241;a &#8212; no se guarda en ning&uacute;n lugar.</p>
+      <p style="margin-top:14px;font-size:11px;color:var(--muted);">La contraseña permanece solo en la memoria de esta pesta&#241;a &#8212; no se guarda en ning&uacute;n lugar.</p>
       <div id="conn-status" style="margin-top:16px;"></div>
     </div>
   </div>
