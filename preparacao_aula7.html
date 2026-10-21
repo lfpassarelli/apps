@@ -1,0 +1,174 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Disputa Vale Sul</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap">
+<style>
+/* Layout: coluna única de leitura, navegação fixa por âncoras, seções separadas por títulos grandes. Identidade Neolevel: escuro + ciano. */
+:root{
+  --bg:#0A0E14; --card:#12181F; --line:#222B36; --fg:#E8EDF3; --muted:#9AA6B4;
+  --accent:#00F0FF; --accent-ink:#06222A; --accent-soft:rgba(0,240,255,.10);
+  --warn:#FFB347; --a:#00F0FF; --b:#B58CFF;
+  --hf:'Poppins',system-ui,sans-serif; --bf:'Inter',system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#F5F7FA; --card:#FFFFFF; --line:#DDE3EA; --fg:#1C2530; --muted:#5B6674;
+  --accent:#00899A; --accent-ink:#FFFFFF; --accent-soft:rgba(0,137,154,.09);
+  --warn:#B36A00; --a:#00899A; --b:#6B3FC4; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#F5F7FA; --card:#FFFFFF; --line:#DDE3EA; --fg:#1C2530; --muted:#5B6674;
+  --accent:#00899A; --accent-ink:#FFFFFF; --accent-soft:rgba(0,137,154,.09);
+  --warn:#B36A00; --a:#00899A; --b:#6B3FC4; color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--bf);padding-block:0 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto}
+header{padding-block:40px 24px}
+.eyebrow{font:500 12px var(--bf);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(28px,6vw,44px)/1.1 var(--hf);margin:10px 0 12px;text-wrap:balance}
+.lead{color:var(--muted);max-width:60ch;margin:0}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;display:flex;gap:8px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line)}
+nav a{white-space:nowrap;color:var(--muted);text-decoration:none;font:500 14px var(--bf);padding:6px 12px;border-radius:999px;border:1px solid var(--line)}
+nav a:hover,nav a:focus-visible{color:var(--fg);border-color:var(--accent);outline:none}
+section{padding-top:48px;scroll-margin-top:60px}
+h2{font:600 clamp(22px,4vw,28px)/1.2 var(--hf);margin:0 0 6px}
+h3{font:600 17px/1.3 var(--hf);margin:0 0 6px}
+.sub{color:var(--muted);margin:0 0 20px;max-width:62ch}
+p{margin:0 0 12px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.card ul,ul.l,ol.l{margin:0;padding-left:20px}
+li{margin-bottom:6px}
+.tag{display:inline-block;font:600 12px var(--bf);letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-bottom:10px}
+.tA{color:var(--a);background:var(--accent-soft)} .tB{color:var(--b);background:rgba(181,140,255,.12)}
+.note{background:var(--accent-soft);border-radius:10px;padding:14px 16px;margin-top:16px}
+.warn{background:rgba(255,179,71,.10);color:var(--fg)}
+.warn strong{color:var(--warn)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--bf);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font:600 16px var(--hf);color:var(--accent);white-space:nowrap}
+.steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));counter-reset:s}
+.steps .card{counter-increment:s}
+.steps .card::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 14px var(--hf);margin-bottom:10px}
+.formula{font:500 15px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0;overflow-x:auto}
+dl{margin:0;display:grid;gap:10px}
+dt{font-weight:600} dd{margin:0;color:var(--muted)}
+.mail{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mail code{font:500 16px ui-monospace,Menlo,Consolas,monospace;color:var(--accent);word-break:break-all}
+button{font:600 14px var(--bf);background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.score{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:480px){.score{grid-template-columns:1fr}}
+.big{font:700 40px/1 var(--hf);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Neolevel · Vendas e Relacionamento com Clientes · Aula 6</div>
+  <h1>Disputa Vale Sul</h1>
+  <p class="lead">Duas empresas concorrentes vendem para o mesmo cliente. Esta página reúne os dados do cliente, o método, as fórmulas e o prazo da proposta. Consulte durante a aula e depois dela.</p>
+</header>
+
+<nav aria-label="Seções"><a href="#cliente">Cliente</a><a href="#metodo">Método</a><a href="#contas">Contas</a><a href="#email">Proposta</a><a href="#glossario">Glossário</a>
+</nav>
+
+<section id="cliente">
+  <h2>Cliente: Vale Sul Distribuição</h2>
+  <p class="sub">Dados públicos do comprador.</p>
+  <div class="card"><ul>
+    <li>3 centros de distribuição.</li>
+    <li>Cerca de 9.000 SKUs.</li>
+    <li>ERP próprio, o que torna a integração um ponto sensível.</li>
+    <li>Perda estimada de R$ 900 mil por ano com falhas de estoque.</li>
+    <li>Decisão em até 30 dias.</li>
+    <li>Contrato de 12 meses, com abertura para 24.</li>
+  </ul></div>
+</section>
+
+<section id="metodo">
+  <h2>Método para objeções</h2>
+  <p class="sub">Use a mesma sequência em qualquer objeção.</p>
+  <div class="steps">
+    <div class="card"><h3>Ouvir</h3><p class="muted" style="margin:0">Deixe o cliente terminar. Anote as palavras dele.</p></div>
+    <div class="card"><h3>Acolher</h3><p class="muted" style="margin:0">Mostre que entendeu a preocupação, sem concordar nem discutir.</p></div>
+    <div class="card"><h3>Explorar</h3><p class="muted" style="margin:0">Pergunte até achar a causa real da objeção.</p></div>
+    <div class="card"><h3>Responder</h3><p class="muted" style="margin:0">Responda ao ponto que apareceu, com dado ou exemplo.</p></div>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><h3>Preço e valor</h3><p class="muted" style="margin:0">O cliente não vê retorno suficiente. Traga custo total, ganho e payback.</p></div>
+    <div class="card"><h3>Risco e confiança</h3><p class="muted" style="margin:0">O cliente teme que dê errado. Traga garantia, prazo, referência e etapas de implantação.</p></div>
+    <div class="card"><h3>Adiamento</h3><p class="muted" style="margin:0">"Vamos pensar". Mostre o custo de esperar e combine o próximo passo.</p></div>
+  </div>
+</section>
+
+<section id="contas">
+  <h2>Contas de apoio e negociação</h2>
+  <p class="sub">Fórmulas que você usará na Rodada 2.</p>
+  <div class="grid">
+    <div class="card"><h3>ROI</h3><div class="formula">ROI = (ganho − investimento) ÷ investimento</div></div>
+    <div class="card"><h3>TCO (custo total)</h3><div class="formula">TCO = licença + implantação + integração + suporte</div></div>
+    <div class="card"><h3>Payback</h3><div class="formula">payback = investimento ÷ ganho mensal</div><p class="muted" style="margin:0">Conte os meses a partir do início da operação, não da assinatura.</p></div>
+    <div class="card"><h3>Ganho no 1º ano</h3><div class="formula">ganho mensal × meses de operação</div></div>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card"><h3>Posição e interesse</h3><p class="muted" style="margin:0">A posição é o que o comprador pede ("quero 20% de desconto"). O interesse é o motivo ("preciso caber no orçamento do trimestre"). Negocie o interesse.</p></div>
+    <div class="card"><h3>Alternativa ao acordo</h3><p class="muted" style="margin:0">O que cada lado faz se não fechar. Conheça a sua e estime a do comprador.</p></div>
+    <div class="card"><h3>Moedas de troca</h3><p class="muted" style="margin:0">Prazo, escopo, contrato mais longo, referência. Use a fórmula "Se… então…": se você aceita 24 meses, então ajustamos o valor.</p></div>
+    <div class="card"><h3>Margem e desconto</h3><p class="muted" style="margin:0">Um desconto pequeno consome uma fatia grande do lucro. Calcule antes de ceder. Descontos concedidos sem contrapartida custam pontos.</p></div>
+  </div>
+</section>
+
+<section id="email">
+  <h2>Proposta por e-mail</h2>
+  <p class="sub">Entre a Aula 6 e a Aula 7, cada grupo envia a proposta formal que sustenta o pré-acordo.</p>
+  <div class="card">
+    <ul>
+      <li>Um e-mail por grupo, com no máximo 350 palavras.</li>
+      <li>Prazo final: <strong>06/11</strong>.</li>
+      <li>Inclua o valor, o que está incluso, as condições combinadas, o retorno esperado e o próximo passo.</li>
+      <li>Escreva para quem decide: o comitê da Vale Sul.</li>
+    </ul>
+    <div class="mail" style="margin-top:14px">
+      <code id="addr">passarelli@passarelliservices.com</code>
+      <button id="copy" type="button">Copiar e-mail</button>
+      <span class="muted" id="msg" role="status"></span>
+    </div>
+  </div>
+  <div class="note"><strong>Na Aula 7</strong> o professor pode reabrir o valor em nome do comitê. Escreva uma proposta que resista a isso.</div>
+</section>
+
+<section id="glossario">
+  <h2>Glossário</h2>
+  <div class="card"><dl>
+    <div><dt>Pré-acordo</dt><dd>Valor e condições que o comprador levaria ao comitê. Não é contrato.</dd></div>
+    <div><dt>Preço de tabela</dt><dd>Valor oficial antes de qualquer negociação.</dd></div>
+    <div><dt>Margem</dt><dd>Parte do preço que sobra depois dos custos.</dd></div>
+    <div><dt>TCO</dt><dd>Custo total de ter a solução: licença, implantação, integração e suporte.</dd></div>
+    <div><dt>ROI</dt><dd>Quanto a empresa ganha em relação ao que investiu.</dd></div>
+    <div><dt>Payback</dt><dd>Tempo, em meses de operação, para o ganho cobrir o investimento.</dd></div>
+    <div><dt>SKU</dt><dd>Cada item diferente do estoque.</dd></div>
+    <div><dt>ERP</dt><dd>Sistema que integra as áreas da empresa, como estoque, compras e financeiro.</dd></div>
+    <div><dt>Moeda de troca</dt><dd>Algo que você cede em troca de algo que ganha.</dd></div>
+    <div><dt>Comitê</dt><dd>Grupo que aprova a compra, acima do comprador.</dd></div>
+  </dl></div>
+</section>
+
+<footer><span>Mentor responsável: Passarelli</span><span>Neolevel Business School · FIESC</span></footer>
+</div>
+
+<script>
+document.getElementById('copy').addEventListener('click',function(){
+  var t=document.getElementById('addr').textContent,m=document.getElementById('msg');
+  function ok(){m.textContent='Copiado'}
+  function fb(){var r=document.createRange();r.selectNodeContents(document.getElementById('addr'));var s=getSelection();s.removeAllRanges();s.addRange(r);m.textContent='Selecionado, use copiar'}
+  try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}
+});
+</script>
+
+</body></html>
